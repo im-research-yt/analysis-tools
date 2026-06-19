@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCA / 因子分析アプリ v202606052306</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN',sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f5;padding:16px}
+h1{font-size:20px;font-weight:500;margin-bottom:1.2rem;color:#1a1a1a;display:flex;align-items:center;gap:8px}
+h2{font-size:16px;font-weight:500;margin-bottom:.6rem;color:#333}
+h3{font-size:14px;font-weight:500;margin-bottom:.4rem;color:#555}
+.container{max-width:960px;margin:0 auto}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #ddd;margin-bottom:1rem}
+.tab{padding:7px 16px;font-size:13px;cursor:pointer;border:1px solid transparent;border-bottom:none;border-radius:6px 6px 0 0;color:#666;background:none;font-family:inherit}
+.tab.active{color:#1a1a1a;border-color:#ddd;background:#fff;font-weight:500}
+.panel{display:none}.panel.active{display:block}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+label{font-size:12px;color:#666;display:block;margin-bottom:4px}
+textarea{width:100%;height:180px;font-family:monospace;font-size:12px;padding:8px;border:1px solid #ddd;border-radius:6px;background:#fafafa;color:#1a1a1a;resize:vertical;outline:none}
+textarea:focus{border-color:#378add}
+select,input[type=number]{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a1a;font-size:13px;font-family:inherit;outline:none}
+select:focus,input:focus{border-color:#378add}
+.btn-primary{background:#185FA5;color:#fff;border:none;padding:9px 20px;border-radius:7px;font-size:14px;font-weight:500;cursor:pointer;width:100%;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary:hover{background:#0c447c}
+.btn-secondary{background:#fff;color:#333;border:1px solid #ddd;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit}
+.btn-secondary:hover{background:#f5f5f5}
+.btn-download{background:#0F6E56;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
+.btn-download:hover{background:#085041}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:#f0f4fa;padding:5px 8px;text-align:right;font-weight:500;border:1px solid #ddd}
+.tbl th:first-child{text-align:left}
+.tbl td{padding:5px 8px;border:1px solid #e8e8e8;text-align:right}
+.tbl td:first-child{text-align:left;font-weight:500;color:#555;background:#f9f9f9}
+.tbl tr:hover td:not(:first-child){background:#f5f8ff}
+.hi{background:#fff3cd!important;font-weight:600;color:#7d5a00}
+.hi-rot{background:#d4edda!important;font-weight:600;color:#155724}
+.hi-corr{background:#fde8e8!important;font-weight:600;color:#721c24}
+.metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.metric{background:#f0f4fa;border-radius:8px;padding:10px 12px;border:1px solid #d0dcf0}
+.metric-lbl{font-size:11px;color:#556;margin-bottom:4px}
+.metric-val{font-size:22px;font-weight:500;color:#185FA5}
+.err{color:#721c24;font-size:13px;padding:8px 12px;background:#f8d7da;border:1px solid #f5c6cb;border-radius:6px;margin-bottom:8px}
+.info{color:#0c5460;font-size:12px;padding:6px 10px;background:#d1ecf1;border-radius:5px;margin-top:6px}
+.check-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:5px;max-height:160px;overflow-y:auto;padding:6px;border:1px solid #ddd;border-radius:6px;background:#fafafa}
+.chk-item{display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 6px;border-radius:4px;cursor:pointer;user-select:none}
+.chk-item:hover{background:#e8f0fe}
+.chk-item input{cursor:pointer}
+.chart-wrap{position:relative;width:100%}
+.section-title{font-size:15px;font-weight:500;color:#185FA5;margin:16px 0 8px;padding-bottom:5px;border-bottom:2px solid #d0dcf0}
+.star-sig{font-size:11px;color:#888;margin-left:8px;font-weight:400}
+.note{font-size:11px;color:#888;margin-top:4px}
+.overflow-x{overflow-x:auto}
+.legend-row{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px;font-size:12px;color:#555}
+.legend-item{display:flex;align-items:center;gap:5px}
+.legend-dot{width:10px;height:10px;border-radius:2px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7.5" r="1.5"/><circle cx="18" cy="6" r="1.5"/><circle cx="11.5" cy="11.5" r="1.5"/><circle cx="20" cy="17" r="1.5"/><circle cx="5" cy="17" r="1.5"/><circle cx="15" cy="14.5" r="1.5"/><line x1="7.5" y1="7.5" x2="11.5" y2="11.5"/><line x1="11.5" y1="11.5" x2="18" y2="6"/></svg>
+  PCA / 因子分析アプリ
+</h1>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('input')">① データ入力</button>
+  <button class="tab" onclick="switchTab('result')" id="tab-result">② 結果</button>
+</div>
+
+<!-- ===== 入力パネル ===== -->
+<div class="panel active" id="panel-input">
+
+<div class="card">
+  <h2>データの読み込み</h2>
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+    <button class="btn-secondary" onclick="loadExample()">📱 例題：ブランド評価（n=25, 9変数）</button>
+    <label class="btn-secondary" style="cursor:pointer;margin:0;display:inline-flex;align-items:center;gap:4px">
+      📂 CSVファイルを開く
+      <input type="file" id="pca-csv-file" accept=".csv,.txt" style="display:none" onchange="loadCSVFile(event,'csv-input')">
+    </label>
+  </div>
+  <label>CSV形式で貼り付け（1行目=変数名、1列目=ケース名）またはファイルを選択</label>
+  <textarea id="csv-input" placeholder="ID,変数1,変数2,変数3,...&#10;Case1,4,5,3,...&#10;Case2,3,4,4,..."></textarea>
+  <div id="parse-info" class="info" style="display:none"></div>
+</div>
+
+<div class="card" id="var-select-card" style="display:none">
+  <h2>変数選択</h2>
+  <div style="display:flex;gap:8px;margin-bottom:8px">
+    <button class="btn-secondary" onclick="selAll(true)">全選択</button>
+    <button class="btn-secondary" onclick="selAll(false)">全解除</button>
+  </div>
+  <div class="check-grid" id="var-checks"></div>
+</div>
+
+<div class="card">
+  <h2>分析設定</h2>
+  <div class="row">
+    <div>
+      <label>分析タイプ</label>
+      <select id="anal-type">
+        <option value="pca">主成分分析 (PCA)</option>
+        <option value="fa">因子分析（バリマックス回転・直交）</option>
+        <option value="pm">因子分析（プロマックス回転・斜交）</option>
+      </select>
+    </div>
+    <div>
+      <label>行列タイプ</label>
+      <select id="mat-type">
+        <option value="corr">相関係数行列（推奨）</option>
+        <option value="cov">分散共分散行列</option>
+      </select>
+    </div>
+  </div>
+  <div class="row3">
+    <div>
+      <label>バイプロット・スクリー表示成分数</label>
+      <select id="eg-num">
+        <option value="2">2</option>
+        <option value="3" selected>3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+      </select>
+    </div>
+    <div>
+      <label>高負荷量の閾値（色付け）</label>
+      <input type="number" id="thresh" value="0.40" step="0.05" min="0.10" max="0.90">
+    </div>
+    <div style="display:flex;align-items:flex-end;padding-bottom:2px">
+      <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:#333;cursor:pointer">
+        <input type="checkbox" id="show-scree" checked style="width:auto"> スクリープロット表示
+      </label>
+    </div>
+  </div>
+  <div id="err-msg" class="err" style="display:none"></div>
+  <button class="btn-primary" onclick="runAnalysis()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    分析を実行
+  </button>
+</div>
+
+</div>
+
+<!-- ===== 結果パネル ===== -->
+<div class="panel" id="panel-result">
+
+  <div id="result-content"></div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// ─── 例題データ ───────────────────────────────────────────
+const EX2=`Brand,V1_革新性,V2_デザイン,V3_高級感,V4_使いやすさ,V5_バッテリー,V6_カメラ,V7_価格適正,V8_信頼,V9_継続購買
+B01,5,5,5,4,3,4,5,5,4
+B02,4,4,5,3,3,3,4,4,3
+B03,5,5,5,5,5,4,3,3,3
+B04,6,6,6,4,5,3,5,5,4
+B05,4,4,5,4,4,4,5,6,6
+B06,5,4,5,3,4,4,5,5,5
+B07,6,6,6,5,6,5,4,3,3
+B08,6,5,6,5,3,4,4,4,3
+B09,3,4,4,3,3,3,5,5,4
+B10,6,5,5,5,4,5,6,5,6
+B11,4,4,5,3,2,2,3,4,4
+B12,4,4,4,5,4,5,4,4,3
+B13,5,5,5,2,2,2,2,3,3
+B14,2,2,2,3,2,3,3,2,3
+B15,3,3,3,4,4,4,5,5,7
+B16,4,4,4,5,5,5,5,6,5
+B17,3,4,3,5,3,4,5,4,4
+B18,5,5,5,4,4,4,6,6,4
+B19,3,3,4,3,4,4,5,4,4
+B20,3,2,4,3,2,3,5,4,3
+B21,6,7,6,4,4,3,5,3,4
+B22,4,4,5,3,3,4,7,5,6
+B23,5,4,5,5,5,5,4,4,4
+B24,3,2,4,3,4,5,6,6,6
+B25,4,4,4,2,2,3,1,2,2`;
+
+// ─── グローバル変数 ────────────────────────────────────────
+let parsedData=null, varNames=[], caseNames=[], rawMatrix=[];
+let screeChart=null, biplotChart=null, scoreChart=null, loadingChart=null;
+
+// ─── CSV解析 ──────────────────────────────────────────────
+function loadCSVFile(event, targetId){
+  const file = event.target.files[0];
+  if(!file) return;
+  // UTF-8で読み込み、文字化けならShift-JISで再試行
+  const tryRead = (encoding) => {
+    const reader = new FileReader();
+    reader.onload = function(e){
+      let text = e.target.result.replace(/^\uFEFF/, '');
+      // 文字化け簡易チェック（置換文字が多い場合はShift-JISで再試行）
+      if(encoding === 'UTF-8' && (text.match(/\uFFFD/g)||[]).length > 5){
+        tryRead('Shift-JIS'); return;
+      }
+      document.getElementById(targetId).value = text;
+      if(targetId === 'csv-input') parseCSV();
+    };
+    reader.readAsText(file, encoding);
+  };
+  tryRead('UTF-8');
+  event.target.value = '';
+}
+
+function loadExample(){ document.getElementById('csv-input').value=EX2; parseCSV(); }
+
+function loadCSVFile(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    // BOM除去
+    let text = e.target.result.replace(/^﻿/, '');
+    document.getElementById('csv-input').value = text;
+    parseCSV();
+  };
+  reader.readAsText(file, 'UTF-8');
+  // 同じファイルを再選択できるようリセット
+  event.target.value = '';
+}
+
+function parseCSV(){
+  const txt=document.getElementById('csv-input').value.trim();
+  if(!txt) return;
+  const lines=txt.split('\n').map(l=>l.trim()).filter(l=>l);
+  if(lines.length<3){ return; }
+  const headers=lines[0].split(',');
+  varNames=headers.slice(1);
+  caseNames=[]; rawMatrix=[];
+  for(let i=1;i<lines.length;i++){
+    const cols=lines[i].split(',');
+    const row=cols.slice(1).map(v=>parseFloat(v.trim()));
+    if(row.some(isNaN)||row.length<varNames.length) continue;
+    caseNames.push(cols[0].trim());
+    rawMatrix.push(row);
+  }
+  parsedData={n:rawMatrix.length,m:varNames.length};
+  const info=document.getElementById('parse-info');
+  info.style.display='block';
+  info.textContent=`読み込み完了：${parsedData.n} ケース × ${parsedData.m} 変数`;
+  buildVarChecks();
+  document.getElementById('var-select-card').style.display='block';
+}
+document.getElementById('csv-input').addEventListener('input', parseCSV);
+
+function buildVarChecks(){
+  document.getElementById('var-checks').innerHTML=
+    varNames.map((v,i)=>`<label class="chk-item"><input type="checkbox" value="${i}" checked> ${v}</label>`).join('');
+}
+function selAll(v){ document.querySelectorAll('#var-checks input').forEach(c=>c.checked=v); }
+function getSelIdx(){ return [...document.querySelectorAll('#var-checks input:checked')].map(c=>+c.value); }
+
+// ─── エラー表示 ───────────────────────────────────────────
+function showErr(msg){ const e=document.getElementById('err-msg'); e.textContent=msg; e.style.display='block'; }
+function hideErr(){ document.getElementById('err-msg').style.display='none'; }
+
+// ─── 統計計算 ─────────────────────────────────────────────
+function computeStats(data, selIdx, useCorr){
+  const n=data.length, m=selIdx.length;
+  const X=data.map(r=>selIdx.map(j=>r[j]));
+  const mu=Array.from({length:m},(_,i)=>X.reduce((s,r)=>s+r[i],0)/n);
+  const sg=Array.from({length:m},(_,i)=>{
+    const v=X.reduce((s,r)=>s+(r[i]-mu[i])**2,0)/(n-1);
+    return Math.sqrt(v);
+  });
+  const S=Array.from({length:m},()=>Array(m).fill(0));
+  for(let k=0;k<n;k++)
+    for(let i=0;i<m;i++)
+      for(let j=i;j<m;j++){
+        S[i][j]+=(X[k][i]-mu[i])*(X[k][j]-mu[j]);
+        S[j][i]=S[i][j];
+      }
+  for(let i=0;i<m;i++) for(let j=0;j<m;j++) S[i][j]/=(n-1);
+  if(useCorr){
+    for(let i=0;i<m;i++) for(let j=0;j<m;j++)
+      S[i][j]=(i===j)?1:S[i][j]/(sg[i]*sg[j]);
+  }
+  return{X,mu,sg,S,n,m};
+}
+
+// ─── Jacobi固有値分解 ─────────────────────────────────────
+function eigen(A){
+  const n=A.length;
+  let a=A.map(r=>[...r]);
+  let V=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0));
+  for(let iter=0;iter<2000;iter++){
+    let p=0,q=1,mx=0;
+    for(let i=0;i<n;i++) for(let j=i+1;j<n;j++)
+      if(Math.abs(a[i][j])>mx){mx=Math.abs(a[i][j]);p=i;q=j;}
+    if(mx<1e-12) break;
+    const th=0.5*Math.atan2(2*a[p][q],a[p][p]-a[q][q]);
+    const c=Math.cos(th),s=Math.sin(th);
+    const na=a.map(r=>[...r]);
+    for(let i=0;i<n;i++){
+      na[p][i]=c*a[p][i]+s*a[q][i]; na[q][i]=-s*a[p][i]+c*a[q][i];
+    }
+    for(let i=0;i<n;i++){
+      na[i][p]=c*a[i][p]+s*a[i][q]; na[i][q]=-s*a[i][p]+c*a[i][q];
+    }
+    na[p][p]=c*c*a[p][p]+2*s*c*a[p][q]+s*s*a[q][q];
+    na[q][q]=s*s*a[p][p]-2*s*c*a[p][q]+c*c*a[q][q];
+    na[p][q]=0; na[q][p]=0; a=na;
+    const nV=V.map(r=>[...r]);
+    for(let i=0;i<n;i++){
+      nV[i][p]=c*V[i][p]+s*V[i][q]; nV[i][q]=-s*V[i][p]+c*V[i][q];
+    }
+    V=nV;
+  }
+  let eigs=Array.from({length:n},(_,i)=>({val:a[i][i],vec:V.map(r=>r[i])}));
+  eigs.sort((x,y)=>y.val-x.val);
+  // 符号補正：各固有ベクトルの正成分の和が負なら符号を反転（負荷量が正方向に集まるよう）
+  eigs.forEach(e=>{
+    const sumPos=e.vec.reduce((s,v)=>s+v,0);
+    if(sumPos<0) e.vec=e.vec.map(v=>-v);
+  });
+  return{values:eigs.map(e=>Math.max(0,e.val)),vectors:eigs.map(e=>e.vec)};
+}
+
+// ─── バリマックス回転 ──────────────────────────────────────
+function varimax(L,m,nf){
+  let rot=Array.from({length:m},(_,i)=>Array.from({length:nf},(_,j)=>L[i][j]));
+  for(let iter=0;iter<500;iter++){
+    let changed=false;
+    for(let p=0;p<nf-1;p++) for(let q=p+1;q<nf;q++){
+      let A=0,B=0,C=0,D=0;
+      for(let i=0;i<m;i++){
+        const u=rot[i][p]**2-rot[i][q]**2, v=2*rot[i][p]*rot[i][q];
+        A+=u; B+=v; C+=u**2-v**2; D+=u*v;
+      }
+      const num=2*(m*D-A*B), den=m*C-(A**2-B**2);
+      if(Math.abs(den)<1e-10) continue;
+      const th=0.25*Math.atan2(num,den);
+      if(Math.abs(th)<1e-6) continue;
+      changed=true;
+      const c=Math.cos(th),s=Math.sin(th);
+      for(let i=0;i<m;i++){
+        const t1=c*rot[i][p]+s*rot[i][q],t2=-s*rot[i][p]+c*rot[i][q];
+        rot[i][p]=t1; rot[i][q]=t2;
+      }
+    }
+    if(!changed) break;
+  }
+  return rot;
+}
+
+// ─── プロマックス回転 ────────────────────────────────────
+// バリマックス後の負荷量をべき乗してパターン行列・構造行列・因子間相関を求める
+function promax(varimaxLoad, m, nf, power=3){
+  // Step1: 各列をノルムで正規化してターゲット行列Tを作成
+  const T=Array.from({length:m},(_,i)=>Array.from({length:nf},(_,j)=>{
+    const v=varimaxLoad[i][j];
+    return Math.sign(v)*Math.pow(Math.abs(v),power);
+  }));
+
+  // Step2: 回転行列 L = (V'V)^-1 V'T を最小二乗で求める
+  // V = varimaxLoad (m×nf), T = target (m×nf)
+  // VtV (nf×nf)
+  const VtV=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>
+    Array.from({length:m},(_,k)=>varimaxLoad[k][i]*varimaxLoad[k][j])
+      .reduce((a,b)=>a+b,0)
+  ));
+  // VtT (nf×nf)
+  const VtT=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>
+    Array.from({length:m},(_,k)=>varimaxLoad[k][i]*T[k][j])
+      .reduce((a,b)=>a+b,0)
+  ));
+  // L = inv(VtV) * VtT
+  const invVtV=matInv(VtV,nf);
+  const L=matMul(invVtV,VtT,nf,nf,nf);
+
+  // Step3: パターン行列 P = V * L
+  const P=Array.from({length:m},(_,i)=>Array.from({length:nf},(_,j)=>
+    Array.from({length:nf},(_,k)=>varimaxLoad[i][k]*L[k][j])
+      .reduce((a,b)=>a+b,0)
+  ));
+
+  // Step4: 因子間相関行列 Phi = (L'L) を正規化
+  const LtL=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>
+    Array.from({length:nf},(_,k)=>L[k][i]*L[k][j]).reduce((a,b)=>a+b,0)
+  ));
+  // 対角を1に正規化: Phi[i][j] = LtL[i][j] / sqrt(LtL[i][i]*LtL[j][j])
+  const phi=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>
+    i===j?1:LtL[i][j]/Math.sqrt(LtL[i][i]*LtL[j][j])
+  ));
+
+  // Step5: 構造行列 S = P * Phi
+  const structure=Array.from({length:m},(_,i)=>Array.from({length:nf},(_,j)=>
+    Array.from({length:nf},(_,k)=>P[i][k]*phi[k][j]).reduce((a,b)=>a+b,0)
+  ));
+
+  return{pattern:P, structure, phi};
+}
+
+// 行列演算ユーティリティ
+function matMul(A,B,r,mid,c){
+  return Array.from({length:r},(_,i)=>Array.from({length:c},(_,j)=>
+    Array.from({length:mid},(_,k)=>A[i][k]*B[k][j]).reduce((a,b)=>a+b,0)
+  ));
+}
+function matInv(A,n){
+  // ガウス・ジョルダン法
+  const M=A.map((r,i)=>[...r,...Array.from({length:n},(_,j)=>i===j?1:0)]);
+  for(let col=0;col<n;col++){
+    let pivRow=col;
+    for(let row=col+1;row<n;row++) if(Math.abs(M[row][col])>Math.abs(M[pivRow][col])) pivRow=row;
+    [M[col],M[pivRow]]=[M[pivRow],M[col]];
+    const piv=M[col][col];
+    if(Math.abs(piv)<1e-12) continue;
+    for(let j=0;j<2*n;j++) M[col][j]/=piv;
+    for(let row=0;row<n;row++){
+      if(row===col) continue;
+      const f=M[row][col];
+      for(let j=0;j<2*n;j++) M[row][j]-=f*M[col][j];
+    }
+  }
+  return M.map(r=>r.slice(n));
+}
+
+// ─── 数値フォーマット ─────────────────────────────────────
+const f4=v=>v.toFixed(4), f2=v=>v.toFixed(2), pct=v=>(v*100).toFixed(2)+'%';
+
+// ─── 分析実行 ─────────────────────────────────────────────
+function runAnalysis(){
+  hideErr();
+  if(!parsedData){showErr('先にデータを読み込んでください'); return;}
+  const selIdx=getSelIdx();
+  if(selIdx.length<3){showErr('変数を3つ以上選択してください'); return;}
+
+  const useCorr=document.getElementById('mat-type').value==='corr';
+  const analType=document.getElementById('anal-type').value;
+  const isFA=(analType==='fa'||analType==='pm');
+  const isPM=analType==='pm';
+  const compPfx=isFA?'F':'PC';
+  const egNum=+document.getElementById('eg-num').value;
+  const thresh=+document.getElementById('thresh').value;
+  const showScree=document.getElementById('show-scree').checked;
+  const selVarNames=selIdx.map(i=>varNames[i]);
+
+  const{X,mu,sg,S,n,m}=computeStats(rawMatrix,selIdx,useCorr);
+
+  // ── データ妥当性チェック ──────────────────────────────
+  // 1. 標準偏差ゼロ（定数列）
+  const zeroSdVars = selVarNames.filter((_,i) => sg[i] < 1e-10);
+  if(zeroSdVars.length > 0){
+    showErr(`以下の変数は分散がゼロ（定数）です。除外してください：${zeroSdVars.join(', ')}`);
+    return;
+  }
+  // 2. 完全相関（r=±1.0）の変数ペアを検出
+  const perfectPairs = [];
+  for(let i=0;i<m;i++) for(let j=i+1;j<m;j++){
+    if(Math.abs(S[i][j]) > 0.9999){
+      perfectPairs.push(`${selVarNames[i]} と ${selVarNames[j]}（r=${S[i][j].toFixed(4)}）`);
+    }
+  }
+  if(perfectPairs.length > 0){
+    showErr('完全相関（r≒±1）の変数ペアが含まれています。一方を除外してください：\n' + perfectPairs.join('\n'));
+    return;
+  }
+  // 3. ケース数が変数数以下
+  if(n <= m){
+    showErr(`ケース数(${n})が変数数(${m})以下です。変数を減らすかデータを増やしてください。`);
+    return;
+  }
+  // 4. 相関行列の行列式（ほぼ特異）
+  // 簡易チェック：最小固有値で代用（eigen後に確認）
+
+  const{values:eigVals,vectors:eigVecs}=eigen(S);
+
+  // 5. 最小固有値が極端に小さい（事実上の特異行列）
+  const minEig = Math.min(...eigVals);
+  if(minEig < 1e-6){
+    showErr(`相関行列がほぼ特異です（最小固有値=${minEig.toExponential(2)}）。\n完全相関や線形従属な変数が含まれている可能性があります。変数を見直してください。`);
+    return;
+  }
+  const totalVar=eigVals.reduce((a,b)=>a+b,0);
+  const contrib=eigVals.map(v=>v/totalVar);
+
+  // 主成分負荷量 PCLoad[変数i][成分j]
+  // eigVecs[j] = 第j主成分の固有ベクトル（長さm）
+  // PCLoad[i][j] = sqrt(eigVal[j]) * eigVecs[j][i]
+  // ※ 転置を明示的に行う
+  const eigVecsT = eigVecs.map(vec => [...vec]); // eigVecsT[j][i]
+  const PCLoad = Array.from({length:m}, (_,i) =>
+    Array.from({length:eigVals.length}, (_,j) =>
+      Math.sqrt(Math.max(0, eigVals[j])) * eigVecsT[j][i]
+    )
+  );
+
+  // 表示成分数の決定
+  let tblClm=1;
+  for(let i=m-1;i>=0;i--) if(eigVals[i]>=1){tblClm=i+1;break;}
+  let cum=0;
+  for(let i=0;i<m;i++){cum+=contrib[i];if(cum>=0.9){tblClm=Math.max(tblClm,i+1);break;}}
+  tblClm=Math.max(tblClm,egNum);
+
+  // バリマックス回転
+  const rotLoad=isFA?varimax(PCLoad,m,tblClm):null;
+  // プロマックス: バリマックス後にパターン行列・構造行列・因子間相関を計算
+  const pmResult=isPM&&rotLoad?promax(rotLoad,m,tblClm):null;
+
+  // 主成分得点
+  const scores=X.map(row=>{
+    const zs=useCorr?row.map((v,i)=>(v-mu[i])/sg[i]):row.map((v,i)=>v-mu[i]);
+    return eigVecs.map(vec=>vec.reduce((s,c,i)=>s+c*zs[i],0));
+  });
+
+  const pcLbls=Array.from({length:tblClm},(_,i)=>analType==='fa'?`F${i+1}`:`PC${i+1}`);
+  const fLbls=Array.from({length:tblClm},(_,i)=>`F${i+1}`);
+
+  // ─ HTML構築 ─
+  let html='';
+
+  // メトリクス
+  const cumAcc=contrib.slice(0,tblClm).reduce((a,b)=>a+b,0);
+  html+=`<div class="metric-row">
+    <div class="metric"><div class="metric-lbl">ケース数</div><div class="metric-val">${n}</div></div>
+    <div class="metric"><div class="metric-lbl">変数数（選択）</div><div class="metric-val">${m}</div></div>
+    <div class="metric"><div class="metric-lbl">${analType==="fa"?"採用因子数":"採用成分数"}</div><div class="metric-val">${tblClm}</div></div>
+    <div class="metric"><div class="metric-lbl">累積寄与率</div><div class="metric-val">${pct(cumAcc)}</div></div>
+  </div>`;
+
+  // 相関行列
+  html+=`<div class="card"><h2>${useCorr?'相関係数行列':'分散共分散行列'}
+    <span class="star-sig">** |r|&gt;0.5（赤）　* |r|&gt;0.35（橙）</span></h2>
+  <div class="overflow-x"><table class="tbl"><thead><tr><th></th>
+    ${selVarNames.map(v=>`<th style="font-size:11px">${v}</th>`).join('')}
+  </tr></thead><tbody>`;
+  for(let i=0;i<m;i++){
+    html+=`<tr><td>${selVarNames[i]}</td>`;
+    for(let j=0;j<m;j++){
+      if(i===j){html+=`<td style="background:#f0f4fa">1.000</td>`; continue;}
+      const v=S[i][j],abs=Math.abs(v);
+      let cls='',sty='';
+      if(abs>0.5){cls='hi-corr';}
+      else if(abs>0.35){sty='color:#856404;font-weight:500;background:#fff3cd';}
+      html+=`<td class="${cls}" style="${sty}">${f4(v)}</td>`;
+    }
+    html+=`</tr>`;
+  }
+  html+=`</tbody></table></div></div>`;
+
+  // 固有値表
+  html+=`<div class="card"><h2>固有値・寄与率
+    <span class="star-sig">黄：固有値 ≥ 1（カイザー基準）　緑：累積寄与率 ≥ 80%</span></h2>
+  <div class="overflow-x"><table class="tbl"><thead><tr>
+    <th>${isFA?"因子":"成分"}</th><th>固有値</th><th>寄与率(%)</th><th>累積寄与率(%)</th>
+  </tr></thead><tbody>`;
+  let cumS=0;
+  for(let i=0;i<tblClm;i++){
+    cumS+=contrib[i];
+    const hiEig=eigVals[i]>=1?'hi':'';
+    const hiCum=cumS>=0.8?'hi-rot':'';
+    html+=`<tr>
+      <td>${pcLbls[i]}</td>
+      <td class="${hiEig}">${f4(eigVals[i])}</td>
+      <td>${pct(contrib[i])}</td>
+      <td class="${hiCum}">${pct(cumS)}</td>
+    </tr>`;
+  }
+  html+=`</tbody></table></div></div>`;
+
+  // スクリープロット
+  if(showScree){
+    html+=`<div class="card"><h2>スクリープロット</h2>
+    <div class="legend-row">
+      <div class="legend-item"><span class="legend-dot" style="background:#185FA5"></span>固有値</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#E24B4A"></span>固有値 = 1（カイザー基準）</div>
+    </div>
+    <div class="chart-wrap" style="height:200px"><canvas id="scree-canvas"></canvas></div></div>`;
+  }
+
+  // 主成分負荷量
+  html+=`<div class="card"><h2>${analType==='fa'?'因子負荷量（回転前）':'主成分負荷量'}
+    <span class="star-sig">黄：|負荷量| ≥ ${thresh.toFixed(2)}</span></h2>
+  <div class="overflow-x"><table class="tbl"><thead><tr>
+    <th>変数名</th>${pcLbls.map(l=>`<th>${l}</th>`).join('')}<th>共通性</th>
+  </tr></thead><tbody>`;
+  for(let i=0;i<m;i++){
+    const h2=pcLbls.reduce((s,_,j)=>s+PCLoad[i][j]**2,0);
+    html+=`<tr><td>${selVarNames[i]}</td>
+      ${pcLbls.map((_,j)=>{const v=PCLoad[i][j];return`<td class="${Math.abs(v)>=thresh?'hi':''}">${f4(v)}</td>`}).join('')}
+      <td>${f4(h2)}</td></tr>`;
+  }
+  html+=`</tbody></table></div></div>`;
+
+  // バリマックス回転後
+  if(isFA){
+    html+=`<div class="card"><h2>${isPM?"プロマックス回転後の因子パターン行列":"バリマックス回転後の因子負荷量"}
+      <span class="star-sig">緑：|負荷量| ≥ ${thresh.toFixed(2)}</span></h2>
+    <div class="overflow-x"><table class="tbl"><thead><tr>
+      <th>変数名</th>${fLbls.map(l=>`<th>${l}</th>`).join('')}<th>共通性</th>
+    </tr></thead><tbody>`;
+    for(let i=0;i<m;i++){
+      const h2=fLbls.reduce((s,_,j)=>s+rotLoad[i][j]**2,0);
+      html+=`<tr><td>${selVarNames[i]}</td>
+        ${fLbls.map((_,j)=>{const v=rotLoad[i][j];return`<td class="${Math.abs(v)>=thresh?'hi-rot':''}">${f4(v)}</td>`}).join('')}
+        <td>${f4(h2)}</td></tr>`;
+    }
+    // 因子寄与（バリマックスのみ）
+    if(!isPM){
+      html+=`<tr style="background:#f0f4fa;font-weight:500"><td>因子寄与</td>
+        ${fLbls.map((_,j)=>`<td style="background:#fff3cd;font-weight:600">
+          ${f4(selVarNames.reduce((s,_,i)=>s+rotLoad[i][j]**2,0))}</td>`).join('')}
+        <td></td></tr>`;
+    }
+    html+=`</tbody></table></div></div>`;
+
+    // プロマックス: 構造行列・因子間相関を追加表示
+    if(isPM && pmResult){
+      // 構造行列
+      html+=`<div class="card"><h2>構造行列（Structure Matrix）
+        <span class="star-sig">各変数と各因子の相関係数</span></h2>
+      <div class="overflow-x"><table class="tbl"><thead><tr>
+        <th>変数名</th>${fLbls.map(l=>`<th>${l}</th>`).join('')}<th>共通性</th>
+      </tr></thead><tbody>`;
+      for(let i=0;i<m;i++){
+        const h2=fLbls.reduce((s,_,j)=>s+pmResult.structure[i][j]**2,0);
+        html+=`<tr><td>${selVarNames[i]}</td>
+          ${fLbls.map((_,j)=>{const v=pmResult.structure[i][j];return`<td class="${Math.abs(v)>=thresh?'hi-rot':''}">${f4(v)}</td>`}).join('')}
+          <td>${f4(h2)}</td></tr>`;
+      }
+      html+=`</tbody></table></div></div>`;
+      // 因子間相関行列
+      html+=`<div class="card"><h2>因子間相関行列（Factor Correlation Matrix）
+        <span class="star-sig">斜交解：因子間に相関を許容</span></h2>
+      <div class="overflow-x"><table class="tbl"><thead><tr>
+        <th></th>${fLbls.map(l=>`<th>${l}</th>`).join('')}
+      </tr></thead><tbody>`;
+      for(let i=0;i<tblClm;i++){
+        html+=`<tr><td>${fLbls[i]}</td>`;
+        for(let j=0;j<tblClm;j++){
+          const v=pmResult.phi[i][j];
+          const cls=(i!==j&&Math.abs(v)>=thresh)?'hi-corr':'';
+          html+=`<td class="${cls}">${i===j?'1.000':f4(v)}</td>`;
+        }
+        html+=`</tr>`;
+      }
+      html+=`</tbody></table></div></div>`;
+    }
+  }
+
+  // グラフ3点セット
+  const ax1=`${isFA?'F':'PC'}1 (${pct(contrib[0])})`;
+  const ax2=`${isFA?'F':'PC'}2 (${pct(contrib[1])})`;
+  const labelOpts=`
+    <div style="display:flex;gap:16px;margin-bottom:8px;font-size:13px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="checkbox" id="show-var-lbl" checked onchange="redrawCharts()"> 変数ラベル
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="checkbox" id="show-case-lbl" onchange="redrawCharts()"> ケースラベル
+      </label>
+    </div>`;
+  html+=`
+  <div class="card">
+    <h2>バイプロット（${isFA?'F':'PC'}1 × ${isFA?'F':'PC'}2）
+      <span class="star-sig">● ${isFA?'因子得点':'主成分得点'}　→ 変数ベクトル（負荷量）</span></h2>
+    ${labelOpts}
+    <div class="chart-wrap" style="height:360px"><canvas id="biplot-canvas"></canvas></div>
+  </div>
+`;
+
+  // 軸選択UI + 得点散布図・負荷量プロット（バイプロットの直後に配置）
+  html+=`
+  <div id="axis-selector" class="card" style="margin-bottom:8px">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;font-size:13px">
+      <span style="font-weight:500;color:#185FA5">得点散布図</span>
+      <label style="color:#555">横軸：<select id="score-xaxis" onchange="redrawSubCharts()" style="font-size:12px;padding:2px 6px;border:1px solid #ddd;border-radius:4px"></select></label>
+      <label style="color:#555">縦軸：<select id="score-yaxis" onchange="redrawSubCharts()" style="font-size:12px;padding:2px 6px;border:1px solid #ddd;border-radius:4px"></select></label>
+      <span style="font-weight:500;color:#185FA5;margin-left:12px">負荷量プロット</span>
+      <label style="color:#555">横軸：<select id="load-xaxis" onchange="redrawSubCharts()" style="font-size:12px;padding:2px 6px;border:1px solid #ddd;border-radius:4px"></select></label>
+      <label style="color:#555">縦軸：<select id="load-yaxis" onchange="redrawSubCharts()" style="font-size:12px;padding:2px 6px;border:1px solid #ddd;border-radius:4px"></select></label>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div class="card">
+      <h2>得点散布図（Score Plot）<span class="star-sig">● ${isFA?'因子得点':'主成分得点'}</span></h2>
+      <div style="margin-bottom:6px;font-size:13px">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;width:fit-content">
+          <input type="checkbox" id="show-score-lbl" onchange="redrawSubCharts()"> ケースラベル
+        </label>
+      </div>
+      <div class="chart-wrap" style="height:300px"><canvas id="score-canvas"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>負荷量プロット（Loading Plot）<span class="star-sig">● 変数の位置</span></h2>
+      <div style="margin-bottom:6px;font-size:13px">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;width:fit-content">
+          <input type="checkbox" id="show-load-lbl" checked onchange="redrawSubCharts()"> 変数ラベル
+        </label>
+      </div>
+      <div class="chart-wrap" style="height:300px"><canvas id="loading-canvas"></canvas></div>
+    </div>
+  </div>`;
+
+  // 主成分得点 / 因子得点
+  const dispPCs=Math.min(tblClm,5);
+  html+=`<div class="card"><h2>${isFA?'因子得点':'主成分得点'}（${compPfx}1〜${compPfx}${dispPCs}）</h2>
+  <div class="overflow-x"><table class="tbl"><thead><tr>
+    <th>ケース</th>${Array.from({length:dispPCs},(_,i)=>`<th>${compPfx}${i+1}</th>`).join('')}
+  </tr></thead><tbody>
+  ${caseNames.map((nm,k)=>`<tr><td>${nm}</td>
+    ${Array.from({length:dispPCs},(_,i)=>`<td>${f4(scores[k][i])}</td>`).join('')}
+  </tr>`).join('')}
+  </tbody></table></div>
+  <div style="margin-top:10px">
+    <button class="btn-download" onclick="downloadScores(${JSON.stringify(selIdx)},${tblClm},${isFA})">
+      ⬇ ${isFA?'因子得点':'主成分得点'}をCSVでダウンロード
+    </button>
+  </div></div>`;
+
+  // 結果を挿入
+  document.getElementById('result-content').innerHTML=html;
+  switchTab('result');
+
+  // ─ 得点散布図・負荷量プロット（biplot後に描画） ─
+  // DOMが確定してから描画するため setTimeout を使う
+  // 負荷量データ：全成分を保持（軸選択で任意の組み合わせに対応）
+  const loadingData = selVarNames.map((nm, i) => ({
+    name: nm,
+    vals: PCLoad[i]  // 全成分の負荷量 [PC1, PC2, PC3, ...]
+  }));
+
+  // グローバルに保存（redrawSubCharts用）
+  window._scores=scores; window._caseNames=caseNames;
+  window._contrib=contrib; window._compPfx=compPfx; window._isFA=isFA;
+  window._loadingData=loadingData;
+
+  setTimeout(()=>{
+    // セレクト初期化（innerHTML=html の後なのでDOMが確実に存在）
+    ['score-xaxis','score-yaxis','load-xaxis','load-yaxis'].forEach(id=>{
+      const sel=document.getElementById(id);
+      if(!sel) return;
+      sel.innerHTML='';
+      for(let k=0;k<tblClm;k++){
+        const opt=document.createElement('option');
+        opt.value=k; opt.textContent=`${compPfx}${k+1}`;
+        sel.appendChild(opt);
+      }
+    });
+    const sxEl=document.getElementById('score-xaxis');
+    const syEl=document.getElementById('score-yaxis');
+    const lxEl=document.getElementById('load-xaxis');
+    const lyEl=document.getElementById('load-yaxis');
+    if(sxEl) sxEl.value=0;
+    if(syEl) syEl.value=1;
+    if(lxEl) lxEl.value=0;
+    if(lyEl) lyEl.value=1;
+    drawScorePlot(scores, caseNames, contrib, compPfx, isFA, 0, 1);
+    drawLoadingPlot(loadingData, contrib, compPfx, 0, 1);
+  }, 80);
+
+  // ─ スクリープロット描画 ─
+  if(showScree){
+    if(screeChart){screeChart.destroy();screeChart=null;}
+    const ctx=document.getElementById('scree-canvas');
+    screeChart=new Chart(ctx,{
+      type:'line',
+      data:{
+        labels:pcLbls,
+        datasets:[
+          {label:'固有値',
+           data:eigVals.slice(0,tblClm),
+           borderColor:'#185FA5',backgroundColor:'rgba(24,95,165,0.08)',
+           pointBackgroundColor:'#185FA5',pointRadius:6,tension:0.2,borderWidth:2},
+          {label:'固有値=1',
+           data:Array(tblClm).fill(1),
+           borderColor:'#E24B4A',borderDash:[6,3],
+           pointRadius:0,borderWidth:1.5,fill:false}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{
+          label:ctx=>`${ctx.dataset.label}: ${f4(ctx.parsed.y)}`
+        }}},
+        scales:{
+          y:{min:0,grid:{color:'rgba(0,0,0,0.06)'},
+             title:{display:true,text:'固有値',font:{size:12}}},
+          x:{grid:{display:false},
+             title:{display:true,text:'主成分',font:{size:12}}}
+        }
+      }
+    });
+  }
+
+  // ─ バイプロット描画（Canvas 2D APIで独自ラベル描画）─
+  if(biplotChart){biplotChart.destroy();biplotChart=null;}
+  const bcanvas=document.getElementById('biplot-canvas');
+  const bctx=bcanvas.getContext('2d');
+
+  const maxScr=Math.max(...scores.flatMap(s=>[Math.abs(s[0]),Math.abs(s[1])]));
+  const scaleF=maxScr*0.82;
+
+  let xMin=0,xMax=0,yMin=0,yMax=0;
+  scores.forEach(s=>{
+    xMin=Math.min(xMin,s[0]);xMax=Math.max(xMax,s[0]);
+    yMin=Math.min(yMin,s[1]);yMax=Math.max(yMax,s[1]);
+  });
+  selVarNames.forEach((_,i)=>{
+    xMin=Math.min(xMin,PCLoad[i][0]*scaleF);xMax=Math.max(xMax,PCLoad[i][0]*scaleF);
+    yMin=Math.min(yMin,PCLoad[i][1]*scaleF);yMax=Math.max(yMax,PCLoad[i][1]*scaleF);
+  });
+  const pad=0.22;
+  const xR=xMax-xMin,yR=yMax-yMin;
+  const xlo=xMin-xR*pad, xhi=xMax+xR*pad;
+  const ylo=yMin-yR*pad, yhi=yMax+yR*pad;
+
+  // Chart.jsでプロット（データポイント＋ベクトル線）
+  const datasets=[
+    {label:'主成分得点',type:'scatter',
+     data:scores.map((s,k)=>({x:s[0],y:s[1],nm:caseNames[k]})),
+     backgroundColor:'rgba(24,95,165,0.70)',
+     pointRadius:5,pointHoverRadius:7,
+     borderColor:'rgba(24,95,165,0.95)',borderWidth:1.2}
+  ];
+  selVarNames.forEach((nm,i)=>{
+    datasets.push({
+      label:nm,type:'line',
+      data:[{x:0,y:0},{x:PCLoad[i][0]*scaleF,y:PCLoad[i][1]*scaleF}],
+      borderColor:'rgba(210,50,30,0.80)',backgroundColor:'rgba(210,50,30,0.80)',
+      pointRadius:[0,5],pointStyle:['circle','triangle'],
+      showLine:true,borderWidth:2,fill:false
+    });
+  });
+
+  // カスタムプラグイン：afterDrawのたびにDOMを直接読んでON/OFFを反映
+  const labelPlugin={
+    id:'biplotLabels',
+    afterDraw(chart){
+      // チェックボックスを毎回DOMから読む（チェック変更を即反映するため）
+      const showCase=document.getElementById('show-case-lbl')?.checked||false;
+      const showVar=document.getElementById('show-var-lbl')?.checked||false;
+      if(!showCase && !showVar) return;
+
+      const ctx2=chart.ctx;
+      const xScale=chart.scales.x, yScale=chart.scales.y;
+      const toX=v=>xScale.getPixelForValue(v);
+      const toY=v=>yScale.getPixelForValue(v);
+
+      ctx2.save();
+      ctx2.textBaseline='middle';
+
+      // ケースラベル
+      if(showCase){
+        ctx2.font='11px Helvetica Neue,Arial,sans-serif';
+        ctx2.fillStyle='rgba(24,95,165,0.9)';
+        scores.forEach((s,k)=>{
+          const px=toX(s[0]), py=toY(s[1]);
+          ctx2.fillText(caseNames[k], px+7, py-6);
+        });
+      }
+
+      // 変数ラベル（ベクトル先端）
+      if(showVar){
+        ctx2.font='bold 12px Helvetica Neue,Arial,sans-serif';
+        selVarNames.forEach((nm,i)=>{
+          const ex=PCLoad[i][0]*scaleF, ey=PCLoad[i][1]*scaleF;
+          const px=toX(ex), py=toY(ey);
+          const len=Math.sqrt(ex*ex+ey*ey)||1;
+          const ox=(ex/len)*16, oy=-(ey/len)*16;
+          const metrics=ctx2.measureText(nm);
+          const tw=metrics.width, th2=14;
+          ctx2.fillStyle='rgba(255,255,255,0.85)';
+          ctx2.fillRect(px+ox-3, py+oy-th2/2-2, tw+6, th2+4);
+          ctx2.fillStyle='rgba(180,30,20,0.95)';
+          ctx2.fillText(nm, px+ox, py+oy);
+        });
+      }
+      ctx2.restore();
+    }
+  };
+
+  biplotChart=new Chart(bctx,{
+    data:{datasets},
+    plugins:[labelPlugin],
+    options:{responsive:true,maintainAspectRatio:false,
+      animation:{duration:300},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          label:ctx=>{
+            const d=ctx.raw;
+            return d.nm?`${d.nm} (${f2(d.x)}, ${f2(d.y)})`:
+                   `${ctx.dataset.label} → (${f2(d.x)}, ${f2(d.y)})`;
+          }
+        }}
+      },
+      scales:{
+        x:{min:xlo,max:xhi,
+           title:{display:true,text:`${isFA?'F':'PC'}1 (${pct(contrib[0])})`,font:{size:12}},
+           grid:{color:'rgba(0,0,0,0.06)'},
+           ticks:{callback:v=>f2(v)}},
+        y:{min:ylo,max:yhi,
+           title:{display:true,text:`${isFA?'F':'PC'}2 (${pct(contrib[1])})`,font:{size:12}},
+           grid:{color:'rgba(0,0,0,0.06)'},
+           ticks:{callback:v=>f2(v)}}
+      }
+    }
+  });
+}
+
+// ─── 得点散布図（Score Plot）────────────────────────────
+function drawScorePlot(scores, caseNames, contrib, compPfx, isFA, xDim, yDim){
+  if(xDim===undefined||xDim===null) xDim=0;
+  if(yDim===undefined||yDim===null) yDim=1;
+  if(scoreChart){scoreChart.destroy();scoreChart=null;}
+  const ctx=document.getElementById('score-canvas');
+  if(!ctx) return;
+
+  const lblPlugin={
+    id:'scoreLabels',
+    afterDraw(chart){
+      if(!(document.getElementById('show-score-lbl')?.checked)) return;
+      const ctx2=chart.ctx;
+      const xs=chart.scales.x, ys=chart.scales.y;
+      ctx2.save();
+      ctx2.font='11px Helvetica Neue,Arial,sans-serif';
+      ctx2.fillStyle='rgba(24,95,165,0.9)';
+      ctx2.textBaseline='middle';
+      const sxd=+(document.getElementById('score-xaxis')?.value??0);
+      const syd=+(document.getElementById('score-yaxis')?.value??1);
+      scores.forEach((s,k)=>{
+        ctx2.fillText(caseNames[k], xs.getPixelForValue(s[sxd])+7, ys.getPixelForValue(s[syd])-6);
+      });
+      ctx2.restore();
+    }
+  };
+
+  scoreChart=new Chart(ctx,{
+    type:'scatter',
+    data:{datasets:[{
+      label:'得点',
+      data:scores.map((s,k)=>({x:s[xDim]??s[0],y:s[yDim]??s[1],nm:caseNames[k]})),
+      backgroundColor:'rgba(24,95,165,0.65)',
+      pointRadius:6,pointHoverRadius:8,
+      borderColor:'rgba(24,95,165,0.9)',borderWidth:1.2
+    }]},
+    plugins:[lblPlugin],
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>`${c.raw.nm} (${f2(c.raw.x)}, ${f2(c.raw.y)})`}}},
+      scales:{
+        x:{title:{display:true,text:`${compPfx}${xDim+1} (${pct(contrib[xDim])})`,font:{size:12}},
+           grid:{color:'rgba(0,0,0,0.06)'},ticks:{callback:v=>f2(v)}},
+        y:{title:{display:true,text:`${compPfx}${yDim+1} (${pct(contrib[yDim])})`,font:{size:12}},
+           grid:{color:'rgba(0,0,0,0.06)'},ticks:{callback:v=>f2(v)}}
+      }
+    }
+  });
+}
+
+// ─── 負荷量プロット（Loading Plot）──────────────────────
+function drawLoadingPlot(loadingData, contrib, compPfx, xDim, yDim){
+  if(loadingChart){loadingChart.destroy();loadingChart=null;}
+  const ctx=document.getElementById('loading-canvas');
+  if(!ctx) return;
+
+  if(xDim===undefined||xDim===null) xDim=0;
+  if(yDim===undefined||yDim===null) yDim=1;
+
+  // 軸範囲：選択した2次元の最大絶対値で±対称
+  const allX=loadingData.map(d=>d.vals[xDim]);
+  const allY=loadingData.map(d=>d.vals[yDim]);
+  const absMax=Math.max(Math.max(...allX.map(Math.abs)),Math.max(...allY.map(Math.abs)),0.1)*1.3;
+
+  // 先端点のみ scatter で描画（矢印・ラベルは afterDraw で Canvas2D）
+  const arrowPlugin={
+    id:'loadingArrows',
+    afterDraw(chart){
+      const xd=+(document.getElementById('load-xaxis')?.value??0);
+      const yd=+(document.getElementById('load-yaxis')?.value??1);
+      const c2=chart.ctx;
+      const xs=chart.scales.x, ys=chart.scales.y;
+      const ox=xs.getPixelForValue(0), oy=ys.getPixelForValue(0);
+
+      // 単位円
+      c2.save();
+      const rx=Math.abs(xs.getPixelForValue(1)-ox);
+      const ry=Math.abs(ys.getPixelForValue(1)-oy);
+      c2.beginPath();
+      c2.ellipse(ox,oy,rx,ry,0,0,2*Math.PI);
+      c2.strokeStyle='rgba(150,150,150,0.5)';
+      c2.lineWidth=1; c2.setLineDash([4,4]);
+      c2.stroke(); c2.setLineDash([]);
+
+      // 矢印（原点 → 先端）
+      loadingData.forEach(d=>{
+        const ex=xs.getPixelForValue(d.vals[xd]);
+        const ey=ys.getPixelForValue(d.vals[yd]);
+        const dx=ex-ox, dy=ey-oy;
+        const len=Math.sqrt(dx*dx+dy*dy)||1;
+        c2.beginPath();
+        c2.moveTo(ox,oy);
+        c2.lineTo(ex,ey);
+        c2.strokeStyle='rgba(210,50,30,0.85)';
+        c2.lineWidth=2;
+        c2.stroke();
+        const ah=10, aw=5;
+        const ux=dx/len, uy=dy/len;
+        c2.beginPath();
+        c2.moveTo(ex,ey);
+        c2.lineTo(ex-ah*ux+aw*uy, ey-ah*uy-aw*ux);
+        c2.lineTo(ex-ah*ux-aw*uy, ey-ah*uy+aw*ux);
+        c2.closePath();
+        c2.fillStyle='rgba(210,50,30,0.85)';
+        c2.fill();
+      });
+
+      // ラベル
+      if(document.getElementById('show-load-lbl')?.checked){
+        c2.font='bold 12px Helvetica Neue,Arial,sans-serif';
+        c2.textBaseline='middle';
+        loadingData.forEach(d=>{
+          const ex=xs.getPixelForValue(d.vals[xd]);
+          const ey=ys.getPixelForValue(d.vals[yd]);
+          const dx=ex-ox, dy=ey-oy;
+          const len=Math.sqrt(dx*dx+dy*dy)||1;
+          const lx=ex+(dx/len)*14, ly=ey+(dy/len)*14;
+          const tw=c2.measureText(d.name).width;
+          c2.fillStyle='rgba(255,255,255,0.88)';
+          c2.fillRect(lx-3,ly-9,tw+6,18);
+          c2.fillStyle='rgba(180,30,20,0.95)';
+          c2.fillText(d.name,lx,ly);
+        });
+      }
+      c2.restore();
+    }
+  };
+
+  // 先端点だけ scatter で渡す（座標確認用・tooltip用）
+  loadingChart=new Chart(ctx,{
+    type:'scatter',
+    data:{datasets:[{
+      label:'負荷量',
+      data:loadingData.map(d=>({x:d.vals[xDim], y:d.vals[yDim], nm:d.name})),
+      pointRadius:0,  // 点は矢頭で描くので非表示
+      pointHoverRadius:6,
+      backgroundColor:'rgba(210,50,30,0.8)'
+    }]},
+    plugins:[arrowPlugin],
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>`${c.raw.nm} (${f4(c.raw.x)}, ${f4(c.raw.y)})`}}
+      },
+      scales:{
+        x:{min:-absMax, max:absMax,
+           title:{display:true,text:`${compPfx}${xDim+1} (${pct(contrib[xDim])})`,font:{size:12}},
+           grid:{color:'rgba(0,0,0,0.06)'}, ticks:{callback:v=>f2(v)}},
+        y:{min:-absMax, max:absMax,
+           title:{display:true,text:`${compPfx}${yDim+1} (${pct(contrib[yDim])})`,font:{size:12}},
+           grid:{color:'rgba(0,0,0,0.06)'}, ticks:{callback:v=>f2(v)}}
+      }
+    }
+  });
+}
+
+
+// ─── 全グラフ再描画（ラベルチェックボックス用）──────────
+function redrawCharts(){
+  if(biplotChart)  biplotChart.update();
+  if(scoreChart)   scoreChart.update();
+  if(loadingChart) loadingChart.update();
+}
+
+// ─── 軸選択変更時の再描画 ──────────────────────────────
+function redrawSubCharts(){
+  if(!window._scores) return;
+  const sx=+(document.getElementById('score-xaxis').value||0);
+  const sy=+(document.getElementById('score-yaxis').value||1);
+  const lx=+(document.getElementById('load-xaxis').value||0);
+  const ly=+(document.getElementById('load-yaxis').value||1);
+  drawScorePlot(window._scores, window._caseNames, window._contrib,
+                window._compPfx, window._isFA, sx, sy);
+  drawLoadingPlot(window._loadingData, window._contrib,
+                  window._compPfx, lx, ly);
+}
+
+// ─── CSVダウンロード ──────────────────────────────────────
+function downloadScores(selIdx, tblClm, isFA){
+  const useCorr=document.getElementById('mat-type').value==='corr';
+  const{X,mu,sg,S}=computeStats(rawMatrix,selIdx,useCorr);
+  const{vectors:eigVecs}=eigen(S);
+  const scores=X.map(row=>{
+    const zs=useCorr?row.map((v,i)=>(v-mu[i])/sg[i]):row.map((v,i)=>v-mu[i]);
+    return eigVecs.map(vec=>vec.reduce((s,c,i)=>s+c*zs[i],0));
+  });
+  const pfx=isFA?'F':'PC';
+  const cols=Array.from({length:tblClm},(_,i)=>`${pfx}${i+1}`);
+  const lines=[['CaseID',...cols].join(','),
+    ...caseNames.map((nm,k)=>[nm,...cols.map((_,i)=>scores[k][i].toFixed(4))].join(','))
+  ];
+  const blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=isFA?'fa_scores.csv':'pca_scores.csv'; a.click();
+}
+
+// ─── タブ切り替え ─────────────────────────────────────────
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${id}')"]`).classList.add('active');
+  document.getElementById(`panel-${id}`).classList.add('active');
+}
+</script>
+</body>
+</html>
