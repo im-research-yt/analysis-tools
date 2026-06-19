@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コレスポンデンス分析アプリ</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN',sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f5;padding:16px}
+h1{font-size:20px;font-weight:500;margin-bottom:1.2rem;color:#1a1a1a;display:flex;align-items:center;gap:8px}
+h2{font-size:16px;font-weight:500;margin-bottom:.6rem;color:#333}
+h3{font-size:14px;font-weight:500;margin-bottom:.4rem;color:#555}
+.container{max-width:960px;margin:0 auto}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #ddd;margin-bottom:1rem}
+.tab{padding:7px 16px;font-size:13px;cursor:pointer;border:1px solid transparent;border-bottom:none;border-radius:6px 6px 0 0;color:#666;background:none;font-family:inherit}
+.tab.active{color:#1a1a1a;border-color:#ddd;background:#fff;font-weight:500}
+.panel{display:none}.panel.active{display:block}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+label{font-size:12px;color:#666;display:block;margin-bottom:4px}
+textarea{width:100%;height:200px;font-family:monospace;font-size:12px;padding:8px;border:1px solid #ddd;border-radius:6px;background:#fafafa;color:#1a1a1a;resize:vertical;outline:none}
+textarea:focus{border-color:#0e7c5a}
+select,input[type=number]{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a1a;font-size:13px;font-family:inherit;outline:none}
+select:focus,input:focus{border-color:#0e7c5a}
+.btn-primary{background:#0e7c5a;color:#fff;border:none;padding:9px 20px;border-radius:7px;font-size:14px;font-weight:500;cursor:pointer;width:100%;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary:hover{background:#085a41}
+.btn-secondary{background:#fff;color:#333;border:1px solid #ddd;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit}
+.btn-secondary:hover{background:#f5f5f5}
+.btn-download{background:#0e7c5a;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
+.btn-download:hover{background:#085a41}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:#e8f5f0;padding:5px 8px;text-align:right;font-weight:500;border:1px solid #c8e6da}
+.tbl th:first-child{text-align:left}
+.tbl td{padding:5px 8px;border:1px solid #e8e8e8;text-align:right}
+.tbl td:first-child{text-align:left;font-weight:500;color:#555;background:#f5faf8}
+.tbl tr:hover td:not(:first-child){background:#f0faf5}
+.hi{background:#fff3cd!important;font-weight:600;color:#7d5a00}
+.metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.metric{background:#e8f5f0;border-radius:8px;padding:10px 12px;border:1px solid #b8ddd0}
+.metric-lbl{font-size:11px;color:#2a6a4a;margin-bottom:4px}
+.metric-val{font-size:22px;font-weight:500;color:#0e7c5a}
+.err{color:#721c24;font-size:13px;padding:8px 12px;background:#f8d7da;border:1px solid #f5c6cb;border-radius:6px;margin-bottom:8px}
+.info{color:#0c5460;font-size:12px;padding:6px 10px;background:#d1ecf1;border-radius:5px;margin-top:6px}
+.note{font-size:12px;color:#666;margin-top:6px;line-height:1.6}
+.chart-wrap{position:relative;width:100%}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.overflow-x{overflow-x:auto}
+.star-sig{font-size:11px;color:#888;margin-left:8px;font-weight:400}
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-size:12px}
+.badge{padding:3px 10px;border-radius:12px;font-weight:500}
+.badge-row-item{background:#e8f5f0;color:#0e7c5a;border:1px solid #b8ddd0}
+.badge-col-item{background:#fff3e0;color:#e65100;border:1px solid #ffcc80}
+.chk-row{display:flex;gap:14px;font-size:13px;flex-wrap:wrap;margin-bottom:8px}
+.chk-row label{display:flex;align-items:center;gap:5px;cursor:pointer;color:#333;font-size:13px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0e7c5a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+  </svg>
+  コレスポンデンス分析（対応分析）
+</h1>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('input')">① データ入力</button>
+  <button class="tab" onclick="switchTab('result')" id="tab-result">② 結果</button>
+</div>
+
+<!-- ===== 入力パネル ===== -->
+<div class="panel active" id="panel-input">
+
+<div class="card">
+  <h2>データの読み込み</h2>
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+    <button class="btn-secondary" onclick="loadExample(1)">例題1：ブランド×イメージ語</button>
+    <button class="btn-secondary" onclick="loadExample(2)">例題2：年代×メディア接触</button>
+    <button class="btn-secondary" onclick="loadExample(3)">例題3：購買動機×商品カテゴリ</button>
+    <label class="btn-secondary" style="cursor:pointer;margin:0;display:inline-flex;align-items:center;gap:4px">
+      📂 CSVファイルを開く
+      <input type="file" id="ca-csv-file" accept=".csv,.txt" style="display:none" onchange="loadCACSVFile(event)">
+    </label>
+  </div>
+  <label>クロス集計表をCSV形式で貼り付け（左上セルは空白、1行目=列カテゴリ名、1列目=行カテゴリ名、セルは度数）</label>
+  <textarea id="csv-input" placeholder=",列1,列2,列3
+行1,10,20,5
+行2,15,8,12
+行3,3,18,22"></textarea>
+  <div id="parse-info" class="info" style="display:none"></div>
+  <div class="note">
+    ※ クロス集計表の形式です。行・列に**2カテゴリ以上**、全セルは**非負の整数**（度数・頻度）を入力してください。
+  </div>
+</div>
+
+<div class="card">
+  <h2>分析設定</h2>
+  <div class="row">
+    <div>
+      <label>表示する次元数（グラフ）</label>
+      <select id="dim-num">
+        <option value="2" selected>2次元</option>
+        <option value="3">3次元（第1・第2・第3を個別表示）</option>
+      </select>
+    </div>
+    <div>
+      <label>座標のタイプ</label>
+      <select id="coord-type">
+        <option value="sym">対称マップ（Principal Normalization）</option>
+        <option value="row">行主体（Row Principal）</option>
+        <option value="col">列主体（Column Principal）</option>
+      </select>
+    </div>
+  </div>
+  <div id="err-msg" class="err" style="display:none"></div>
+  <button class="btn-primary" onclick="runCA()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    分析を実行
+  </button>
+</div>
+
+</div>
+
+<!-- ===== 結果パネル ===== -->
+<div class="panel" id="panel-result">
+  <div id="result-content"></div>
+</div>
+
+</div>
+
+<script>
+// ─── 例題データ ───────────────────────────────────────────
+const EXAMPLES = {
+1: `,高品質,革新的,親しみやすい,高級感,コスパ良い,若々しい
+ブランドA,45,38,12,52,8,20
+ブランドB,22,55,28,18,15,48
+ブランドC,38,15,52,30,42,18
+ブランドD,12,42,35,10,38,55
+ブランドE,52,25,18,48,12,15`,
+
+2: `,テレビ,新聞,SNS,YouTube,ラジオ,雑誌
+10代,12,3,68,72,5,8
+20代,28,8,75,65,10,18
+30代,55,22,58,48,18,32
+40代,72,42,38,32,28,45
+50代,82,65,18,22,38,52
+60代以上,88,78,8,12,45,35`,
+
+3: `,食品,衣料,家電,化粧品,スポーツ,書籍
+品質重視,52,48,62,58,38,45
+価格重視,38,42,28,22,32,48
+ブランド重視,18,55,45,68,28,15
+トレンド重視,12,62,38,72,45,8
+実用性重視,48,22,65,18,55,62`
+};
+
+// ─── グローバル変数 ────────────────────────────────────────
+let N=null, rowNames=[], colNames=[], contingency=[];
+let caCharts=[];  // 全グラフ管理
+
+// ─── CSV解析 ──────────────────────────────────────────────
+function loadExample(n){
+  document.getElementById('csv-input').value = EXAMPLES[n];
+  parseCSV();
+}
+
+function loadCACSVFile(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const tryRead = (encoding) => {
+    const reader = new FileReader();
+    reader.onload = function(e){
+      let text = e.target.result.replace(/^\uFEFF/, '');
+      if(encoding === 'UTF-8' && (text.match(/\uFFFD/g)||[]).length > 5){
+        tryRead('Shift-JIS'); return;
+      }
+      document.getElementById('csv-input').value = text;
+      parseCSV();
+    };
+    reader.readAsText(file, encoding);
+  };
+  tryRead('UTF-8');
+  event.target.value = '';
+}
+
+function parseCSV(){
+  const txt = document.getElementById('csv-input').value.trim();
+  if(!txt) return;
+  const lines = txt.split('\n').map(l=>l.trim()).filter(l=>l);
+  if(lines.length < 3){ return; }
+
+  const header = lines[0].split(',');
+  colNames = header.slice(1).map(s=>s.trim());
+  rowNames = []; contingency = [];
+
+  for(let i=1; i<lines.length; i++){
+    const cols = lines[i].split(',');
+    const rname = cols[0].trim();
+    const vals = cols.slice(1).map(v=>parseInt(v.trim()));
+    if(vals.some(isNaN) || vals.length < colNames.length) continue;
+    rowNames.push(rname);
+    contingency.push(vals.slice(0, colNames.length));
+  }
+
+  N = {r: rowNames.length, c: colNames.length};
+  const el = document.getElementById('parse-info');
+  el.style.display = 'block';
+  el.textContent = `読み込み完了：${N.r}行カテゴリ × ${N.c}列カテゴリ、合計度数 = ${contingency.flat().reduce((a,b)=>a+b,0)}`;
+}
+document.getElementById('csv-input').addEventListener('input', parseCSV);
+
+// ─── エラー表示 ───────────────────────────────────────────
+function showErr(msg){ const e=document.getElementById('err-msg'); e.textContent=msg; e.style.display='block'; }
+function hideErr(){ document.getElementById('err-msg').style.display='none'; }
+
+// ─── 行列演算ユーティリティ ───────────────────────────────
+const matAdd=(A,B)=>A.map((r,i)=>r.map((v,j)=>v+B[i][j]));
+const matScale=(A,s)=>A.map(r=>r.map(v=>v*s));
+const matMul=(A,B)=>{
+  const r=A.length, mid=B.length, c=B[0].length;
+  return Array.from({length:r},(_,i)=>Array.from({length:c},(_,j)=>
+    Array.from({length:mid},(_,k)=>A[i][k]*B[k][j]).reduce((a,b)=>a+b,0)));
+};
+const transpose=M=>M[0].map((_,j)=>M.map(r=>r[j]));
+
+// ─── SVD（ゴルブ・ラインシュ二重対角化の簡易実装）────────
+// Jacobi SVDで対称行列A^TAの固有値分解を使う方法
+function svd(A){
+  // A: m×n行列 → U(m×k), S(k), V(n×k) を返す (k=min(m,n))
+  const m=A.length, n=A[0].length;
+  // ATA = A^T * A (n×n)
+  const At=transpose(A);
+  const ATA=matMul(At,A);
+
+  // Jacobi固有値分解でATAの固有値・固有ベクトル
+  const{values, vectors}=jacobiEigen(ATA, n);
+
+  // 特異値 = sqrt(固有値)、降順ソート
+  let sv=values.map((v,i)=>({s:Math.sqrt(Math.max(0,v)), v:vectors[i], idx:i}));
+  sv.sort((a,b)=>b.s-a.s);
+
+  const k=Math.min(m,n);
+  const S=sv.slice(0,k).map(x=>x.s);
+  // V: 右特異ベクトル (n×k)
+  const V=Array.from({length:n},(_,i)=>sv.slice(0,k).map(x=>x.v[i]));
+  // U: 左特異ベクトル U = A*V / s
+  const AV=matMul(A, V);
+  const U=Array.from({length:m},(_,i)=>sv.slice(0,k).map((x,j)=>
+    S[j]>1e-10 ? AV[i][j]/S[j] : 0
+  ));
+  return{U, S, V};
+}
+
+function jacobiEigen(A, n){
+  let a=A.map(r=>[...r]);
+  let V=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0));
+  for(let iter=0;iter<2000;iter++){
+    let p=0,q=1,mx=0;
+    for(let i=0;i<n;i++) for(let j=i+1;j<n;j++)
+      if(Math.abs(a[i][j])>mx){mx=Math.abs(a[i][j]);p=i;q=j;}
+    if(mx<1e-12) break;
+    const th=0.5*Math.atan2(2*a[p][q], a[p][p]-a[q][q]);
+    const c=Math.cos(th), s=Math.sin(th);
+    const na=a.map(r=>[...r]);
+    for(let i=0;i<n;i++){
+      na[p][i]=c*a[p][i]+s*a[q][i]; na[q][i]=-s*a[p][i]+c*a[q][i];
+    }
+    for(let i=0;i<n;i++){
+      na[i][p]=c*a[i][p]+s*a[i][q]; na[i][q]=-s*a[i][p]+c*a[i][q];
+    }
+    na[p][p]=c*c*a[p][p]+2*s*c*a[p][q]+s*s*a[q][q];
+    na[q][q]=s*s*a[p][p]-2*s*c*a[p][q]+c*c*a[q][q];
+    na[p][q]=0; na[q][p]=0; a=na;
+    const nV=V.map(r=>[...r]);
+    for(let i=0;i<n;i++){
+      nV[i][p]=c*V[i][p]+s*V[i][q]; nV[i][q]=-s*V[i][p]+c*V[i][q];
+    }
+    V=nV;
+  }
+  return{values:Array.from({length:n},(_,i)=>Math.max(0,a[i][i])),
+         vectors:Array.from({length:n},(_,i)=>V.map(r=>r[i]))};
+}
+
+// ─── コレスポンデンス分析 ──────────────────────────────────
+function correspondenceAnalysis(P, coordType){
+  const nr=P.length, nc=P[0].length;
+
+  // 合計
+  const grand=P.flat().reduce((a,b)=>a+b,0);
+  // 確率行列
+  const F=P.map(r=>r.map(v=>v/grand));
+  // 行・列の周辺分布
+  const r=F.map(row=>row.reduce((a,b)=>a+b,0));
+  const c=F[0].map((_,j)=>F.reduce((s,row)=>s+row[j],0));
+
+  // 残差行列 S = Dr^{-1/2} (F - r c^T) Dc^{-1/2}
+  const S=Array.from({length:nr},(_,i)=>
+    Array.from({length:nc},(_,j)=>
+      (F[i][j] - r[i]*c[j]) / (Math.sqrt(r[i])*Math.sqrt(c[j]))
+    )
+  );
+
+  // SVD
+  const{U, S:sv, V}=svd(S);
+  const ndim=Math.min(nr-1, nc-1, sv.length);
+
+  // 固有値（慣性）= 特異値の二乗
+  const inertia=sv.slice(0,ndim).map(s=>s*s);
+  const totalInertia=inertia.reduce((a,b)=>a+b,0);
+  const contrib=inertia.map(v=>v/totalInertia);
+
+  // 座標計算
+  // 標準座標
+  const rowStd=Array.from({length:nr},(_,i)=>
+    sv.slice(0,ndim).map((s,d)=> s>1e-10 ? U[i][d]/Math.sqrt(r[i]) : 0)
+  );
+  const colStd=Array.from({length:nc},(_,j)=>
+    sv.slice(0,ndim).map((s,d)=> s>1e-10 ? V[j][d]/Math.sqrt(c[j]) : 0)
+  );
+  // 主座標
+  const rowPrin=Array.from({length:nr},(_,i)=>
+    sv.slice(0,ndim).map((s,d)=>rowStd[i][d]*s)
+  );
+  const colPrin=Array.from({length:nc},(_,j)=>
+    sv.slice(0,ndim).map((s,d)=>colStd[j][d]*s)
+  );
+
+  // 座標タイプに応じて返す座標を決定
+  let rowCoords, colCoords;
+  if(coordType==='row'){
+    rowCoords=rowPrin; colCoords=colStd;
+  } else if(coordType==='col'){
+    rowCoords=rowStd; colCoords=colPrin;
+  } else {
+    // 対称（principal for both）
+    rowCoords=rowPrin; colCoords=colPrin;
+  }
+
+  // 寄与度（行・列）
+  const rowContrib=Array.from({length:nr},(_,i)=>
+    inertia.map((iv,d)=> iv>1e-10 ? r[i]*rowPrin[i][d]**2/iv : 0)
+  );
+  const colContrib=Array.from({length:nc},(_,j)=>
+    inertia.map((iv,d)=> iv>1e-10 ? c[j]*colPrin[j][d]**2/iv : 0)
+  );
+
+  // cos2（表現の良さ）
+  const rowCos2=Array.from({length:nr},(_,i)=>{
+    const dist2=rowPrin[i].reduce((s,v)=>s+v**2,0);
+    return rowPrin[i].map(v=> dist2>1e-10 ? v**2/dist2 : 0);
+  });
+  const colCos2=Array.from({length:nc},(_,j)=>{
+    const dist2=colPrin[j].reduce((s,v)=>s+v**2,0);
+    return colPrin[j].map(v=> dist2>1e-10 ? v**2/dist2 : 0);
+  });
+
+  return{inertia,totalInertia,contrib,
+         rowCoords,colCoords,rowStd,colStd,rowPrin,colPrin,
+         rowContrib,colContrib,rowCos2,colCos2,
+         rowMass:r,colMass:c,ndim,sv:sv.slice(0,ndim)};
+}
+
+// ─── 数値フォーマット ─────────────────────────────────────
+const f4=v=>v.toFixed(4), f3=v=>v.toFixed(3), f2=v=>v.toFixed(2);
+const pct=v=>(v*100).toFixed(2)+'%';
+
+// ─── 分析実行 ─────────────────────────────────────────────
+function runCA(){
+  hideErr();
+  if(!N || contingency.length<2){
+    showErr('先にデータを読み込んでください（行・列ともに2カテゴリ以上必要）');
+    return;
+  }
+  if(contingency.some(r=>r.some(v=>v<0))){
+    showErr('度数に負の値が含まれています');
+    return;
+  }
+  const total=contingency.flat().reduce((a,b)=>a+b,0);
+  if(total===0){showErr('合計度数が0です'); return;}
+
+  const coordType=document.getElementById('coord-type').value;
+  const dimNum=+document.getElementById('dim-num').value;
+
+  const res=correspondenceAnalysis(contingency, coordType);
+  const ndim=Math.min(res.ndim, dimNum);
+
+  // ─ HTML構築 ─
+  const rc=document.getElementById('result-content');
+  let html='';
+
+  // メトリクス
+  const cumAcc2=res.contrib.slice(0,Math.min(2,res.ndim)).reduce((a,b)=>a+b,0);
+  html+=`<div class="metric-row">
+    <div class="metric"><div class="metric-lbl">行カテゴリ数</div><div class="metric-val">${N.r}</div></div>
+    <div class="metric"><div class="metric-lbl">列カテゴリ数</div><div class="metric-val">${N.c}</div></div>
+    <div class="metric"><div class="metric-lbl">総慣性</div><div class="metric-val">${f4(res.totalInertia)}</div></div>
+    <div class="metric"><div class="metric-lbl">第2次元までの累積</div><div class="metric-val">${pct(cumAcc2)}</div></div>
+  </div>`;
+
+  // 元のクロス集計表
+  html+=`<div class="card"><h2>クロス集計表</h2>
+  <div class="overflow-x"><table class="tbl"><thead><tr>
+    <th></th>${colNames.map(c=>`<th>${c}</th>`).join('')}<th>合計</th>
+  </tr></thead><tbody>`;
+  for(let i=0;i<N.r;i++){
+    const rowSum=contingency[i].reduce((a,b)=>a+b,0);
+    html+=`<tr><td>${rowNames[i]}</td>
+      ${contingency[i].map(v=>`<td>${v}</td>`).join('')}
+      <td style="background:#e8f5f0;font-weight:500">${rowSum}</td></tr>`;
+  }
+  const colSums=colNames.map((_,j)=>contingency.reduce((s,r)=>s+r[j],0));
+  const grandTotal=colSums.reduce((a,b)=>a+b,0);
+  html+=`<tr style="background:#e8f5f0;font-weight:500"><td>合計</td>
+    ${colSums.map(v=>`<td>${v}</td>`).join('')}
+    <td>${grandTotal}</td></tr>`;
+  html+=`</tbody></table></div></div>`;
+
+  // 慣性・寄与率表
+  const dimLabels=Array.from({length:res.ndim},(_,i)=>`第${i+1}次元`);
+  html+=`<div class="card"><h2>慣性・寄与率
+    <span class="star-sig">黄：累積寄与率 ≥ 80%</span></h2>
+  <div class="overflow-x"><table class="tbl"><thead><tr>
+    <th>次元</th><th>特異値</th><th>慣性（固有値）</th><th>寄与率(%)</th><th>累積寄与率(%)</th>
+  </tr></thead><tbody>`;
+  let cumS=0;
+  for(let d=0;d<res.ndim;d++){
+    cumS+=res.contrib[d];
+    html+=`<tr>
+      <td>${dimLabels[d]}</td>
+      <td>${f4(res.sv[d])}</td>
+      <td>${f4(res.inertia[d])}</td>
+      <td>${pct(res.contrib[d])}</td>
+      <td class="${cumS>=0.8?'hi':''}">${pct(cumS)}</td>
+    </tr>`;
+  }
+  html+=`</tbody></table></div></div>`;
+
+  // 行・列の座標・寄与度表
+  html+=`<div class="card"><h2>行カテゴリの座標・寄与度・cos²</h2>
+  <div class="overflow-x"><table class="tbl"><thead><tr>
+    <th>行カテゴリ</th>
+    ${dimLabels.slice(0,ndim).flatMap(d=>[`<th>${d} 座標</th>`,`<th>${d} 寄与度</th>`,`<th>${d} cos²</th>`]).join('')}
+  </tr></thead><tbody>`;
+  for(let i=0;i<N.r;i++){
+    html+=`<tr><td>${rowNames[i]}</td>`;
+    for(let d=0;d<ndim;d++){
+      html+=`<td>${f3(res.rowCoords[i][d])}</td>
+             <td class="${res.rowContrib[i][d]>=0.1?'hi':''}">${f3(res.rowContrib[i][d])}</td>
+             <td>${f3(res.rowCos2[i][d])}</td>`;
+    }
+    html+=`</tr>`;
+  }
+  html+=`</tbody></table></div></div>`;
+
+  html+=`<div class="card"><h2>列カテゴリの座標・寄与度・cos²</h2>
+  <div class="overflow-x"><table class="tbl"><thead><tr>
+    <th>列カテゴリ</th>
+    ${dimLabels.slice(0,ndim).flatMap(d=>[`<th>${d} 座標</th>`,`<th>${d} 寄与度</th>`,`<th>${d} cos²</th>`]).join('')}
+  </tr></thead><tbody>`;
+  for(let j=0;j<N.c;j++){
+    html+=`<tr><td>${colNames[j]}</td>`;
+    for(let d=0;d<ndim;d++){
+      html+=`<td>${f3(res.colCoords[j][d])}</td>
+             <td class="${res.colContrib[j][d]>=0.1?'hi':''}">${f3(res.colContrib[j][d])}</td>
+             <td>${f3(res.colCos2[j][d])}</td>`;
+    }
+    html+=`</tr>`;
+  }
+  html+=`</tbody></table></div>`;
+
+  // グラフ: 対称マップ
+  html+=`<div class="card">
+    <h2>対称マップ（第1次元 × 第2次元）
+      <span class="star-sig">● 行カテゴリ　▲ 列カテゴリ</span></h2>
+    <div class="badge-row">
+      <span class="badge badge-row-item">● 行：${rowNames.join('　')}</span>
+      <span class="badge badge-col-item">▲ 列：${colNames.join('　')}</span>
+    </div>
+    <div class="chk-row">
+      <label><input type="checkbox" id="sym-row-lbl" checked onchange="updateCharts()"> 行ラベル</label>
+      <label><input type="checkbox" id="sym-col-lbl" checked onchange="updateCharts()"> 列ラベル</label>
+      <label><input type="checkbox" id="sym-col-arrow" onchange="updateCharts()"> 列を矢印表示</label>
+    </div>
+    <div class="chart-wrap" style="height:400px"><canvas id="sym-canvas"></canvas></div>
+  </div>`;
+
+  // グラフ: 行・列 個別
+  html+=`<div class="two-col">
+    <div class="card">
+      <h2>行カテゴリ プロット</h2>
+      <div class="chk-row">
+        <label><input type="checkbox" id="row-lbl" checked onchange="updateCharts()"> ラベル</label>
+      </div>
+      <div class="chart-wrap" style="height:300px"><canvas id="row-canvas"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>列カテゴリ プロット</h2>
+      <div class="chk-row">
+        <label><input type="checkbox" id="col-lbl" checked onchange="updateCharts()"> ラベル</label>
+      </div>
+      <div class="chart-wrap" style="height:300px"><canvas id="col-canvas"></canvas></div>
+    </div>
+  </div>`;
+
+  // ダウンロード
+  html+=`<div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
+    <button class="btn-download" onclick="downloadCoords()">⬇ 座標をCSVでダウンロード</button>
+  </div>`;
+
+  rc.innerHTML = html;
+  switchTab('result');
+
+  // チャートを描画
+  setTimeout(()=>{
+    drawAllCharts(res, ndim);
+  }, 50);
+
+  // 座標をグローバルに保存（ダウンロード用）
+  window._caRes = res;
+  window._caNdim = ndim;
+}
+
+// ─── チャート描画 ─────────────────────────────────────────
+function destroyCharts(){
+  caCharts.forEach(c=>{try{c.destroy();}catch(e){}});
+  caCharts=[];
+}
+
+function makeLabelPlugin(getId1, getId2, rowCoords, colCoords, rowNames, colNames){
+  return{
+    id:'caLabels'+Math.random(),
+    afterDraw(chart){
+      const showRow=document.getElementById(getId1)?.checked!==false;
+      const showCol=getId2?document.getElementById(getId2)?.checked!==false:false;
+      const ctx2=chart.ctx;
+      const xs=chart.scales.x, ys=chart.scales.y;
+      const toX=v=>xs.getPixelForValue(v);
+      const toY=v=>ys.getPixelForValue(v);
+      ctx2.save();
+      ctx2.font='bold 12px Helvetica Neue,Arial,sans-serif';
+      ctx2.textBaseline='middle';
+
+      if(showRow && rowCoords){
+        ctx2.fillStyle='rgba(14,124,90,0.95)';
+        rowCoords.forEach((c,i)=>{
+          const px=toX(c[0]), py=toY(c[1]);
+          const tw=ctx2.measureText(rowNames[i]).width;
+          ctx2.fillStyle='rgba(255,255,255,0.85)';
+          ctx2.fillRect(px+8,py-8,tw+4,16);
+          ctx2.fillStyle='rgba(14,124,90,0.95)';
+          ctx2.fillText(rowNames[i],px+10,py);
+        });
+      }
+      if(showCol && colCoords){
+        colCoords.forEach((c,j)=>{
+          const px=toX(c[0]), py=toY(c[1]);
+          const tw=ctx2.measureText(colNames[j]).width;
+          ctx2.fillStyle='rgba(255,255,255,0.85)';
+          ctx2.fillRect(px+8,py-8,tw+4,16);
+          ctx2.fillStyle='rgba(200,80,0,0.95)';
+          ctx2.fillText(colNames[j],px+10,py);
+        });
+      }
+      ctx2.restore();
+    }
+  };
+}
+
+function axisRange(coords1, coords2){
+  const all=[...coords1, ...(coords2||[])].flatMap(c=>c.slice(0,2));
+  const mx=Math.max(...all.map(Math.abs));
+  const rng=(mx||1)*1.3;
+  return{min:-rng, max:rng};
+}
+
+function makeChartOptions(ax1, ax2, xRange, yRange, plugins){
+  return{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:{callbacks:{
+      label:c=>`${c.dataset.label} (${f3(c.raw.x)}, ${f3(c.raw.y)})`
+    }}, ...plugins},
+    scales:{
+      x:{min:xRange.min, max:xRange.max,
+         title:{display:true,text:ax1,font:{size:12}},
+         grid:{color:'rgba(0,0,0,0.06)'}, ticks:{callback:v=>f2(v)}},
+      y:{min:yRange.min, max:yRange.max,
+         title:{display:true,text:ax2,font:{size:12}},
+         grid:{color:'rgba(0,0,0,0.06)'}, ticks:{callback:v=>f2(v)}}
+    }
+  };
+}
+
+// 原点の十字線プラグイン
+const crosshairPlugin={
+  id:'crosshair',
+  beforeDraw(chart){
+    const ctx2=chart.ctx;
+    const xs=chart.scales.x, ys=chart.scales.y;
+    ctx2.save();
+    ctx2.strokeStyle='rgba(0,0,0,0.15)';
+    ctx2.lineWidth=1;
+    ctx2.setLineDash([4,4]);
+    // 縦線（x=0）
+    ctx2.beginPath();
+    ctx2.moveTo(xs.getPixelForValue(0), ys.top);
+    ctx2.lineTo(xs.getPixelForValue(0), ys.bottom);
+    ctx2.stroke();
+    // 横線（y=0）
+    ctx2.beginPath();
+    ctx2.moveTo(xs.left, ys.getPixelForValue(0));
+    ctx2.lineTo(xs.right, ys.getPixelForValue(0));
+    ctx2.stroke();
+    ctx2.setLineDash([]);
+    ctx2.restore();
+  }
+};
+
+function redrawSymMap(res, ndim){
+  const rowNames = window._caRowNames || [];
+  const colNames = window._caColNames || [];
+  const ax1=`第1次元 (${pct(res.contrib[0])})`;
+  const ax2=res.ndim>=2?`第2次元 (${pct(res.contrib[1])})`:'第2次元';
+  const range=axisRange(res.rowCoords, res.colCoords);
+  const showArrow=document.getElementById('sym-col-arrow')?.checked||false;
+
+  // 既存の対称マップを破棄
+  const oldSym=caCharts.find(c=>c.canvas&&c.canvas.id==='sym-canvas');
+  if(oldSym){ oldSym.destroy(); caCharts=caCharts.filter(c=>c!==oldSym); }
+
+  const symCtx=document.getElementById('sym-canvas');
+  if(!symCtx) return;
+
+  // 行ラベル + 矢印でない場合の列ラベルプラグイン
+  const symLblPlugin={
+    id:'caLabels_sym',
+    afterDraw(chart){
+      const showRow=document.getElementById('sym-row-lbl')?.checked!==false;
+      const showColLbl=document.getElementById('sym-col-lbl')?.checked!==false;
+      const isArrow=document.getElementById('sym-col-arrow')?.checked||false;
+      const c2=chart.ctx;
+      const xs=chart.scales.x, ys=chart.scales.y;
+      c2.save();
+      c2.font='bold 12px Helvetica Neue,Arial,sans-serif';
+      c2.textBaseline='middle';
+      // 行ラベル
+      if(showRow){
+        res.rowCoords.forEach((coord,i)=>{
+          const px=xs.getPixelForValue(coord[0]), py=ys.getPixelForValue(coord[1]||0);
+          const tw=c2.measureText(rowNames[i]).width;
+          c2.fillStyle='rgba(255,255,255,0.85)';
+          c2.fillRect(px+8,py-8,tw+4,16);
+          c2.fillStyle='rgba(14,124,90,0.95)';
+          c2.fillText(rowNames[i],px+10,py);
+        });
+      }
+      // 列ラベル（矢印でない場合のみ点ラベル、矢印の場合は矢印プラグインが担当）
+      if(showColLbl && !isArrow){
+        res.colCoords.forEach((coord,j)=>{
+          const px=xs.getPixelForValue(coord[0]), py=ys.getPixelForValue(coord[1]||0);
+          const tw=c2.measureText(colNames[j]).width;
+          c2.fillStyle='rgba(255,255,255,0.85)';
+          c2.fillRect(px+8,py-8,tw+4,16);
+          c2.fillStyle='rgba(200,80,0,0.95)';
+          c2.fillText(colNames[j],px+10,py);
+        });
+      }
+      c2.restore();
+    }
+  };
+
+  // 矢印プラグイン
+  const colArrowPlugin={
+    id:'colArrows_sym',
+    afterDraw(chart){
+      if(!document.getElementById('sym-col-arrow')?.checked) return;
+      const c2=chart.ctx;
+      const xs=chart.scales.x, ys=chart.scales.y;
+      const ox=xs.getPixelForValue(0), oy=ys.getPixelForValue(0);
+      c2.save();
+      res.colCoords.forEach((coord,j)=>{
+        const ex=xs.getPixelForValue(coord[0]);
+        const ey=ys.getPixelForValue(coord[1]||0);
+        const dx=ex-ox, dy=ey-oy;
+        const len=Math.sqrt(dx*dx+dy*dy)||1;
+        // 線
+        c2.beginPath(); c2.moveTo(ox,oy); c2.lineTo(ex,ey);
+        c2.strokeStyle='rgba(200,80,0,0.85)';
+        c2.lineWidth=2; c2.stroke();
+        // 矢頭
+        const ah=10,aw=5,ux=dx/len,uy=dy/len;
+        c2.beginPath();
+        c2.moveTo(ex,ey);
+        c2.lineTo(ex-ah*ux+aw*uy, ey-ah*uy-aw*ux);
+        c2.lineTo(ex-ah*ux-aw*uy, ey-ah*uy+aw*ux);
+        c2.closePath();
+        c2.fillStyle='rgba(200,80,0,0.85)'; c2.fill();
+        // ラベル
+        if(document.getElementById('sym-col-lbl')?.checked){
+          c2.font='bold 12px Helvetica Neue,Arial,sans-serif';
+          c2.textBaseline='middle';
+          const lx=ex+(dx/len)*14, ly=ey+(dy/len)*14;
+          const tw=c2.measureText(colNames[j]).width;
+          c2.fillStyle='rgba(255,255,255,0.88)';
+          c2.fillRect(lx-3,ly-9,tw+6,18);
+          c2.fillStyle='rgba(180,50,0,0.95)';
+          c2.fillText(colNames[j],lx,ly);
+        }
+      });
+      c2.restore();
+    }
+  };
+
+  const symChart=new Chart(symCtx,{
+    type:'scatter',
+    data:{datasets:[
+      {label:'行カテゴリ',
+       data:res.rowCoords.map((c,i)=>({x:c[0],y:c[1]||0,label:rowNames[i]})),
+       backgroundColor:'rgba(14,124,90,0.7)',
+       pointRadius:7, pointHoverRadius:9,
+       borderColor:'rgba(14,124,90,0.95)',borderWidth:1.5,
+       pointStyle:'circle'},
+      {label:'列カテゴリ',
+       data:res.colCoords.map((c,j)=>({x:c[0],y:c[1]||0,label:colNames[j]})),
+       backgroundColor: showArrow?'rgba(0,0,0,0)':'rgba(200,80,0,0.7)',
+       pointRadius:     showArrow?0:7,
+       pointHoverRadius:showArrow?4:9,
+       borderColor:'rgba(200,80,0,0.95)',borderWidth:1.5,
+       pointStyle:'triangle'},
+    ]},
+    plugins:[crosshairPlugin, symLblPlugin, colArrowPlugin],
+    options:makeChartOptions(ax1, ax2, range, range, {})
+  });
+  caCharts.push(symChart);
+}
+
+function drawAllCharts(res, ndim){
+  window._caLastRes=res; window._caLastNdim=ndim;
+  window._caRowNames=rowNames; window._caColNames=colNames;
+  destroyCharts();
+
+  const ax1=`第1次元 (${pct(res.contrib[0])})`;
+  const ax2=res.ndim>=2?`第2次元 (${pct(res.contrib[1])})`:'第2次元';
+  const range=axisRange(res.rowCoords, res.colCoords);
+
+  // ① 対称マップ
+  redrawSymMap(res, ndim);
+
+  // ② 行プロット
+  const rowCtx=document.getElementById('row-canvas');
+  if(rowCtx){
+    const rowLblPlugin=makeLabelPlugin('row-lbl', null,
+      res.rowCoords, null, rowNames, colNames);
+    const rowChart=new Chart(rowCtx,{
+      type:'scatter',
+      data:{datasets:[{
+        label:'行カテゴリ',
+        data:res.rowCoords.map((c,i)=>({x:c[0],y:c[1]||0,label:rowNames[i]})),
+        backgroundColor:'rgba(14,124,90,0.7)',
+        pointRadius:7, pointHoverRadius:9,
+        borderColor:'rgba(14,124,90,0.95)',borderWidth:1.5
+      }]},
+      plugins:[crosshairPlugin, rowLblPlugin],
+      options:makeChartOptions(ax1, ax2, range, range, {})
+    });
+    caCharts.push(rowChart);
+  }
+
+  // ③ 列プロット
+  const colCtx=document.getElementById('col-canvas');
+  if(colCtx){
+    const colLblPlugin=makeLabelPlugin('col-lbl', null,
+      res.colCoords, null, colNames, rowNames);
+    const colChart=new Chart(colCtx,{
+      type:'scatter',
+      data:{datasets:[{
+        label:'列カテゴリ',
+        data:res.colCoords.map((c,j)=>({x:c[0],y:c[1]||0,label:colNames[j]})),
+        backgroundColor:'rgba(200,80,0,0.7)',
+        pointRadius:7, pointHoverRadius:9,
+        borderColor:'rgba(200,80,0,0.95)',borderWidth:1.5,
+        pointStyle:'triangle'
+      }]},
+      plugins:[crosshairPlugin, colLblPlugin],
+      options:makeChartOptions(ax1, ax2, range, range, {})
+    });
+    caCharts.push(colChart);
+  }
+}
+
+function updateCharts(){
+  // 対称マップは矢印ON/OFFで列点の表示が変わるため再生成
+  // 行・列の個別プロットは update() のみ
+  const symChart = caCharts.find(c=>c.canvas&&c.canvas.id==='sym-canvas');
+  if(symChart && window._caLastRes){
+    symChart.destroy();
+    caCharts = caCharts.filter(c=>c!==symChart);
+    redrawSymMap(window._caLastRes, window._caLastNdim);
+  }
+  caCharts.forEach(c=>{ try{c.update();}catch(e){} });
+}
+
+// ─── CSVダウンロード ──────────────────────────────────────
+function downloadCoords(){
+  const res=window._caRes;
+  const ndim=window._caNdim;
+  if(!res) return;
+
+  const dimHdr=Array.from({length:ndim},(_,d)=>`第${d+1}次元`);
+  const lines=['行カテゴリ座標'];
+  lines.push(['カテゴリ', ...dimHdr].join(','));
+  rowNames.forEach((nm,i)=>{
+    lines.push([nm, ...Array.from({length:ndim},(_,d)=>res.rowCoords[i][d].toFixed(4))].join(','));
+  });
+  lines.push('');
+  lines.push('列カテゴリ座標');
+  lines.push(['カテゴリ', ...dimHdr].join(','));
+  colNames.forEach((nm,j)=>{
+    lines.push([nm, ...Array.from({length:ndim},(_,d)=>res.colCoords[j][d].toFixed(4))].join(','));
+  });
+
+  const blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='ca_coordinates.csv'; a.click();
+}
+
+// ─── タブ切り替え ─────────────────────────────────────────
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${id}')"]`).classList.add('active');
+  document.getElementById(`panel-${id}`).classList.add('active');
+}
+</script>
+</body>
+</html>
