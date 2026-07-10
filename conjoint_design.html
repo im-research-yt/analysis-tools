@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コンジョイント分析 直交計画生成ツール</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Meiryo',sans-serif;
+     background:#f4f6f9;color:#1a2332;font-size:14px;line-height:1.6}
+header{background:#1a2332;color:#fff;padding:14px 24px;
+       display:flex;align-items:center;gap:12px}
+header h1{font-size:17px;font-weight:600}
+header .badge{background:#e05c2a;color:#fff;font-size:11px;
+              padding:2px 8px;border-radius:10px;font-weight:700}
+.container{max-width:1100px;margin:0 auto;padding:20px 16px}
+.card{background:#fff;border-radius:8px;border:1px solid #e0e4ea;
+      padding:20px;margin-bottom:16px}
+.card h2{font-size:14px;font-weight:700;color:#1a2332;margin-bottom:14px;
+         padding-bottom:8px;border-bottom:2px solid #e05c2a;display:inline-block}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.row>div{flex:1;min-width:160px}
+label{display:block;font-size:12px;font-weight:600;color:#555;
+      margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+select,input[type=number],input[type=text]{
+  width:100%;padding:7px 10px;border:1px solid #d0d5dd;
+  border-radius:6px;font-size:13px;color:#1a2332;background:#fff;outline:none}
+select:focus,input:focus{border-color:#1a2332;box-shadow:0 0 0 2px rgba(26,35,50,.12)}
+.btn-primary{background:#1a2332;color:#fff;border:none;padding:9px 22px;
+             border-radius:6px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-primary:hover{background:#2d3d52}
+.btn-secondary{background:#fff;color:#1a2332;border:1px solid #d0d5dd;
+               padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer}
+.btn-secondary:hover{border-color:#1a2332}
+.btn-dl{background:#0e7c5a;color:#fff;border:none;padding:7px 16px;
+        border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
+.btn-dl:hover{background:#0a5c42}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.err{color:#c0392b;font-size:12px;padding:8px 12px;background:#fdf0ee;
+     border:1px solid #f5c6c0;border-radius:6px;margin-top:8px;display:none}
+.note{font-size:11px;color:#777;margin-top:6px;line-height:1.6}
+.info{font-size:12px;color:#185FA5;padding:8px 12px;background:#e8f0fd;
+      border:1px solid #c5d8f9;border-radius:6px;margin-top:8px}
+.tbl-wrap{overflow-x:auto;margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#1a2332;color:#fff;padding:7px 10px;text-align:center;
+   font-weight:600;font-size:12px;white-space:nowrap}
+th.left{text-align:left}
+td{padding:6px 10px;border-bottom:1px solid #edf0f4;text-align:center}
+td.left{text-align:left;font-weight:600}
+tr:nth-child(even) td{background:#f8fafc}
+.attr-input-row{display:flex;gap:8px;align-items:flex-start;
+                margin-bottom:10px;flex-wrap:wrap}
+.attr-block{background:#f8fafc;border:1px solid #e0e4ea;border-radius:6px;
+            padding:12px;flex:1;min-width:200px}
+.attr-block h3{font-size:12px;font-weight:700;color:#1a2332;margin-bottom:8px}
+.level-input{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.level-input input{flex:1;min-width:0}
+.level-input .lbl{font-size:11px;color:#777;white-space:nowrap;min-width:40px}
+.tabs{display:flex;gap:0;border-bottom:2px solid #e0e4ea;margin-bottom:16px}
+.tab{padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;
+     color:#777;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab.active{color:#1a2332;border-bottom-color:#e05c2a}
+.panel{display:none}.panel.active{display:block}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+           gap:12px;margin-top:10px}
+.profile-card{border:1.5px solid #1a2332;border-radius:8px;padding:14px;
+              background:#fff;page-break-inside:avoid}
+.profile-card .num{font-size:11px;font-weight:700;color:#e05c2a;
+                   margin-bottom:6px;text-transform:uppercase}
+.profile-card table{font-size:12px}
+.profile-card td{padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:left}
+.profile-card td:first-child{color:#555;width:45%}
+.profile-card td:last-child{font-weight:700;color:#1a2332}
+.badge-oa{display:inline-block;background:#e8f0fd;color:#185FA5;
+          font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;
+          margin-left:6px}
+@media print{
+  header,.card:not(#result-card),.btn-row,.tabs{display:none}
+  .panel{display:block!important}
+  #tab-cards{display:block!important}
+  .card-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>コンジョイント分析 直交計画生成ツール</h1>
+  <span class="badge">Conjoint Design</span>
+</header>
+
+<div class="container">
+
+<!-- Step 1: 属性・水準の設定 -->
+<div class="card">
+  <h2>Step 1：属性と水準の設定</h2>
+  <div class="row" style="margin-bottom:14px">
+    <div>
+      <label>属性の数</label>
+      <select id="n-attr" onchange="buildAttrInputs()">
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4" selected>4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:flex-end">
+      <button class="btn-secondary" onclick="loadExample(1)">例題：飲み会（2×2×2×2）</button>
+    </div>
+    <div style="display:flex;align-items:flex-end">
+      <button class="btn-secondary" onclick="loadExample(2)">例題：飲み会（3×3×2×2）</button>
+    </div>
+    <div style="display:flex;align-items:flex-end">
+      <button class="btn-secondary" onclick="resetAll()" style="color:#c0392b;border-color:#c0392b">↺ リセット</button>
+    </div>
+  </div>
+  <div id="attr-inputs"></div>
+  <div class="btn-row">
+    <button class="btn-primary" onclick="generateDesign()">▶ 直交計画を生成</button>
+  </div>
+  <div id="err-msg" class="err"></div>
+</div>
+
+<!-- Step 2: 結果 -->
+<div class="card" id="result-card" style="display:none">
+  <h2>Step 2：生成された直交計画</h2>
+  <div id="design-info" class="info" style="margin-bottom:12px"></div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('profiles')">プロファイル表</div>
+    <div class="tab" onclick="switchTab('dummy')">ダミー変数表</div>
+    <div class="tab" onclick="switchTab('ortho')">直交性チェック</div>
+    <div class="tab" onclick="switchTab('cards')">プロファイルカード</div>
+  </div>
+
+  <div class="panel active" id="tab-profiles">
+    <div class="btn-row">
+      <button class="btn-dl" onclick="downloadCSV('profiles')">⬇ プロファイル表をCSVでダウンロード</button>
+    </div>
+    <div class="tbl-wrap" id="profile-table-wrap"></div>
+  </div>
+
+  <div class="panel" id="tab-dummy">
+    <div class="note" style="margin-bottom:8px">
+      ※ 各属性について「最初の水準」を基準（参照カテゴリ）とし、残りの水準をダミー変数化しています。<br>
+      　 回帰分析のX（説明変数）として使用してください。Y（被説明変数）に順位または得点を追加して使います。
+    </div>
+    <div class="btn-row">
+      <button class="btn-dl" onclick="downloadCSV('dummy')">⬇ ダミー変数表をCSVでダウンロード</button>
+    </div>
+    <div class="tbl-wrap" id="dummy-table-wrap"></div>
+  </div>
+
+  <div class="panel" id="tab-ortho">
+    <div id="ortho-wrap"></div>
+  </div>
+
+  <div class="panel" id="tab-cards">
+    <div class="note" style="margin-bottom:8px">
+      ※ 印刷する場合はCtrl+P（Cmd+P）でプリント画面を開いてください。カードのみ印刷されます。
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="window.print()">🖨 印刷</button>
+    </div>
+    <div class="card-grid" id="card-grid"></div>
+  </div>
+</div>
+
+<!-- 使い方ガイド -->
+<div class="card">
+  <h2>使い方ガイド</h2>
+  <table>
+    <thead><tr><th class="left">手順</th><th class="left">内容</th></tr></thead>
+    <tbody>
+      <tr><td class="left">① 属性と水準を入力</td>
+          <td>属性の数を選択し、各属性の名前と水準名を入力する。水準は2〜4個まで設定できる。</td></tr>
+      <tr><td class="left">② 直交計画を生成</td>
+          <td>「直交計画を生成」ボタンを押すと、最適な直交配列（L8・L9・L12・L18など）を自動選択してプロファイルを生成する。</td></tr>
+      <tr><td class="left">③ プロファイル表をダウンロード</td>
+          <td>CSVをダウンロードしてExcelで開く。「順位」または「得点」列を追加して回答者に記入してもらう。</td></tr>
+      <tr><td class="left">④ ダミー変数表をダウンロード</td>
+          <td>回帰分析用のXデータ。配布データ_2のシートと同じ形式。回答者の順位/得点をY列として追加する。</td></tr>
+      <tr><td class="left">⑤ プロファイルカードを印刷</td>
+          <td>カードタブを開いて印刷。各カードを切り取って回答者に渡す。</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// ─── 直交配列ライブラリ ───────────────────────────────────
+// 各配列は [run × col] の形式（0-indexed）
+const OA = {
+  // L4: 4行3列、各列2水準
+  L4: {
+    array: [[0,0,0],[0,1,1],[1,0,1],[1,1,0]],
+    levels: [2,2,2], runs: 4
+  },
+  // L8: 8行7列、各列2水準
+  L8: {
+    array: [
+      [0,0,0,0,0,0,0],[0,0,0,1,1,1,1],[0,1,1,0,0,1,1],[0,1,1,1,1,0,0],
+      [1,0,1,0,1,0,1],[1,0,1,1,0,1,0],[1,1,0,0,1,1,0],[1,1,0,1,0,0,1]
+    ],
+    levels: [2,2,2,2,2,2,2], runs: 8
+  },
+  // L9: 9行4列、各列3水準
+  L9: {
+    array: [
+      [0,0,0,0],[0,1,1,1],[0,2,2,2],
+      [1,0,1,2],[1,1,2,0],[1,2,0,1],
+      [2,0,2,1],[2,1,0,2],[2,2,1,0]
+    ],
+    levels: [3,3,3,3], runs: 9
+  },
+  // L12: 12行11列、各列2水準（Plackett-Burman）
+  L12: {
+    array: [
+      [0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,1,1,1,1,1,1],[0,0,1,1,1,0,0,0,1,1,1],
+      [0,1,0,1,1,0,1,1,0,0,1],[0,1,1,0,1,1,0,1,0,1,0],[0,1,1,1,0,1,1,0,1,0,0],
+      [1,0,1,1,0,0,1,1,0,1,0],[1,0,1,0,1,1,1,0,0,0,1],[1,0,0,1,1,1,0,1,1,0,0],
+      [1,1,1,0,0,0,0,1,1,0,1],[1,1,0,1,0,1,0,0,0,1,1],[1,1,0,0,1,0,1,0,1,1,0]
+    ],
+    levels: [2,2,2,2,2,2,2,2,2,2,2], runs: 12
+  },
+  // L16: 16行15列、各列2水準
+  L16: {
+    array: [
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],
+      [0,0,0,1,1,1,1,0,0,0,0,1,1,1,1],[0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],[0,1,1,0,0,1,1,1,1,0,0,1,1,0,0],
+      [0,1,1,1,1,0,0,0,0,1,1,1,1,0,0],[0,1,1,1,1,0,0,1,1,0,0,0,0,1,1],
+      [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,1,0,1,0,1,0,1,0],
+      [1,0,1,1,0,1,0,0,1,0,1,1,0,1,0],[1,0,1,1,0,1,0,1,0,1,0,0,1,0,1],
+      [1,1,0,0,1,1,0,0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,1,0,0,1,1,0,0,1],
+      [1,1,0,1,0,0,1,0,1,0,1,1,0,0,1],[1,1,0,1,0,0,1,1,0,1,0,0,1,1,0]
+    ],
+    levels: [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2], runs: 16
+  },
+  // L18: 18行8列（1列2水準+7列3水準）
+  L18: {
+    array: [
+      [0,0,0,0,0,0,0,0],[0,0,1,1,1,1,1,1],[0,0,2,2,2,2,2,2],
+      [0,1,0,0,1,1,2,2],[0,1,1,1,2,2,0,0],[0,1,2,2,0,0,1,1],
+      [0,2,0,1,0,2,1,2],[0,2,1,2,1,0,2,0],[0,2,2,0,2,1,0,1],
+      [1,0,0,2,2,1,1,0],[1,0,1,0,0,2,2,1],[1,0,2,1,1,0,0,2],
+      [1,1,0,1,2,0,2,1],[1,1,1,2,0,1,0,2],[1,1,2,0,1,2,1,0],
+      [1,2,0,2,1,2,0,1],[1,2,1,0,2,0,1,2],[1,2,2,1,0,1,2,0]
+    ],
+    levels: [2,3,3,3,3,3,3,3], runs: 18
+  },
+  // OA12_3_2x3: 12行4列（3×2×2×2）完全直交
+  OA12_3_2x3: {
+    array: [
+      [0,0,0,0],[0,0,1,1],[0,1,0,1],[0,1,1,0],
+      [1,0,0,1],[1,0,1,0],[1,1,0,0],[1,1,1,1],
+      [2,0,0,0],[2,0,1,1],[2,1,0,1],[2,1,1,0]
+    ],
+    levels: [3,2,2,2], runs: 12
+  },
+  // OA12_3_2x4: 12行5列（3×2×2×2×2）
+  OA12_3_2x4: {
+    array: [
+      [0,0,0,0,0],[0,0,1,1,1],[0,1,0,1,1],[0,1,1,0,0],
+      [1,0,0,1,0],[1,0,1,0,1],[1,1,0,0,1],[1,1,1,1,0],
+      [2,0,0,0,1],[2,0,1,1,0],[2,1,0,1,0],[2,1,1,0,1]
+    ],
+    levels: [3,2,2,2,2], runs: 12
+  },
+  // L27: 27行13列、各列3水準
+  L27: {
+    array: [
+      [0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,1,1,1,2,2,2,2,2],
+      [0,0,0,0,2,2,2,2,0,1,1,2,2],[0,1,1,2,0,1,1,2,1,0,2,0,1],
+      [0,1,1,2,1,2,2,0,2,1,0,1,2],[0,1,1,2,2,0,0,1,0,2,1,2,0],
+      [0,2,2,1,0,2,2,1,2,2,0,0,2],[0,2,2,1,1,0,0,2,0,0,1,1,0],
+      [0,2,2,1,2,1,1,0,1,1,2,2,1],[1,0,1,2,0,0,2,1,1,2,1,0,2],
+      [1,0,1,2,1,1,0,2,2,0,2,1,0],[1,0,1,2,2,2,1,0,0,1,0,2,1],
+      [1,1,2,0,0,1,0,2,2,1,0,2,0],[1,1,2,0,1,2,1,0,0,2,1,0,1],
+      [1,1,2,0,2,0,2,1,1,0,2,1,2],[1,2,0,1,0,2,1,0,0,0,2,1,1],
+      [1,2,0,1,1,0,2,1,1,1,0,2,2],[1,2,0,1,2,1,0,2,2,2,1,0,0],
+      [2,0,2,1,0,0,1,2,2,1,2,1,0],[2,0,2,1,1,1,2,0,0,2,0,2,1],
+      [2,0,2,1,2,2,0,1,1,0,1,0,2],[2,1,0,2,0,1,2,0,1,0,1,2,2],
+      [2,1,0,2,1,2,0,1,2,1,2,0,0],[2,1,0,2,2,0,1,2,0,2,0,1,1],
+      [2,2,1,0,0,2,0,1,1,2,2,2,1],[2,2,1,0,1,0,1,2,2,0,0,0,2],
+      [2,2,1,0,2,1,2,0,0,1,1,1,0]
+    ],
+    levels: [3,3,3,3,3,3,3,3,3,3,3,3,3], runs: 27
+  }
+};
+
+// ─── グローバル ───
+let G = { attrs: [], profiles: [], dummies: [], oa: null };
+
+// ─── UI ───
+function switchTab(name){
+  const names=['profiles','dummy','ortho','cards'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='ortho') renderOrthoCheck();
+}
+
+function showErr(m){const e=document.getElementById('err-msg');e.textContent=m;e.style.display='block';}
+function clearErr(){document.getElementById('err-msg').style.display='none';}
+
+function buildAttrInputs(){
+  const n=+document.getElementById('n-attr').value;
+  const wrap=document.getElementById('attr-inputs');
+  // 既存の値を先に読み取って保存（G.attrs をリセットする前に）
+  const old=getAttrsFromDOM()||G.attrs||[];
+  wrap.innerHTML='';
+  G.attrs=[];
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px';
+  for(let i=0;i<n;i++){
+    const prev=(old&&old[i]&&old[i].levels)?old[i]:{name:`属性${String.fromCharCode(65+i)}`,levels:['水準1','水準2']};
+    const div=document.createElement('div');
+    div.className='attr-block';
+    div.innerHTML=`<h3>属性 ${i+1}</h3>
+      <div style="margin-bottom:8px">
+        <label style="text-transform:none;letter-spacing:0;font-size:11px">属性名</label>
+        <input type="text" id="attr-name-${i}" value="${prev.name}" placeholder="例：タイプ">
+      </div>
+      <label style="text-transform:none;letter-spacing:0;font-size:11px">水準数</label>
+      <select id="attr-nlvl-${i}" onchange="updateLevelInputs(${i})" style="margin-bottom:8px">
+        <option value="2" ${prev.levels.length===2?'selected':''}>2水準</option>
+        <option value="3" ${prev.levels.length===3?'selected':''}>3水準</option>
+        <option value="4" ${prev.levels.length===4?'selected':''}>4水準</option>
+      </select>
+      <div id="lvl-inputs-${i}"></div>`;
+    grid.appendChild(div);
+    G.attrs.push({});
+  }
+  wrap.appendChild(grid);
+  for(let i=0;i<n;i++) updateLevelInputs(i, old[i]?.levels);
+}
+
+function updateLevelInputs(i, prevLevels){
+  const n=+document.getElementById(`attr-nlvl-${i}`).value;
+  const wrap=document.getElementById(`lvl-inputs-${i}`);
+  wrap.innerHTML='';
+  for(let j=0;j<n;j++){
+    const prev=prevLevels?.[j]||`水準${j+1}`;
+    const div=document.createElement('div');
+    div.className='level-input';
+    div.innerHTML=`<span class="lbl">水準${j+1}</span>
+      <input type="text" id="lvl-${i}-${j}" value="${prev}" placeholder="例：和食">`;
+    wrap.appendChild(div);
+  }
+}
+
+function getAttrsFromDOM(){
+  try{
+    const n=+document.getElementById('n-attr').value;
+    const attrs=[];
+    for(let i=0;i<n;i++){
+      const nameEl=document.getElementById(`attr-name-${i}`);
+      const nlvlEl=document.getElementById(`attr-nlvl-${i}`);
+      if(!nameEl||!nlvlEl) return null;
+      const name=nameEl.value.trim()||`属性${String.fromCharCode(65+i)}`;
+      const nlvl=+nlvlEl.value;
+      const levels=[];
+      for(let j=0;j<nlvl;j++){
+        const el=document.getElementById(`lvl-${i}-${j}`);
+        levels.push(el?el.value.trim()||`水準${j+1}`:`水準${j+1}`);
+      }
+      attrs.push({name, levels});
+    }
+    return attrs;
+  }catch(e){ return null; }
+}
+
+function getAttrs(){
+  const n=+document.getElementById('n-attr').value;
+  const attrs=[];
+  for(let i=0;i<n;i++){
+    const name=document.getElementById(`attr-name-${i}`).value.trim()||`属性${String.fromCharCode(65+i)}`;
+    const nlvl=+document.getElementById(`attr-nlvl-${i}`).value;
+    const levels=[];
+    for(let j=0;j<nlvl;j++){
+      levels.push(document.getElementById(`lvl-${i}-${j}`).value.trim()||`水準${j+1}`);
+    }
+    attrs.push({name, levels});
+  }
+  return attrs;
+}
+
+// ─── 直交配列の選択 ───
+function selectOA(attrs){
+  const levelCounts=attrs.map(a=>a.levels.length);
+  const maxL=Math.max(...levelCounts);
+  const n=attrs.length;
+  const n2=levelCounts.filter(l=>l===2).length;
+  const n3=levelCounts.filter(l=>l===3).length;
+
+  // 2水準のみ
+  if(maxL===2){
+    if(n<=3) return {oa:'L4', type:'pure2'};
+    if(n<=7) return {oa:'L8', type:'pure2'};
+    if(n<=11) return {oa:'L12', type:'pure2'};
+    if(n<=15) return {oa:'L16', type:'pure2'};
+    return null;
+  }
+
+  // 3水準のみ
+  if(maxL===3 && n2===0){
+    if(n<=4) return {oa:'L9', type:'pure3'};
+    if(n<=13) return {oa:'L27', type:'pure3'};
+    return null;
+  }
+
+  // 混合：3水準 + 2水準
+  if(maxL===3){
+    // 3水準1個+2水準k個 → OA12専用配列（完全直交）
+    if(n3===1 && n2<=3) return {oa:'OA12_3_2x3', type:'prebuilt'};
+    if(n3===1 && n2<=4) return {oa:'OA12_3_2x4', type:'prebuilt'};
+    // 3水準2個以上+2水準 → L9ベース（近似直交、実務標準）
+    if(n<=4) return {oa:'L9', type:'mixed'};
+    // L18: 2水準1個+3水準≤7個 → 完全直交
+    if(n2<=1 && n3<=7) return {oa:'L18', type:'L18mix'};
+    // 2水準複数: L18の3水準列をmod2で縮退（近似直交）
+    if(n<=8) return {oa:'L18', type:'L18mod'};
+    return null;
+  }
+
+  // 4水準を含む（疑似4水準: 2列の2水準で表現）→ L16
+  if(maxL===4 && n<=4) return {oa:'L16', type:'pseudo4'};
+
+  return null;
+}
+
+// ─── 直交計画の生成 ───
+function generateDesign(){
+  clearErr();
+  const attrs=getAttrs();
+  G.attrs=attrs;
+
+  const sel=selectOA(attrs);
+  if(!sel){
+    showErr('この属性・水準の組み合わせには対応する直交配列が見つかりません。属性数または水準数を変更してください。');
+    return;
+  }
+
+  let profiles=[];
+  const {oa:oaKey, type:oaType}=sel;
+  const baseOA=OA[oaKey];
+
+  if(oaType==='prebuilt'){
+    // 専用混合直交配列（OA12など）：属性順に列を割り当て
+    // 3水準属性を先頭に配置（OAの最初の列が3水準）
+    const sorted=[...attrs.map((a,i)=>({...a,origIdx:i}))].sort((a,b)=>b.levels.length-a.levels.length);
+    const colMap=new Array(attrs.length);
+    sorted.forEach((a,col)=>colMap[a.origIdx]=col);
+    for(const row of baseOA.array){
+      const p=new Array(attrs.length);
+      attrs.forEach((_,i)=>p[i]=row[colMap[i]]);
+      profiles.push(p);
+    }
+  } else if(oaType==='pure2'||oaType==='pure3'){
+    // そのまま使用（属性順に列を割り当て）
+    const cols=Array.from({length:attrs.length},(_,i)=>i);
+    for(const row of baseOA.array){
+      profiles.push(cols.map((c,i)=>row[c]%attrs[i].levels.length));
+    }
+
+  } else if(oaType==='mixed'){
+    // L9の4列を使い、水準数に応じてmod
+    // 3水準属性を先に、2水準属性を後に割り当て
+    const sorted=[...attrs.map((a,i)=>({...a,origIdx:i}))].sort((a,b)=>b.levels.length-a.levels.length);
+    const colMap=new Array(attrs.length);
+    sorted.forEach((a,col)=>colMap[a.origIdx]=col);
+    for(const row of baseOA.array){
+      const p=new Array(attrs.length);
+      attrs.forEach((_,i)=>p[i]=row[colMap[i]]%attrs[i].levels.length);
+      profiles.push(p);
+    }
+
+  } else if(oaType==='L18mix'){
+    // L18: col0=2水準, col1-7=3水準
+    // 2水準属性→列0、3水準属性→列1,2,3,...
+    let c2=0, c3=1;
+    const cols=attrs.map(a=>a.levels.length===2?c2++:c3++);
+    for(const row of baseOA.array){
+      profiles.push(cols.map((c,i)=>row[c]%attrs[i].levels.length));
+    }
+
+  } else if(oaType==='L18mod'){
+    // L18の3水準列をすべて使い、2水準属性はmod2で縮退
+    // 2水準が多い場合: 3水準属性→col1、2水準1個→col0、残り2水準→col2以降mod2
+    const sorted=[...attrs.map((a,i)=>({...a,origIdx:i}))].sort((a,b)=>b.levels.length-a.levels.length);
+    const colMap=new Array(attrs.length);
+    let c3=1, c2=0, usedC0=false;
+    for(const a of sorted){
+      if(a.levels.length===3){ colMap[a.origIdx]=c3++; }
+      else if(!usedC0){ colMap[a.origIdx]=0; usedC0=true; }
+      else { colMap[a.origIdx]=c3++; }
+    }
+    // 18行そのまま出力（重複があっても直交性近似のため許容）
+    for(const row of baseOA.array){
+      profiles.push(colMap.map((c,i)=>row[c]%attrs[i].levels.length));
+    }
+
+  } else if(oaType==='pseudo4'){
+    // 4水準属性を2列の2水準で表現（L16使用）
+    let colIdx=0;
+    const attrCols=attrs.map(a=>{
+      if(a.levels.length===4){const c=[colIdx,colIdx+1];colIdx+=2;return c;}
+      const c=[colIdx];colIdx+=1;return c;
+    });
+    for(const row of baseOA.array){
+      profiles.push(attrCols.map((cs,i)=>{
+        if(cs.length===2){const v=row[cs[0]]*2+row[cs[1]];return Math.min(v,attrs[i].levels.length-1);}
+        return row[cs[0]]%attrs[i].levels.length;
+      }));
+    }
+  }
+
+  G.profiles=profiles;
+  G.oa=sel.oa;
+
+  // ダミー変数の計算
+  const dummies=[];
+  const dummyHeaders=[];
+  for(let i=0;i<attrs.length;i++){
+    // 最初の水準を基準として残りをダミー化
+    for(let j=1;j<attrs[i].levels.length;j++){
+      dummyHeaders.push(`${attrs[i].name}（${attrs[i].levels[j]}）`);
+    }
+  }
+  G.dummyHeaders=dummyHeaders;
+
+  for(const p of profiles){
+    const row=[];
+    for(let i=0;i<attrs.length;i++){
+      for(let j=1;j<attrs[i].levels.length;j++){
+        row.push(p[i]===j?1:0);
+      }
+    }
+    dummies.push(row);
+  }
+  G.dummies=dummies;
+
+  // 描画
+  renderProfileTable();
+  renderDummyTable();
+  renderCards();
+
+  const oaLabel=sel.oa;
+  // 直交性タイプに応じた注記
+  const orthoNote=
+    oaType==='prebuilt'?'　<span style="color:#0e7c5a">✓ 完全直交</span>':
+    oaType==='pure2'||oaType==='pure3'?'　<span style="color:#0e7c5a">✓ 完全直交</span>':
+    oaType==='L18mix'?'　<span style="color:#0e7c5a">✓ 完全直交</span>':
+    oaType==='mixed'?'　<span style="color:#e05c2a">△ 近似直交（直交性チェックで確認してください）</span>':
+    oaType==='L18mod'?'　<span style="color:#e05c2a">△ 近似直交（2水準属性が多い場合は属性数を見直してください）</span>':'';
+  document.getElementById('design-info').innerHTML=
+    `使用直交配列：<b>${oaLabel}</b>　プロファイル数：<b>${profiles.length}件</b>　属性数：<b>${attrs.length}</b>　
+    水準構成：<b>${attrs.map(a=>a.levels.length).join('×')}</b>${orthoNote}`;
+  document.getElementById('result-card').style.display='block';
+  switchTab('profiles');
+  document.getElementById('result-card').scrollIntoView({behavior:'smooth'});
+}
+
+// ─── プロファイル表描画 ───
+function renderProfileTable(){
+  const {attrs,profiles}=G;
+  let html='<table><thead><tr><th>プロファイル番号</th>';
+  attrs.forEach(a=>html+=`<th>${a.name}</th>`);
+  html+='<th style="background:#555">順位</th><th style="background:#555">得点</th></tr></thead><tbody>';
+  profiles.forEach((p,i)=>{
+    html+=`<tr><td>プロファイル${i+1}</td>`;
+    p.forEach((vi,ai)=>html+=`<td>${attrs[ai].levels[vi]}</td>`);
+    html+='<td style="background:#f8f8f8"></td><td style="background:#f8f8f8"></td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('profile-table-wrap').innerHTML=html;
+}
+
+// ─── ダミー変数表描画 ───
+function renderDummyTable(){
+  const {attrs,profiles,dummies,dummyHeaders}=G;
+  let html='<table><thead><tr><th>プロファイル番号</th>';
+  attrs.forEach(a=>html+=`<th>${a.name}</th>`);
+  dummyHeaders.forEach(h=>html+=`<th style="background:#185FA5">${h}</th>`);
+  html+='<th style="background:#555">順位</th><th style="background:#555">得点</th></tr></thead><tbody>';
+  profiles.forEach((p,i)=>{
+    html+=`<tr><td>プロファイル${i+1}</td>`;
+    p.forEach((vi,ai)=>html+=`<td>${attrs[ai].levels[vi]}</td>`);
+    dummies[i].forEach(d=>html+=`<td style="background:#e8f0fd">${d}</td>`);
+    html+='<td style="background:#f8f8f8"></td><td style="background:#f8f8f8"></td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('dummy-table-wrap').innerHTML=html;
+}
+
+// ─── プロファイルカード描画 ───
+function renderCards(){
+  const {attrs,profiles}=G;
+  const grid=document.getElementById('card-grid');
+  grid.innerHTML='';
+  profiles.forEach((p,i)=>{
+    const div=document.createElement('div');
+    div.className='profile-card';
+    let rows='';
+    p.forEach((vi,ai)=>rows+=`<tr><td>${attrs[ai].name}</td><td>${attrs[ai].levels[vi]}</td></tr>`);
+    div.innerHTML=`<div class="num">プロファイル ${i+1}</div>
+      <table>${rows}</table>
+      <div style="margin-top:8px;padding-top:6px;border-top:1px solid #eee;font-size:11px;color:#777">
+        評価（順位・得点）：___________
+      </div>`;
+    grid.appendChild(div);
+  });
+}
+
+// ─── CSVダウンロード ───
+function downloadCSV(type){
+  const {attrs,profiles,dummies,dummyHeaders}=G;
+  const rows=[];
+  if(type==='profiles'){
+    rows.push(['プロファイル番号',...attrs.map(a=>a.name),'順位','得点'].join(','));
+    profiles.forEach((p,i)=>{
+      rows.push([`プロファイル${i+1}`,...p.map((vi,ai)=>attrs[ai].levels[vi]),'',''].join(','));
+    });
+  } else {
+    rows.push(['プロファイル番号',...attrs.map(a=>a.name),...dummyHeaders,'順位','得点'].join(','));
+    profiles.forEach((p,i)=>{
+      rows.push([`プロファイル${i+1}`,
+        ...p.map((vi,ai)=>attrs[ai].levels[vi]),
+        ...dummies[i],'',''].join(','));
+    });
+  }
+  const bom='\uFEFF';
+  const b64=btoa(unescape(encodeURIComponent(bom+rows.join('\n'))));
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8;base64,'+b64;
+  a.download=type==='profiles'?'conjoint_profiles.csv':'conjoint_dummy.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+// ─── 例題 ───
+function loadExample(n){
+  if(n===1){
+    document.getElementById('n-attr').value=4;
+    buildAttrInputs();
+    const data=[
+      {name:'タイプ',levels:['和食','洋食']},
+      {name:'席のタイプ',levels:['テーブル席','座敷席']},
+      {name:'デザート',levels:['なし','あり']},
+      {name:'価格',levels:['3000円','4000円']},
+    ];
+    data.forEach((d,i)=>{
+      document.getElementById(`attr-name-${i}`).value=d.name;
+      document.getElementById(`attr-nlvl-${i}`).value=d.levels.length;
+      updateLevelInputs(i);
+      d.levels.forEach((l,j)=>{ document.getElementById(`lvl-${i}-${j}`).value=l; });
+    });
+  } else {
+    document.getElementById('n-attr').value=4;
+    buildAttrInputs();
+    const data=[
+      {name:'タイプ',levels:['和食','洋食','フレンチ']},
+      {name:'席のタイプ',levels:['テーブル席','座敷席','カウンター席']},
+      {name:'デザート',levels:['なし','あり']},
+      {name:'価格',levels:['3000円','4000円']},
+    ];
+    data.forEach((d,i)=>{
+      document.getElementById(`attr-name-${i}`).value=d.name;
+      document.getElementById(`attr-nlvl-${i}`).value=d.levels.length;
+      updateLevelInputs(i);
+      d.levels.forEach((l,j)=>{ document.getElementById(`lvl-${i}-${j}`).value=l; });
+    });
+  }
+}
+
+// ─── 直交性チェック ───
+function renderOrthoCheck(){
+  const {attrs, profiles}=G;
+  if(!profiles||profiles.length===0) return;
+  const n=attrs.length;
+  const wrap=document.getElementById('ortho-wrap');
+
+  let allOK=true;
+  let html='';
+
+  // 重複プロファイルチェック（L18mod使用時のみ発生しうる）
+  const pKeys=profiles.map(p=>p.join(','));
+  const dupes=pKeys.filter((k,i)=>pKeys.indexOf(k)!==i);
+  if(dupes.length>0){
+    allOK=false;
+    html+=`<div style="padding:10px 14px;background:#fff3e0;border-left:4px solid #e05c2a;
+           border-radius:6px;margin-bottom:12px;font-size:12px">
+      ⚠ <b>重複プロファイルが${dupes.length}件あります。</b><br>
+      2水準属性が多い混合水準の場合、一部のプロファイルが重複することがあります。<br>
+      属性数を減らすか、水準の組み合わせを見直してください。
+    </div>`;
+  }
+
+  // 各属性ペアのクロス集計
+  html+=`<div class="note" style="margin-bottom:12px">
+    各属性ペアの組み合わせ出現回数を確認します。すべてのセルが同じ回数であれば完全直交です。<br>
+    ※ 混合水準（3×3×2×2など）では完全均等にならない場合がありますが、
+    各水準が偏りなく出現していれば実用上問題ありません。
+  </div>`;
+
+  // 各属性の水準出現回数（周辺度数）
+  html+=`<h3 style="font-size:13px;font-weight:700;margin-bottom:8px">① 各属性の水準出現回数</h3>`;
+  html+=`<div class="tbl-wrap"><table><thead><tr>
+    <th class="left">属性</th><th class="left">水準</th><th>出現回数</th><th>期待値</th><th>判定</th>
+  </tr></thead><tbody>`;
+
+  const expected=profiles.length;
+  attrs.forEach((attr,i)=>{
+    const counts=new Array(attr.levels.length).fill(0);
+    profiles.forEach(p=>counts[p[i]]++);
+    const exp=profiles.length/attr.levels.length;
+    attr.levels.forEach((lv,j)=>{
+      const ok=Math.abs(counts[j]-exp)<0.5;
+      if(!ok) allOK=false;
+      html+=`<tr>
+        <td class="left">${j===0?`<b>${attr.name}</b>`:''}</td>
+        <td class="left">${lv}</td>
+        <td>${counts[j]}</td>
+        <td>${exp%1===0?exp:exp.toFixed(2)}</td>
+        <td style="color:${ok?'#0e7c5a':'#c0392b'};font-weight:700">${ok?'✓ OK':'△ 不均等'}</td>
+      </tr>`;
+    });
+  });
+  html+=`</tbody></table></div>`;
+
+  // 属性ペアのクロス集計
+  html+=`<h3 style="font-size:13px;font-weight:700;margin:16px 0 8px">② 属性ペアのクロス集計（直交性の確認）</h3>`;
+
+  for(let i=0;i<n;i++){
+    for(let j=i+1;j<n;j++){
+      const cross={};
+      attrs[i].levels.forEach((_,li)=>{
+        attrs[j].levels.forEach((_,lj)=>{
+          cross[`${li}-${lj}`]=0;
+        });
+      });
+      profiles.forEach(p=>cross[`${p[i]}-${p[j]}`]++);
+
+      const vals=Object.values(cross);
+      const mn=Math.min(...vals), mx=Math.max(...vals);
+      const diff=mx-mn;
+      const isOK=diff<=1;
+      const isApprox=diff<=2;
+      if(!isOK) allOK=false;
+
+      const statusColor=diff===0?'#0e7c5a':diff<=1?'#185FA5':diff<=2?'#e05c2a':'#c0392b';
+      const statusText=diff===0?'✓ 完全直交':diff<=1?'✓ 直交（差1）':diff<=2?'△ 近似直交（差2）':'✗ 非直交（差'+diff+'）';
+
+      html+=`<div style="margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px;
+                    display:flex;align-items:center;gap:8px">
+          <span>${attrs[i].name} × ${attrs[j].name}</span>
+          <span style="color:${statusColor};font-size:13px">${statusText}</span>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th></th>`;
+      attrs[j].levels.forEach(lv=>html+=`<th>${lv}</th>`);
+      html+=`<th style="background:#555">合計</th></tr></thead><tbody>`;
+
+      attrs[i].levels.forEach((lvi,li)=>{
+        const rowTotal=attrs[j].levels.reduce((s,_,lj)=>s+cross[`${li}-${lj}`],0);
+        html+=`<tr><td class="left"><b>${lvi}</b></td>`;
+        attrs[j].levels.forEach((_,lj)=>{
+          const v=cross[`${li}-${lj}`];
+          const cellOK=mx-mn<=1;
+          html+=`<td style="background:${cellOK?'#e8f5f0':'#fdf0ee'};font-weight:600">${v}</td>`;
+        });
+        html+=`<td style="background:#f4f6f9;font-weight:700">${rowTotal}</td></tr>`;
+      });
+
+      // 列合計
+      html+=`<tr><td class="left" style="font-weight:700">合計</td>`;
+      attrs[j].levels.forEach((_,lj)=>{
+        const colTotal=attrs[i].levels.reduce((s,_,li)=>s+cross[`${li}-${lj}`],0);
+        html+=`<td style="background:#f4f6f9;font-weight:700">${colTotal}</td>`;
+      });
+      html+=`<td style="background:#e0e4ea;font-weight:700">${profiles.length}</td></tr>`;
+      html+=`</tbody></table></div></div>`;
+    }
+  }
+
+  // 総合判定
+  const summaryColor=allOK?'#0e7c5a':'#e05c2a';
+  const summaryBg=allOK?'#e8f5f0':'#fff3e0';
+  const summaryText=allOK
+    ?'✓ すべての属性ペアで直交性が確認されました。この直交計画は分析に使用できます。'
+    :'△ 一部の属性ペアで出現回数に偏りがあります。属性・水準の組み合わせを見直してください。';
+
+  html=`<div style="padding:12px 16px;background:${summaryBg};border-radius:6px;
+         border-left:4px solid ${summaryColor};margin-bottom:16px;
+         font-size:13px;font-weight:600;color:${summaryColor}">${summaryText}</div>`+html;
+
+  wrap.innerHTML=html;
+}
+
+// ─── リセット ───
+function resetAll(){
+  document.getElementById('n-attr').value=4;
+  G={attrs:[], profiles:[], dummies:[], oa:null};
+  // attr-inputs を先にクリアしてDOMの古い値を消す
+  document.getElementById('attr-inputs').innerHTML='';
+  buildAttrInputs();
+  document.getElementById('result-card').style.display='none';
+  document.getElementById('err-msg').style.display='none';
+}
+
+// ─── 初期化 ───
+buildAttrInputs();
+</script>
+</body>
+</html>
