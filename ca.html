@@ -100,15 +100,8 @@ select:focus,input:focus{border-color:#0e7c5a}
   <h2>分析設定</h2>
   <div class="row">
     <div>
-      <label>表示する次元数（グラフ）</label>
-      <select id="dim-num">
-        <option value="2" selected>2次元</option>
-        <option value="3">3次元（第1・第2・第3を個別表示）</option>
-      </select>
-    </div>
-    <div>
       <label>座標のタイプ</label>
-      <select id="coord-type">
+      <select id="coord-type" onchange="rerunCA()">
         <option value="sym">対称マップ（Principal Normalization）</option>
         <option value="row">行主体（Row Principal）</option>
         <option value="col">列主体（Column Principal）</option>
@@ -120,6 +113,29 @@ select:focus,input:focus{border-color:#0e7c5a}
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
     分析を実行
   </button>
+</div>
+
+<div class="card">
+  <h2>座標タイプの選び方</h2>
+  <table class="tbl" style="text-align:left"><thead><tr>
+    <th style="text-align:left">タイプ</th><th style="text-align:left">行</th><th style="text-align:left">列</th><th style="text-align:left">特徴と用途</th>
+  </tr></thead><tbody>
+    <tr style="background:#e8f5f0">
+      <td style="text-align:left"><b>対称マップ ★推奨</b></td><td style="text-align:left">主座標</td><td style="text-align:left">主座標</td>
+      <td style="text-align:left">行と列が同スケールで視覚的にバランスが良い。授業・プレゼン向け。ただし行と列の点間距離は数学的に無意味。</td>
+    </tr>
+    <tr>
+      <td style="text-align:left"><b>行主体</b></td><td style="text-align:left">主座標</td><td style="text-align:left">標準座標</td>
+      <td style="text-align:left">行カテゴリ間の距離がカイ二乗距離を正確に反映。列を矢印表示と組み合わせると、矢印方向に近いブランドほど関連が強いという解釈が数学的に正当化される。論文向け。</td>
+    </tr>
+    <tr>
+      <td style="text-align:left"><b>列主体</b></td><td style="text-align:left">標準座標</td><td style="text-align:left">主座標</td>
+      <td style="text-align:left">列カテゴリ間の距離が正確。行は方向のみで読む。</td>
+    </tr>
+  </tbody></table>
+  <div class="note" style="margin-top:8px">
+    ★ 通常は対称マップを使用。より厳密に行と列の関連を読む場合は行主体＋列を矢印表示を推奨。
+  </div>
 </div>
 
 </div>
@@ -357,10 +373,27 @@ function correspondenceAnalysis(P, coordType){
     return colPrin[j].map(v=> dist2>1e-10 ? v**2/dist2 : 0);
   });
 
+  // カイ二乗統計量・自由度・p値の計算
+  const grandTotal = P.flat().reduce((a,b)=>a+b,0);
+  const chiSq = totalInertia * grandTotal;
+  const df = (nr-1)*(nc-1);
+  // p値の近似（カイ二乗分布の上側確率）
+  function chiSqPval(x, k){
+    // Wilson-Hilferty近似
+    if(x<=0||k<=0) return 1;
+    const z=(Math.pow(x/k,1/3)-(1-2/(9*k)))/Math.sqrt(2/(9*k));
+    // 標準正規分布の上側確率
+    const t=1/(1+0.2316419*Math.abs(z));
+    const p=0.3989423*Math.exp(-z*z/2)*(t*(0.319381530+t*(-0.356563782+t*(1.781477937+t*(-1.821255978+t*1.330274429)))));
+    return z>0?p:1-p;
+  }
+  const pval = chiSqPval(chiSq, df);
+
   return{inertia,totalInertia,contrib,
          rowCoords,colCoords,rowStd,colStd,rowPrin,colPrin,
          rowContrib,colContrib,rowCos2,colCos2,
-         rowMass:r,colMass:c,ndim,sv:sv.slice(0,ndim)};
+         rowMass:r,colMass:c,ndim,sv:sv.slice(0,ndim),
+         chiSq,df,pval,grandTotal,nr,nc};
 }
 
 // ─── 数値フォーマット ─────────────────────────────────────
@@ -368,6 +401,10 @@ const f4=v=>v.toFixed(4), f3=v=>v.toFixed(3), f2=v=>v.toFixed(2);
 const pct=v=>(v*100).toFixed(2)+'%';
 
 // ─── 分析実行 ─────────────────────────────────────────────
+function rerunCA(){
+  if(window._caLastRes) runCA();
+}
+
 function runCA(){
   hideErr();
   if(!N || contingency.length<2){
@@ -382,10 +419,9 @@ function runCA(){
   if(total===0){showErr('合計度数が0です'); return;}
 
   const coordType=document.getElementById('coord-type').value;
-  const dimNum=+document.getElementById('dim-num').value;
 
   const res=correspondenceAnalysis(contingency, coordType);
-  const ndim=Math.min(res.ndim, dimNum);
+  const ndim=res.ndim;
 
   // ─ HTML構築 ─
   const rc=document.getElementById('result-content');
@@ -438,6 +474,39 @@ function runCA(){
   }
   html+=`</tbody></table></div></div>`;
 
+  // 統計指標テーブル
+  const pvalStr = res.pval < 0.001 ? 'p &lt; .001 ***' :
+                  res.pval < 0.01  ? `p = ${res.pval.toFixed(3)} **` :
+                  res.pval < 0.05  ? `p = ${res.pval.toFixed(3)} *` :
+                                     `p = ${res.pval.toFixed(3)}`;
+  html+=`<div class="card"><h2>適合度統計量
+    <span class="star-sig">*** p&lt;.001　** p&lt;.01　* p&lt;.05</span></h2>
+  <div class="overflow-x"><table class="tbl"><thead><tr>
+    <th>指標</th><th>値</th><th>説明</th>
+  </tr></thead><tbody>
+    <tr><td>総度数（N）</td><td>${res.grandTotal}</td><td>クロス集計表の合計度数</td></tr>
+    <tr><td>行カテゴリ数</td><td>${res.nr}</td><td></td></tr>
+    <tr><td>列カテゴリ数</td><td>${res.nc}</td><td></td></tr>
+    <tr><td>自由度（df）</td><td>${res.df}</td><td>（行数−1）×（列数−1）</td></tr>
+    <tr class="${res.pval<0.05?'hi':''}" style="${res.pval<0.05?'':''}">
+      <td>カイ二乗統計量（χ²）</td>
+      <td>${res.chiSq.toFixed(3)}</td>
+      <td>${pvalStr}　行と列の独立性の検定</td></tr>
+    <tr><td>総慣性（Total Inertia）</td><td>${f4(res.totalInertia)}</td>
+      <td>χ² ÷ N。連関の強さの指標</td></tr>
+    <tr><td>第1次元の慣性</td><td>${f4(res.inertia[0])}</td>
+      <td>寄与率 ${pct(res.contrib[0])}</td></tr>
+    <tr><td>第2次元の慣性</td><td>${res.ndim>=2?f4(res.inertia[1]):'—'}</td>
+      <td>${res.ndim>=2?'寄与率 '+pct(res.contrib[1]):'—'}</td></tr>
+    <tr><td>第1・第2次元の累積寄与率</td>
+      <td>${pct(res.contrib.slice(0,Math.min(2,res.ndim)).reduce((a,b)=>a+b,0))}</td>
+      <td>マップで説明できる情報量の割合</td></tr>
+  </tbody></table></div>
+  <div class="note" style="margin-top:8px">
+    ※ カイ二乗検定：行変数と列変数の間に関連がないという帰無仮説を検定。有意（p&lt;.05）であればコレスポンデンス分析の実施が正当化される。<br>
+    ※ 総慣性：0に近いほど行と列の関連が弱い。累積寄与率が80%以上であれば2次元マップで十分な情報量。
+  </div></div>`;
+
   // 行・列の座標・寄与度表
   html+=`<div class="card"><h2>行カテゴリの座標・寄与度・cos²</h2>
   <div class="overflow-x"><table class="tbl"><thead><tr>
@@ -479,20 +548,32 @@ function runCA(){
       <span class="badge badge-row-item">● 行：${rowNames.join('　')}</span>
       <span class="badge badge-col-item">▲ 列：${colNames.join('　')}</span>
     </div>
-    <div class="chk-row">
+    <div class="chk-row" style="flex-wrap:wrap;gap:10px">
+      <span style="color:#555;font-size:13px">横軸：<select id="axis-x" onchange="onAxisChange()" style="font-size:12px;padding:2px 6px;border:1px solid #ddd;border-radius:4px"></select></span>
+      <span style="color:#555;font-size:13px">縦軸：<select id="axis-y" onchange="onAxisChange()" style="font-size:12px;padding:2px 6px;border:1px solid #ddd;border-radius:4px"></select></span>
       <label><input type="checkbox" id="sym-row-lbl" checked onchange="updateCharts()"> 行ラベル</label>
       <label><input type="checkbox" id="sym-col-lbl" checked onchange="updateCharts()"> 列ラベル</label>
       <label><input type="checkbox" id="sym-col-arrow" onchange="updateCharts()"> 列を矢印表示</label>
+      <label style="color:#555">フォントサイズ：<select id="sym-font-size" onchange="updateCharts()" style="font-size:12px;padding:2px 6px;border:1px solid #ddd;border-radius:4px">
+        <option value="9">9px</option>
+        <option value="10">10px</option>
+        <option value="11" selected>11px</option>
+        <option value="12">12px</option>
+        <option value="13">13px</option>
+        <option value="14">14px</option>
+      </select></label>
     </div>
-    <div class="chart-wrap" style="height:400px"><canvas id="sym-canvas"></canvas></div>
+    <div class="chart-wrap" style="height:520px"><canvas id="sym-canvas"></canvas></div>
   </div>`;
 
   // グラフ: 行・列 個別
+  const fontOpts=`<option value="9">9px</option><option value="10">10px</option><option value="11" selected>11px</option><option value="12">12px</option><option value="13">13px</option><option value="14">14px</option>`;
   html+=`<div class="two-col">
     <div class="card">
       <h2>行カテゴリ プロット</h2>
       <div class="chk-row">
         <label><input type="checkbox" id="row-lbl" checked onchange="updateCharts()"> ラベル</label>
+        <label style="color:#555">フォント：<select id="row-font-size" onchange="updateCharts()" style="font-size:12px;padding:2px 6px;border:1px solid #ddd;border-radius:4px">${fontOpts}</select></label>
       </div>
       <div class="chart-wrap" style="height:300px"><canvas id="row-canvas"></canvas></div>
     </div>
@@ -500,10 +581,45 @@ function runCA(){
       <h2>列カテゴリ プロット</h2>
       <div class="chk-row">
         <label><input type="checkbox" id="col-lbl" checked onchange="updateCharts()"> ラベル</label>
+        <label style="color:#555">フォント：<select id="col-font-size" onchange="updateCharts()" style="font-size:12px;padding:2px 6px;border:1px solid #ddd;border-radius:4px">${fontOpts}</select></label>
       </div>
       <div class="chart-wrap" style="height:300px"><canvas id="col-canvas"></canvas></div>
     </div>
   </div>`;
+
+  // 用語解説
+  html+=`<div class="card"><h2>用語解説</h2>
+  <div class="overflow-x"><table class="tbl"><thead><tr>
+    <th style="text-align:left">用語</th><th style="text-align:left">説明</th><th style="text-align:left">論文での記載例</th>
+  </tr></thead><tbody>
+    <tr><td style="text-align:left"><b>総慣性（Total Inertia）</b></td>
+      <td style="text-align:left">クロス集計表全体における行と列の連関の強さ。カイ二乗統計量をN（総度数）で割った値（φ²）に相当。0に近いほど行と列は独立、大きいほど連関が強い。</td>
+      <td style="text-align:left">Total inertia = .xxx</td></tr>
+    <tr><td style="text-align:left"><b>慣性（各次元）</b></td>
+      <td style="text-align:left">各次元が説明する連関の量。固有値（特異値の2乗）に対応。</td>
+      <td style="text-align:left">Eigenvalue of dim. k = .xxx</td></tr>
+    <tr><td style="text-align:left"><b>寄与率</b></td>
+      <td style="text-align:left">各次元が総慣性に占める割合（%）。各次元の重要度を示す。</td>
+      <td style="text-align:left">Proportion of inertia = xx.x%</td></tr>
+    <tr><td style="text-align:left"><b>累積寄与率</b></td>
+      <td style="text-align:left">第1次元から第k次元までの寄与率の合計。80%以上であれど2次元マップで十分とされる。</td>
+      <td style="text-align:left">Cumulative proportion = xx.x%</td></tr>
+    <tr><td style="text-align:left"><b>主座標（Principal Coordinates）</b></td>
+      <td style="text-align:left">対称マップで使用。行・列ともに主座標で描画。直感的に読みやすいが、行と列の点間距離は数学的に無意味。</td>
+      <td style="text-align:left">Symmetric plot (principal normalization)</td></tr>
+    <tr><td style="text-align:left"><b>行主体（Row Principal）</b></td>
+      <td style="text-align:left">行を主座標、列を標準座標で描画。行カテゴリ間の距離が正確。列は矢印として解釈可能。</td>
+      <td style="text-align:left">Asymmetric plot (row principal)</td></tr>
+    <tr><td style="text-align:left"><b>列主体（Column Principal）</b></td>
+      <td style="text-align:left">列を主座標、行を標準座標で描画。列カテゴリ間の距離が正確。</td>
+      <td style="text-align:left">Asymmetric plot (column principal)</td></tr>
+    <tr><td style="text-align:left"><b>cos²（平方コサイン）</b></td>
+      <td style="text-align:left">各カテゴリがその次元にどれだけうまく表現されているかを示す指標（0〜1）、1に近いほど当該次元での表現精度が高い。</td>
+      <td style="text-align:left">Squared cosine (cos²) = .xxx</td></tr>
+    <tr><td style="text-align:left"><b>寄与度（行・列）</b></td>
+      <td style="text-align:left">各カテゴリがその次元の慣性にどれだけ貢献しているかを示す値。大きいカテゴリほどその次元の解釈に重要。</td>
+      <td style="text-align:left">Contribution to dimension = .xxx</td></tr>
+  </tbody></table></div></div>`;
 
   // ダウンロード
   html+=`<div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
@@ -529,27 +645,28 @@ function destroyCharts(){
   caCharts=[];
 }
 
-function makeLabelPlugin(getId1, getId2, rowCoords, colCoords, rowNames, colNames){
+function makeLabelPlugin(getId1, getId2, rowCoords, colCoords, rowNames, colNames, getFontSizeId){
   return{
     id:'caLabels'+Math.random(),
     afterDraw(chart){
       const showRow=document.getElementById(getId1)?.checked!==false;
       const showCol=getId2?document.getElementById(getId2)?.checked!==false:false;
+      const fs=+(document.getElementById(getFontSizeId||'sym-font-size')?.value||11);
       const ctx2=chart.ctx;
       const xs=chart.scales.x, ys=chart.scales.y;
       const toX=v=>xs.getPixelForValue(v);
       const toY=v=>ys.getPixelForValue(v);
       ctx2.save();
-      ctx2.font='bold 12px Helvetica Neue,Arial,sans-serif';
+      ctx2.font=`bold ${fs}px Helvetica Neue,Arial,sans-serif`;
       ctx2.textBaseline='middle';
+      const th=fs+4;
 
       if(showRow && rowCoords){
-        ctx2.fillStyle='rgba(14,124,90,0.95)';
         rowCoords.forEach((c,i)=>{
           const px=toX(c[0]), py=toY(c[1]);
           const tw=ctx2.measureText(rowNames[i]).width;
           ctx2.fillStyle='rgba(255,255,255,0.85)';
-          ctx2.fillRect(px+8,py-8,tw+4,16);
+          ctx2.fillRect(px+8,py-th/2-1,tw+4,th+2);
           ctx2.fillStyle='rgba(14,124,90,0.95)';
           ctx2.fillText(rowNames[i],px+10,py);
         });
@@ -559,7 +676,7 @@ function makeLabelPlugin(getId1, getId2, rowCoords, colCoords, rowNames, colName
           const px=toX(c[0]), py=toY(c[1]);
           const tw=ctx2.measureText(colNames[j]).width;
           ctx2.fillStyle='rgba(255,255,255,0.85)';
-          ctx2.fillRect(px+8,py-8,tw+4,16);
+          ctx2.fillRect(px+8,py-th/2-1,tw+4,th+2);
           ctx2.fillStyle='rgba(200,80,0,0.95)';
           ctx2.fillText(colNames[j],px+10,py);
         });
@@ -618,12 +735,18 @@ const crosshairPlugin={
   }
 };
 
-function redrawSymMap(res, ndim){
+function redrawSymMap(res, ndim, xi, yi, ax1, ax2, range){
   const rowNames = window._caRowNames || [];
   const colNames = window._caColNames || [];
-  const ax1=`第1次元 (${pct(res.contrib[0])})`;
-  const ax2=res.ndim>=2?`第2次元 (${pct(res.contrib[1])})`:'第2次元';
-  const range=axisRange(res.rowCoords, res.colCoords);
+  if(xi===undefined || yi===undefined){
+    const idx=getAxisIndices(); xi=idx.x; yi=idx.y;
+  }
+  if(!ax1) ax1=`第${xi+1}次元 (${pct(res.contrib[xi]||0)})`;
+  if(!ax2) ax2=`第${yi+1}次元 (${pct(res.contrib[yi]||0)})`;
+  if(!range) range=axisRange(
+    res.rowCoords.map(c=>[c[xi]||0, c[yi]||0]),
+    res.colCoords.map(c=>[c[xi]||0, c[yi]||0])
+  );
   const showArrow=document.getElementById('sym-col-arrow')?.checked||false;
 
   // 既存の対称マップを破棄
@@ -647,22 +770,28 @@ function redrawSymMap(res, ndim){
       c2.textBaseline='middle';
       // 行ラベル
       if(showRow){
+        const fs=+(document.getElementById('sym-font-size')?.value||11);
+        c2.font=`bold ${fs}px Helvetica Neue,Arial,sans-serif`;
         res.rowCoords.forEach((coord,i)=>{
-          const px=xs.getPixelForValue(coord[0]), py=ys.getPixelForValue(coord[1]||0);
+          const px=xs.getPixelForValue(coord[xi]||0), py=ys.getPixelForValue(coord[yi]||0);
           const tw=c2.measureText(rowNames[i]).width;
+          const th=fs+4;
           c2.fillStyle='rgba(255,255,255,0.85)';
-          c2.fillRect(px+8,py-8,tw+4,16);
+          c2.fillRect(px+8,py-th/2-1,tw+4,th+2);
           c2.fillStyle='rgba(14,124,90,0.95)';
           c2.fillText(rowNames[i],px+10,py);
         });
       }
       // 列ラベル（矢印でない場合のみ点ラベル、矢印の場合は矢印プラグインが担当）
       if(showColLbl && !isArrow){
+        const fs2=+(document.getElementById('sym-font-size')?.value||11);
+        c2.font=`bold ${fs2}px Helvetica Neue,Arial,sans-serif`;
         res.colCoords.forEach((coord,j)=>{
-          const px=xs.getPixelForValue(coord[0]), py=ys.getPixelForValue(coord[1]||0);
+          const px=xs.getPixelForValue(coord[xi]||0), py=ys.getPixelForValue(coord[yi]||0);
           const tw=c2.measureText(colNames[j]).width;
+          const th=fs2+4;
           c2.fillStyle='rgba(255,255,255,0.85)';
-          c2.fillRect(px+8,py-8,tw+4,16);
+          c2.fillRect(px+8,py-th/2-1,tw+4,th+2);
           c2.fillStyle='rgba(200,80,0,0.95)';
           c2.fillText(colNames[j],px+10,py);
         });
@@ -736,28 +865,77 @@ function redrawSymMap(res, ndim){
   caCharts.push(symChart);
 }
 
+function getAxisIndices(){
+  const x = +(document.getElementById('axis-x')?.value ?? 0);
+  const y = +(document.getElementById('axis-y')?.value ?? 1);
+  // 同じ軸が選ばれている場合の保護
+  if(x === y) return {x, y: y === 0 ? 1 : 0};
+  return {x, y};
+}
+
 function drawAllCharts(res, ndim){
   window._caLastRes=res; window._caLastNdim=ndim;
   window._caRowNames=rowNames; window._caColNames=colNames;
   destroyCharts();
 
-  const ax1=`第1次元 (${pct(res.contrib[0])})`;
-  const ax2=res.ndim>=2?`第2次元 (${pct(res.contrib[1])})`:'第2次元';
-  const range=axisRange(res.rowCoords, res.colCoords);
+  // 軸選択セレクトのoptions更新
+  const _axX=document.getElementById('axis-x');
+  const _axY=document.getElementById('axis-y');
+  if(_axX && _axY){
+    const _prevX=+(_axX.value||0), _prevY=+(_axY.value||1);
+    const _opts=Array.from({length:res.ndim},(_,i)=>
+      `<option value="${i}">${i+1}次元</option>`).join('');
+    _axX.innerHTML=_opts;
+    _axY.innerHTML=_opts;
+    _axX.value=String(Math.min(_prevX, res.ndim-1));
+    _axY.value=String(Math.min(_prevY, res.ndim-1));
+    if(_axX.value===_axY.value) _axY.value=_axX.value==='0'?'1':'0';
+  }
+
+  // 軸選択セレクトを初期化（初回または次元数変化時）
+  const axX=document.getElementById('axis-x');
+  const axY=document.getElementById('axis-y');
+  if(axX && axY){
+    const prevX=+axX.value, prevY=+axY.value;
+    const opts=Array.from({length:res.ndim},(_,i)=>
+      `<option value="${i}">${i+1}次元</option>`).join('');
+    axX.innerHTML=opts;
+    axY.innerHTML=opts;
+    axX.value = Math.min(prevX, res.ndim-1);
+    axY.value = Math.min(prevY, res.ndim-1);
+    if(axX.value===axY.value) axY.value = axX.value==='0'?'1':'0';
+  }
+
+  redrawAllPlots(res);
+}
+
+function redrawAllPlots(res){
+  if(!res) return;
+  // 既存チャートをすべて破棄して再描画
+  destroyCharts();
+  const {x:xi, y:yi} = getAxisIndices();
+
+  const ax1=`第${xi+1}次元 (${pct(res.contrib[xi]||0)})`;
+  const ax2=`第${yi+1}次元 (${pct(res.contrib[yi]||0)})`;
+  const range=axisRange(
+    res.rowCoords.map(c=>[c[xi]||0, c[yi]||0]),
+    res.colCoords.map(c=>[c[xi]||0, c[yi]||0])
+  );
 
   // ① 対称マップ
-  redrawSymMap(res, ndim);
+  redrawSymMap(res, window._caLastNdim, xi, yi, ax1, ax2, range);
 
   // ② 行プロット
   const rowCtx=document.getElementById('row-canvas');
   if(rowCtx){
     const rowLblPlugin=makeLabelPlugin('row-lbl', null,
-      res.rowCoords, null, rowNames, colNames);
+      res.rowCoords.map(c=>[c[xi]||0, c[yi]||0]),
+      null, rowNames, colNames, 'row-font-size');
     const rowChart=new Chart(rowCtx,{
       type:'scatter',
       data:{datasets:[{
         label:'行カテゴリ',
-        data:res.rowCoords.map((c,i)=>({x:c[0],y:c[1]||0,label:rowNames[i]})),
+        data:res.rowCoords.map((c,i)=>({x:c[xi]||0,y:c[yi]||0,label:rowNames[i]})),
         backgroundColor:'rgba(14,124,90,0.7)',
         pointRadius:7, pointHoverRadius:9,
         borderColor:'rgba(14,124,90,0.95)',borderWidth:1.5
@@ -772,12 +950,13 @@ function drawAllCharts(res, ndim){
   const colCtx=document.getElementById('col-canvas');
   if(colCtx){
     const colLblPlugin=makeLabelPlugin('col-lbl', null,
-      res.colCoords, null, colNames, rowNames);
+      res.colCoords.map(c=>[c[xi]||0, c[yi]||0]),
+      null, colNames, rowNames, 'col-font-size');
     const colChart=new Chart(colCtx,{
       type:'scatter',
       data:{datasets:[{
         label:'列カテゴリ',
-        data:res.colCoords.map((c,j)=>({x:c[0],y:c[1]||0,label:colNames[j]})),
+        data:res.colCoords.map((c,j)=>({x:c[xi]||0,y:c[yi]||0,label:colNames[j]})),
         backgroundColor:'rgba(200,80,0,0.7)',
         pointRadius:7, pointHoverRadius:9,
         borderColor:'rgba(200,80,0,0.95)',borderWidth:1.5,
@@ -790,16 +969,12 @@ function drawAllCharts(res, ndim){
   }
 }
 
+function onAxisChange(){
+  if(window._caLastRes) redrawAllPlots(window._caLastRes);
+}
+
 function updateCharts(){
-  // 対称マップは矢印ON/OFFで列点の表示が変わるため再生成
-  // 行・列の個別プロットは update() のみ
-  const symChart = caCharts.find(c=>c.canvas&&c.canvas.id==='sym-canvas');
-  if(symChart && window._caLastRes){
-    symChart.destroy();
-    caCharts = caCharts.filter(c=>c!==symChart);
-    redrawSymMap(window._caLastRes, window._caLastNdim);
-  }
-  caCharts.forEach(c=>{ try{c.update();}catch(e){} });
+  if(window._caLastRes) redrawAllPlots(window._caLastRes);
 }
 
 // ─── CSVダウンロード ──────────────────────────────────────

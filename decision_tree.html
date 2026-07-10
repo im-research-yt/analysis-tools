@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>決定木分析ツール</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Meiryo',sans-serif;
+     background:#f4f6f9;color:#1a2332;font-size:14px;line-height:1.6}
+header{background:#1a2332;color:#fff;padding:14px 24px;
+       display:flex;align-items:center;gap:12px}
+header h1{font-size:17px;font-weight:600}
+header .badge{background:#e05c2a;color:#fff;font-size:11px;
+              padding:2px 8px;border-radius:10px;font-weight:700}
+.container{max-width:1200px;margin:0 auto;padding:20px 16px}
+.card{background:#fff;border-radius:8px;border:1px solid #e0e4ea;
+      padding:20px;margin-bottom:16px}
+.card h2{font-size:14px;font-weight:700;color:#1a2332;margin-bottom:14px;
+         padding-bottom:8px;border-bottom:2px solid #e05c2a;display:inline-block}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.row>div{flex:1;min-width:160px}
+label{display:block;font-size:12px;font-weight:600;color:#555;
+      margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+select,input[type=number]{width:100%;padding:7px 10px;border:1px solid #d0d5dd;
+  border-radius:6px;font-size:13px;color:#1a2332;background:#fff;outline:none}
+select:focus,input:focus{border-color:#1a2332;box-shadow:0 0 0 2px rgba(26,35,50,.12)}
+textarea{width:100%;padding:10px;border:1px solid #d0d5dd;border-radius:6px;
+         font-size:12px;font-family:monospace;resize:vertical;outline:none}
+textarea:focus{border-color:#1a2332;box-shadow:0 0 0 2px rgba(26,35,50,.12)}
+.btn-primary{background:#1a2332;color:#fff;border:none;padding:9px 22px;
+             border-radius:6px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-primary:hover{background:#2d3d52}
+.btn-secondary{background:#fff;color:#1a2332;border:1px solid #d0d5dd;
+               padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer}
+.btn-secondary:hover{border-color:#1a2332}
+.btn-dl{background:#0e7c5a;color:#fff;border:none;padding:7px 16px;
+        border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.err{color:#c0392b;font-size:12px;padding:8px 12px;background:#fdf0ee;
+     border:1px solid #f5c6c0;border-radius:6px;margin-top:8px;display:none}
+.note{font-size:11px;color:#777;margin-top:6px;line-height:1.6}
+.info{font-size:12px;color:#185FA5;padding:8px 12px;background:#e8f0fd;
+      border:1px solid #c5d8f9;border-radius:6px;margin:8px 0}
+.tbl-wrap{overflow-x:auto;margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#1a2332;color:#fff;padding:7px 10px;text-align:center;
+   font-weight:600;font-size:12px;white-space:nowrap}
+th.left{text-align:left}
+td{padding:6px 10px;border-bottom:1px solid #edf0f4;text-align:center}
+td.left{text-align:left}
+tr:nth-child(even) td{background:#f8fafc}
+.stat-row{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px}
+.stat{text-align:center}
+.stat-val{font-size:22px;font-weight:700;color:#185FA5}
+.stat-lbl{font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.4px}
+.tabs{display:flex;gap:0;border-bottom:2px solid #e0e4ea;margin-bottom:16px}
+.tab{padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;
+     color:#777;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab.active{color:#1a2332;border-bottom-color:#e05c2a}
+.panel{display:none}.panel.active{display:block}
+/* ツリー図 */
+#tree-svg-wrap{overflow:auto;border:1px solid #e0e4ea;border-radius:6px;
+               background:#fafafa;padding:10px;min-height:200px}
+.node-box{rx:6;ry:6}
+/* 重要度バー */
+.imp-bar-wrap{height:18px;background:#edf0f4;border-radius:4px;overflow:hidden}
+.imp-bar{height:100%;background:#185FA5;border-radius:4px;transition:width .3s}
+</style>
+</head>
+<body>
+<header>
+  <h1>決定木分析ツール</h1>
+  <span class="badge">Decision Tree</span>
+</header>
+<div style="background:#fff3cd;border-bottom:1px solid #ffc107;padding:6px 24px;font-size:11px;color:#1a2332;font-weight:700;line-height:1.5">
+  法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室<br>学習用としてご利用ください。チェックはしていますが計算ミスの可能性がありますので、研究やビジネスでの利用は推奨しません。
+</div>
+<div class="container">
+
+<!-- データ入力 -->
+<div class="card">
+  <h2>データの入力</h2>
+  <div class="btn-row" style="margin-bottom:10px">
+    <button class="btn-secondary" onclick="loadExample(1)">例題1：購入予測（分類）</button>
+    <button class="btn-secondary" onclick="loadExample(2)">例題2：満足度予測（回帰）</button>
+    <button class="btn-secondary" onclick="loadExample(3)">例題3：購買行動（500件・分類）</button>
+    <label class="btn-secondary" style="cursor:pointer;display:inline-flex;align-items:center">
+      📂 CSVを開く
+      <input type="file" accept=".csv,.txt" style="display:none" onchange="loadCSVFile(event)">
+    </label>
+  </div>
+  <label>CSV形式（1行目：変数名、最終列：目的変数Y）</label>
+  <textarea id="csv-input" rows="10"
+    placeholder="年齢,収入,ブランド好意度,購入
+30,高,4,1
+45,低,2,0
+..."></textarea>
+  <div id="err-msg" class="err"></div>
+</div>
+
+<!-- 設定 -->
+<div class="card">
+  <h2>分析設定</h2>
+  <div class="row">
+    <div>
+      <label>目的変数の種類</label>
+      <select id="task-type">
+        <option value="auto">自動判定</option>
+        <option value="classification">分類（カテゴリ変数）</option>
+        <option value="regression">回帰（数値変数）</option>
+      </select>
+    </div>
+    <div>
+      <label>最大深さ</label>
+      <input type="number" id="max-depth" value="4" min="1" max="10">
+    </div>
+    <div>
+      <label>分岐の最小サンプル数</label>
+      <input type="number" id="min-split" value="2" min="1" max="50">
+    </div>
+    <div>
+      <label>葉の最小サンプル数</label>
+      <input type="number" id="min-leaf" value="1" min="1" max="50">
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-primary" onclick="runTree()">▶ 分析を実行</button>
+  </div>
+</div>
+
+<!-- 結果 -->
+<div class="card" id="result-card" style="display:none">
+  <h2>分析結果</h2>
+  <div id="result-info" class="info" style="margin-bottom:12px"></div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('tree')">決定木</div>
+    <div class="tab" onclick="switchTab('importance')">変数重要度</div>
+    <div class="tab" onclick="switchTab('predict')">予測・精度</div>
+    <div class="tab" onclick="switchTab('rules')">ルール一覧</div>
+  </div>
+
+  <div class="panel active" id="tab-tree">
+    <div class="note" style="margin-bottom:8px">
+      ※ スクロールして全体を確認できます。ノードをクリックすると詳細を表示します。
+    </div>
+    <div id="tree-svg-wrap"></div>
+  </div>
+
+  <div class="panel" id="tab-importance">
+    <div id="importance-wrap"></div>
+  </div>
+
+  <div class="panel" id="tab-predict">
+    <div class="btn-row" style="margin-bottom:10px">
+      <button class="btn-dl" onclick="downloadPredictions()">⬇ 予測結果をCSVでダウンロード</button>
+    </div>
+    <div id="predict-wrap"></div>
+  </div>
+
+  <div class="panel" id="tab-rules">
+    <div id="rules-wrap"></div>
+  </div>
+</div>
+
+<!-- 用語解説 -->
+<div class="card">
+  <h2>用語解説</h2>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th class="left">用語</th><th class="left">説明</th></tr></thead>
+    <tbody>
+      <tr><td class="left"><b>決定木（Decision Tree）</b></td>
+          <td class="left">データをツリー状のルールで分類・予測する手法。「もしXがa以上なら…」という条件分岐を繰り返してYを予測する。</td></tr>
+      <tr><td class="left"><b>ノード（Node）</b></td>
+          <td class="left">ツリーの分岐点。各ノードには分岐に使う変数と閾値、そのノードのサンプル数・予測値が表示される。</td></tr>
+      <tr><td class="left"><b>葉（Leaf）</b></td>
+          <td class="left">ツリーの末端。これ以上分岐しない最終的な予測値（クラスまたは数値）を持つ。</td></tr>
+      <tr><td class="left"><b>深さ（Depth）</b></td>
+          <td class="left">ツリーの階層数。深いほど複雑なルールを表現できるが、過学習のリスクが高まる。</td></tr>
+      <tr><td class="left"><b>ジニ不純度（Gini）</b></td>
+          <td class="left">分類の場合の分割の品質指標。0に近いほど純粋（一種類のクラスのみ）。</td></tr>
+      <tr><td class="left"><b>MSE</b></td>
+          <td class="left">回帰の場合の分割の品質指標（平均二乗誤差）。小さいほど予測精度が高い。</td></tr>
+      <tr><td class="left"><b>変数重要度</b></td>
+          <td class="left">各変数が分割にどれだけ貢献したかの指標。重要度の合計は1（100%）になるよう正規化される。</td></tr>
+      <tr><td class="left"><b>正解率（Accuracy）</b></td>
+          <td class="left">分類の場合の精度指標。正しく予測できたサンプルの割合。</td></tr>
+      <tr><td class="left"><b>RMSE</b></td>
+          <td class="left">回帰の場合の精度指標（平均二乗誤差の平方根）。予測値と実測値の平均的な誤差の大きさ。</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+</div>
+<script>
+// ─── グローバル ───
+let G = {
+  features: [], target: '', rows: [],
+  tree: null, task: 'classification',
+  predictions: [], importance: {}
+};
+
+// ─── タブ ───
+function switchTab(name){
+  const names=['tree','importance','predict','rules'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function showErr(m){const e=document.getElementById('err-msg');e.textContent=m;e.style.display='block';}
+function clearErr(){document.getElementById('err-msg').style.display='none';}
+
+// ─── CSV ───
+function loadCSVFile(e){
+  const file=e.target.files[0]; if(!file) return;
+  const tryRead=enc=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      let t=ev.target.result.replace(/^\uFEFF/,'');
+      if(enc==='UTF-8'&&(t.match(/\uFFFD/g)||[]).length>3){tryRead('Shift-JIS');return;}
+      document.getElementById('csv-input').value=t;
+    };
+    r.readAsText(file,enc);
+  };
+  tryRead('UTF-8'); e.target.value='';
+}
+
+function parseCSV(text){
+  const lines=text.trim().split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<3) throw new Error('3行以上（ヘッダー+2行以上）必要です');
+  const sep=lines[0].includes('\t')?'\t':',';
+  const headers=lines[0].split(sep).map(h=>h.trim());
+  if(headers.length<2) throw new Error('変数が2列以上必要です');
+  const features=headers.slice(0,-1);
+  const target=headers[headers.length-1];
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const vals=lines[i].split(sep).map(v=>v.trim());
+    if(vals.length!==headers.length) throw new Error(`${i+1}行目の列数が合いません`);
+    const row={};
+    features.forEach((f,j)=>{
+      const n=+vals[j];
+      row[f]=isNaN(n)?vals[j]:n;
+    });
+    const ty=+vals[vals.length-1];
+    row[target]=isNaN(ty)?vals[vals.length-1]:ty;
+    rows.push(row);
+  }
+  return {features, target, rows};
+}
+
+// ─── 決定木アルゴリズム ───
+function gini(groups, classes){
+  const total=groups.reduce((s,g)=>s+g.length,0);
+  let score=0;
+  for(const g of groups){
+    if(!g.length) continue;
+    let p=0;
+    for(const c of classes){
+      const cnt=g.filter(r=>r._y===c).length/g.length;
+      p+=cnt*cnt;
+    }
+    score+=(1-p)*(g.length/total);
+  }
+  return score;
+}
+
+function mse(group){
+  if(!group.length) return 0;
+  const mean=group.reduce((s,r)=>s+r._y,0)/group.length;
+  return group.reduce((s,r)=>s+(r._y-mean)**2,0)/group.length;
+}
+
+function splitScore(left, right, task, classes){
+  if(task==='classification') return gini([left,right],classes);
+  const n=left.length+right.length;
+  return (mse(left)*left.length+mse(right)*right.length)/n;
+}
+
+function bestSplit(rows, features, task, classes){
+  let bestScore=Infinity, bestFeat=null, bestVal=null, bestLeft=[], bestRight=[];
+  for(const feat of features){
+    const vals=[...new Set(rows.map(r=>r[feat]))].sort((a,b)=>a>b?1:-1);
+    for(let i=0;i<vals.length-1;i++){
+      const threshold=(typeof vals[i]==='number')?(vals[i]+vals[i+1])/2:vals[i];
+      let left,right;
+      if(typeof vals[i]==='number'){
+        left=rows.filter(r=>r[feat]<=threshold);
+        right=rows.filter(r=>r[feat]>threshold);
+      } else {
+        left=rows.filter(r=>r[feat]===vals[i]);
+        right=rows.filter(r=>r[feat]!==vals[i]);
+      }
+      if(!left.length||!right.length) continue;
+      const score=splitScore(left,right,task,classes);
+      if(score<bestScore){
+        bestScore=score; bestFeat=feat; bestVal=threshold;
+        bestLeft=left; bestRight=right;
+      }
+    }
+  }
+  return {feat:bestFeat, val:bestVal, score:bestScore,
+          left:bestLeft, right:bestRight};
+}
+
+function majorityClass(rows){
+  const cnt={};
+  rows.forEach(r=>{cnt[r._y]=(cnt[r._y]||0)+1;});
+  return Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0];
+}
+function meanVal(rows){ return rows.reduce((s,r)=>s+r._y,0)/rows.length; }
+
+function buildTree(rows, features, task, classes, depth, maxDepth, minSplit, minLeaf, importance){
+  const n=rows.length;
+  // 終了条件
+  const allSame=new Set(rows.map(r=>r._y)).size===1;
+  if(depth>=maxDepth||n<minSplit||allSame){
+    const pred=task==='classification'?majorityClass(rows):meanVal(rows);
+    const dist=task==='classification'?
+      Object.fromEntries(classes.map(c=>[c,rows.filter(r=>r._y===c).length])):null;
+    return {leaf:true, pred, n, dist,
+            impurity:task==='classification'?gini([rows],classes):mse(rows)};
+  }
+  const {feat,val,score,left,right}=bestSplit(rows,features,task,classes);
+  if(!feat||left.length<minLeaf||right.length<minLeaf){
+    const pred=task==='classification'?majorityClass(rows):meanVal(rows);
+    const dist=task==='classification'?
+      Object.fromEntries(classes.map(c=>[c,rows.filter(r=>r._y===c).length])):null;
+    return {leaf:true, pred, n, dist,
+            impurity:task==='classification'?gini([rows],classes):mse(rows)};
+  }
+  // 重要度の計算
+  const parentImp=task==='classification'?gini([rows],classes):mse(rows);
+  const childImp=(left.length*splitScore(left,[],task,classes)+
+                  right.length*splitScore(right,[],task,classes))/n;
+  const gain=(parentImp-score)*n;
+  importance[feat]=(importance[feat]||0)+gain;
+
+  return {
+    leaf:false, feat, val, score, n,
+    impurity: parentImp,
+    pred: task==='classification'?majorityClass(rows):meanVal(rows),
+    left: buildTree(left,features,task,classes,depth+1,maxDepth,minSplit,minLeaf,importance),
+    right: buildTree(right,features,task,classes,depth+1,maxDepth,minSplit,minLeaf,importance),
+  };
+}
+
+function predict(node, row){
+  if(node.leaf) return node.pred;
+  if(typeof node.val==='number'){
+    return row[node.feat]<=node.val?predict(node.left,row):predict(node.right,row);
+  } else {
+    return row[node.feat]===node.val?predict(node.left,row):predict(node.right,row);
+  }
+}
+
+// ─── メイン ───
+function runTree(){
+  clearErr();
+  const text=document.getElementById('csv-input').value;
+  if(!text.trim()){showErr('データを入力してください');return;}
+  let parsed;
+  try{parsed=parseCSV(text);}catch(e){showErr(e.message);return;}
+
+  const {features,target,rows}=parsed;
+  // タスク判定
+  let task=document.getElementById('task-type').value;
+  const yVals=rows.map(r=>r[target]);
+  if(task==='auto'){
+    const unique=[...new Set(yVals)];
+    task=(unique.length<=10&&unique.some(v=>typeof v==='string'||Number.isInteger(+v)&&unique.length<=10))?
+      'classification':'regression';
+  }
+  const classes=task==='classification'?[...new Set(yVals)].sort():[];
+  const maxDepth=+document.getElementById('max-depth').value||4;
+  const minSplit=+document.getElementById('min-split').value||2;
+  const minLeaf=+document.getElementById('min-leaf').value||1;
+
+  // Y列を _y に
+  const data=rows.map(r=>({...r, _y:task==='regression'?+r[target]:r[target]}));
+
+  const importance={};
+  const tree=buildTree(data,features,task,classes,0,maxDepth,minSplit,minLeaf,importance);
+
+  // 重要度の正規化
+  const totalImp=Object.values(importance).reduce((s,v)=>s+v,0)||1;
+  const normImp=Object.fromEntries(
+    Object.entries(importance).map(([k,v])=>[k,v/totalImp])
+  );
+
+  // 予測
+  const preds=data.map(r=>predict(tree,r));
+
+  G={features,target,rows:data,tree,task,classes,predictions:preds,importance:normImp};
+
+  // 精度計算
+  let accuracy=null, rmse=null;
+  if(task==='classification'){
+    accuracy=preds.filter((p,i)=>p==data[i]._y).length/preds.length;
+  } else {
+    rmse=Math.sqrt(preds.reduce((s,p,i)=>s+(p-data[i]._y)**2,0)/preds.length);
+  }
+
+  // 情報表示
+  const taskLabel=task==='classification'?'分類木':'回帰木';
+  const acc=task==='classification'?`正解率: ${(accuracy*100).toFixed(1)}%`:`RMSE: ${rmse.toFixed(3)}`;
+  document.getElementById('result-info').innerHTML=
+    `タスク: <b>${taskLabel}</b>　サンプル数: <b>${data.length}</b>　特徴量: <b>${features.length}</b>　${acc}`;
+
+  document.getElementById('result-card').style.display='block';
+  switchTab('tree');
+  drawTree();
+  renderImportance();
+  renderPredict(accuracy, rmse);
+  renderRules();
+  document.getElementById('result-card').scrollIntoView({behavior:'smooth'});
+}
+
+// ─── ツリー図描画 ───
+function drawTree(){
+  const wrap=document.getElementById('tree-svg-wrap');
+  const NODE_W=180, NODE_H=80, H_GAP=30, V_GAP=60;
+  const task=G.task;
+  const classes=G.classes;
+
+  // ノードの位置を計算
+  const positions=[];
+  let maxX=0, maxY=0;
+
+  function layout(node, depth, xMin, xMax){
+    const x=(xMin+xMax)/2, y=depth*(NODE_H+V_GAP)+20;
+    const id=positions.length;
+    positions.push({node, x, y, id, xMin, xMax});
+    maxX=Math.max(maxX,x+NODE_W/2);
+    maxY=Math.max(maxY,y+NODE_H);
+    if(!node.leaf){
+      layout(node.left, depth+1, xMin, x);
+      layout(node.right, depth+1, x, xMax);
+    }
+    return id;
+  }
+
+  // 幅を計算
+  function countLeaves(node){
+    if(node.leaf) return 1;
+    return countLeaves(node.left)+countLeaves(node.right);
+  }
+  const leaves=countLeaves(G.tree);
+  const totalW=Math.max(leaves*(NODE_W+H_GAP), 600);
+  layout(G.tree, 0, 0, totalW);
+
+  const W=totalW+40, H=maxY+40;
+
+  // 色設定
+  const classColors=['#185FA5','#e05c2a','#0e7c5a','#8e44ad','#c0392b',
+                     '#f39c12','#16a085','#2c3e50'];
+  const classColorMap={};
+  classes.forEach((c,i)=>classColorMap[c]=classColors[i%classColors.length]);
+
+  function nodeColor(node){
+    if(task==='classification'&&node.pred!==undefined){
+      return classColorMap[node.pred]||'#185FA5';
+    }
+    return '#185FA5';
+  }
+
+  let svg=`<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" style="min-width:${W}px">`;
+
+  // エッジ
+  positions.forEach(({node,x,y,id,xMin,xMax})=>{
+    if(!node.leaf){
+      const lIdx=id+1;
+      const lPos=positions[lIdx];
+      if(lPos){
+        svg+=`<line x1="${x}" y1="${y+NODE_H}" x2="${lPos.x}" y2="${lPos.y}"
+               stroke="#aaa" stroke-width="1.5"/>`;
+        svg+=`<text x="${(x+lPos.x)/2-12}" y="${(y+NODE_H+lPos.y)/2}"
+               font-size="10" fill="#185FA5" font-family="sans-serif">Yes</text>`;
+      }
+      // 右子ノードのインデックスを探す
+      function findRight(pid, nodes){
+        let depth=0;
+        function count(n,d){
+          if(n===pid) return;
+          depth++;
+          if(!positions[n].node.leaf){
+            count(n+1,d+1);
+          }
+        }
+        return positions.find((p,i)=>i>pid+1&&p.y===positions[pid].y+NODE_H+V_GAP&&p.x>x);
+      }
+      const rPos=positions.find((p,i)=>i>id&&p.y===y+NODE_H+V_GAP&&p.x>x&&p.x<=(xMax+x)/2+1);
+      // 右は全体から計算
+      const rightPosAll=positions.filter((p,i)=>
+        i>id&&Math.abs(p.y-(y+NODE_H+V_GAP))<5&&p.x>x&&p.x<=xMax
+      );
+      if(rightPosAll.length){
+        const rp=rightPosAll[0];
+        svg+=`<line x1="${x}" y1="${y+NODE_H}" x2="${rp.x}" y2="${rp.y}"
+               stroke="#aaa" stroke-width="1.5"/>`;
+        svg+=`<text x="${(x+rp.x)/2+4}" y="${(y+NODE_H+rp.y)/2}"
+               font-size="10" fill="#e05c2a" font-family="sans-serif">No</text>`;
+      }
+    }
+  });
+
+  // ノード（後で描画してエッジの上に重なるように）
+  positions.forEach(({node,x,y,id})=>{
+    const color=nodeColor(node);
+    const rx=x-NODE_W/2, ry=y;
+    const isLeaf=node.leaf;
+    const fillColor=isLeaf?color+'22':'#fff';
+    const strokeColor=color;
+
+    svg+=`<rect x="${rx}" y="${ry}" width="${NODE_W}" height="${NODE_H}"
+           rx="6" ry="6" fill="${fillColor}" stroke="${strokeColor}" stroke-width="2"/>`;
+
+    // ノード内テキスト
+    const lines=[];
+    if(!isLeaf){
+      const valStr=typeof node.val==='number'?
+        `≤ ${node.val.toFixed(2)}`:`= ${node.val}`;
+      lines.push({text:`${node.feat} ${valStr}`, bold:true, color:'#1a2332'});
+      lines.push({text:`n = ${node.n}`, bold:false, color:'#555'});
+      if(G.task==='classification')
+        lines.push({text:`Gini = ${node.impurity.toFixed(3)}`, bold:false, color:'#777'});
+      else
+        lines.push({text:`MSE = ${node.impurity.toFixed(3)}`, bold:false, color:'#777'});
+    } else {
+      lines.push({text:`予測: ${typeof node.pred==='number'?node.pred.toFixed(2):node.pred}`,
+                  bold:true, color});
+      lines.push({text:`n = ${node.n}`, bold:false, color:'#555'});
+      if(G.task==='classification'&&node.dist){
+        const distStr=Object.entries(node.dist).map(([k,v])=>`${k}:${v}`).join(' ');
+        lines.push({text:distStr, bold:false, color:'#777'});
+      } else if(G.task==='regression'){
+        lines.push({text:`MSE = ${node.impurity.toFixed(3)}`, bold:false, color:'#777'});
+      }
+    }
+
+    const lineH=18, startY=ry+NODE_H/2-(lines.length*lineH)/2+13;
+    lines.forEach((l,i)=>{
+      const esc=l.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      svg+=`<text x="${x}" y="${startY+i*lineH}" text-anchor="middle"
+             font-size="11" font-family="sans-serif"
+             font-weight="${l.bold?'700':'400'}" fill="${l.color}">${esc}</text>`;
+    });
+  });
+
+  svg+='</svg>';
+  wrap.innerHTML=svg;
+}
+
+// ─── 変数重要度 ───
+function renderImportance(){
+  const imp=G.importance;
+  const sorted=Object.entries(imp).sort((a,b)=>b[1]-a[1]);
+  if(!sorted.length){
+    document.getElementById('importance-wrap').innerHTML=
+      '<p style="color:#777;font-style:italic">変数重要度を計算できませんでした（木が分岐していません）</p>';
+    return;
+  }
+  let html='<div class="tbl-wrap"><table><thead><tr><th class="left">変数</th><th>重要度</th><th style="width:40%">バー</th></tr></thead><tbody>';
+  sorted.forEach(([feat,val])=>{
+    html+=`<tr>
+      <td class="left"><b>${feat}</b></td>
+      <td>${(val*100).toFixed(1)}%</td>
+      <td><div class="imp-bar-wrap"><div class="imp-bar" style="width:${(val*100).toFixed(1)}%"></div></div></td>
+    </tr>`;
+  });
+  html+='</tbody></table></div>';
+  document.getElementById('importance-wrap').innerHTML=html;
+}
+
+// ─── 予測・精度 ───
+function renderPredict(accuracy, rmse){
+  const {rows,predictions,target,features,task,classes}=G;
+  let html='<div class="stat-row">';
+  if(task==='classification'){
+    html+=`<div class="stat"><div class="stat-val">${(accuracy*100).toFixed(1)}%</div>
+           <div class="stat-lbl">正解率（訓練）</div></div>`;
+    // クラスごとの精度
+    classes.forEach(c=>{
+      const actual=rows.filter(r=>r._y===c);
+      const correct=actual.filter((r,i)=>predictions[rows.indexOf(r)]===c);
+      html+=`<div class="stat">
+        <div class="stat-val" style="font-size:18px">${actual.length>0?(correct.length/actual.length*100).toFixed(0):0}%</div>
+        <div class="stat-lbl">${c}の再現率</div></div>`;
+    });
+  } else {
+    html+=`<div class="stat"><div class="stat-val">${rmse.toFixed(3)}</div>
+           <div class="stat-lbl">RMSE（訓練）</div></div>`;
+    const r2=1-rows.reduce((s,r,i)=>s+(r._y-predictions[i])**2,0)/
+             (rows.reduce((s,r)=>s+(r._y-rows.reduce((a,b)=>a+b._y,0)/rows.length)**2,0)||1);
+    html+=`<div class="stat"><div class="stat-val">${r2.toFixed(3)}</div>
+           <div class="stat-lbl">R²（訓練）</div></div>`;
+  }
+  html+='</div>';
+
+  // テーブル
+  html+='<div class="tbl-wrap"><table><thead><tr>';
+  features.forEach(f=>html+=`<th>${f}</th>`);
+  html+=`<th>${target}（実測）</th><th>予測値</th><th>判定</th></tr></thead><tbody>`;
+  rows.forEach((r,i)=>{
+    const pred=predictions[i];
+    const correct=task==='classification'?r._y==pred:null;
+    html+='<tr>';
+    features.forEach(f=>html+=`<td>${r[f]}</td>`);
+    const predStr=typeof pred==='number'?pred.toFixed(3):pred;
+    html+=`<td>${r._y}</td><td>${predStr}</td>`;
+    if(task==='classification'){
+      html+=`<td style="color:${correct?'#0e7c5a':'#c0392b'};font-weight:700">${correct?'✓':'✗'}</td>`;
+    } else {
+      const err=Math.abs(r._y-pred);
+      html+=`<td style="color:#555">誤差 ${err.toFixed(3)}</td>`;
+    }
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  document.getElementById('predict-wrap').innerHTML=html;
+}
+
+// ─── ルール一覧 ───
+function renderRules(){
+  const rules=[];
+  function extract(node, path){
+    if(node.leaf){
+      const predStr=typeof node.pred==='number'?node.pred.toFixed(2):node.pred;
+      rules.push({path:[...path], pred:predStr, n:node.n});
+      return;
+    }
+    const valStr=typeof node.val==='number'?`≤ ${node.val.toFixed(2)}`:`= ${node.val}`;
+    const valStrR=typeof node.val==='number'?`> ${node.val.toFixed(2)}`:`≠ ${node.val}`;
+    extract(node.left, [...path, `${node.feat} ${valStr}`]);
+    extract(node.right, [...path, `${node.feat} ${valStrR}`]);
+  }
+  extract(G.tree, []);
+
+  let html='<div class="tbl-wrap"><table><thead><tr><th>#</th><th class="left">条件（ルール）</th><th>予測値</th><th>サンプル数</th></tr></thead><tbody>';
+  rules.forEach((r,i)=>{
+    const conds=r.path.length?r.path.join('<br>AND '):'（条件なし）';
+    html+=`<tr>
+      <td>${i+1}</td>
+      <td class="left" style="font-size:12px">${conds}</td>
+      <td><b>${r.pred}</b></td>
+      <td>${r.n}</td>
+    </tr>`;
+  });
+  html+='</tbody></table></div>';
+  document.getElementById('rules-wrap').innerHTML=html;
+}
+
+// ─── CSVダウンロード ───
+function downloadPredictions(){
+  const {rows,predictions,target,features}=G;
+  const headers=[...features, target, '予測値', '判定'];
+  const lines=[headers.join(',')];
+  rows.forEach((r,i)=>{
+    const pred=predictions[i];
+    const predStr=typeof pred==='number'?pred.toFixed(3):pred;
+    const judge=G.task==='classification'?(r._y==pred?'正解':'不正解'):`誤差${Math.abs(r._y-pred).toFixed(3)}`;
+    lines.push([...features.map(f=>r[f]), r._y, predStr, judge].join(','));
+  });
+  const b64=btoa(unescape(encodeURIComponent('\uFEFF'+lines.join('\n'))));
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8;base64,'+b64;
+  a.download='decision_tree_predictions.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+// ─── 例題 ───
+function loadExample(n){
+  if(n===1){
+    document.getElementById('csv-input').value=
+`年齢,収入,ブランド好意度,購入
+23,低,3,0
+35,高,5,1
+42,中,4,1
+28,低,2,0
+55,高,5,1
+31,中,3,0
+48,高,4,1
+26,低,1,0
+39,中,5,1
+33,低,4,0
+45,高,3,1
+29,中,2,0
+52,高,5,1
+37,中,4,1
+24,低,2,0
+41,高,5,1
+30,低,3,0
+47,中,4,1
+22,低,1,0
+38,高,5,1`;
+    document.getElementById('task-type').value='classification';
+    document.getElementById('max-depth').value=3;
+  } else if(n===2){
+    document.getElementById('csv-input').value=
+`広告費,店舗数,価格,満足度スコア
+100,5,3000,65
+150,8,2500,78
+200,10,2000,85
+80,3,3500,58
+250,12,1800,90
+120,6,2800,70
+180,9,2200,82
+90,4,3200,61
+220,11,1900,88
+130,7,2700,73
+170,8,2400,80
+110,5,3100,66
+240,13,1700,92
+140,7,2600,75
+160,8,2300,81`;
+    document.getElementById('task-type').value='regression';
+    document.getElementById('max-depth').value=3;
+  } else {
+    document.getElementById('csv-input').value=
+`年齢,収入,ブランド好意度,インターネット利用,過去購入回数,購入
+30,中,3,中,0,0
+54,低,3,低,2,0
+22,中,3,高,4,0
+49,中,4,低,2,1
+58,中,4,高,3,1
+63,低,2,中,1,0
+23,中,3,中,1,1
+57,中,2,高,1,1
+32,中,4,中,2,1
+24,低,4,高,4,1
+54,中,3,中,1,0
+59,低,1,低,2,0
+52,中,4,高,2,1
+32,中,3,高,2,1
+53,中,3,高,5,1
+33,中,3,低,2,0
+50,高,4,中,3,1
+49,低,1,中,1,0
+61,低,3,低,4,1
+31,低,4,低,0,0
+60,中,1,高,4,0
+48,中,5,中,2,0
+64,高,3,高,2,1
+53,中,4,中,2,1
+55,低,3,低,0,0
+44,低,2,中,2,1
+49,高,3,中,1,0
+44,中,3,高,3,1
+27,中,1,中,4,0
+51,中,3,高,4,0
+26,低,3,中,1,0
+44,中,1,低,0,0
+42,低,5,低,3,1
+30,高,2,高,3,0
+40,中,3,中,1,1
+55,低,3,高,2,1
+48,中,5,高,1,1
+32,低,5,中,5,1
+29,高,2,中,2,0
+62,中,3,低,3,0
+52,低,3,中,3,0
+35,中,3,高,3,1
+54,中,2,高,5,1
+22,中,2,低,1,1
+35,高,3,高,3,1
+44,中,1,中,1,1
+60,中,4,中,0,1
+33,高,3,高,7,1
+60,高,4,高,1,1
+61,低,2,高,5,0
+30,中,3,低,4,0
+35,低,4,低,3,0
+51,低,3,中,4,1
+44,中,3,中,2,1
+62,高,5,中,3,1
+23,中,5,低,3,0
+30,中,4,高,0,1
+23,高,3,中,6,0
+55,低,5,中,3,1
+22,中,2,中,1,1
+34,高,3,中,5,1
+29,低,2,低,2,0
+33,高,3,中,0,1
+49,低,3,高,1,0
+35,中,4,中,1,0
+24,中,4,低,1,0
+45,中,2,低,3,1
+42,低,3,高,3,1
+63,中,3,中,3,1
+62,中,5,低,3,0
+51,低,2,中,3,0
+44,低,3,中,1,1
+45,中,4,中,0,1
+25,中,4,低,3,1
+25,中,1,低,3,1
+64,中,3,高,4,1
+33,高,2,中,2,0
+42,低,4,低,3,1
+48,中,2,高,5,1
+27,中,3,高,2,1
+60,中,2,中,1,1
+23,中,1,高,2,0
+47,中,5,低,3,1
+54,中,3,低,1,0
+41,高,3,低,5,1
+31,中,1,中,1,0
+50,低,1,中,3,1
+64,中,3,低,2,0
+60,中,3,中,3,1
+64,高,3,低,3,1
+54,中,4,低,2,1
+33,高,3,中,2,1
+44,中,4,低,1,1
+28,低,5,高,1,0
+29,中,3,高,1,0
+50,中,1,高,1,1
+53,中,4,低,0,1
+34,低,3,高,1,0
+35,中,3,中,0,1
+38,高,1,低,1,0
+46,高,3,高,4,1
+32,中,1,中,2,0
+45,中,3,高,1,1
+45,中,2,中,3,0
+32,高,2,中,3,0
+33,低,5,高,0,0
+41,高,3,低,5,1
+40,中,4,低,2,1
+51,中,4,中,4,1
+53,低,2,低,1,1
+22,中,2,低,2,0
+54,高,2,中,3,1
+59,中,2,低,0,0
+57,低,3,中,1,0
+42,低,4,中,2,0
+36,中,3,中,3,1
+27,低,3,低,5,0
+26,中,3,中,1,1
+64,高,3,低,1,1
+29,中,4,高,2,0
+26,中,4,低,1,0
+47,低,4,低,1,1
+45,高,3,中,3,1
+47,低,2,高,2,0
+40,高,1,高,1,0
+50,低,2,高,3,0
+28,高,3,中,1,1
+45,中,3,高,3,1
+39,高,3,高,2,1
+35,中,1,高,2,1
+49,低,5,中,3,1
+27,中,4,高,0,1
+46,低,3,中,2,1
+54,高,4,中,2,1
+48,中,1,中,3,1
+35,中,4,高,3,1
+40,高,3,中,0,1
+29,高,4,中,2,1
+49,高,2,低,2,0
+56,低,5,中,1,1
+45,中,3,低,4,0
+54,低,4,低,4,0
+62,中,3,高,1,0
+51,中,4,高,2,1
+46,中,5,高,3,1
+32,低,2,中,1,0
+24,中,2,中,1,0
+30,中,3,中,1,0
+47,低,1,高,3,1
+41,低,1,高,2,0
+52,低,3,中,2,0
+56,中,4,高,4,0
+22,中,4,中,0,0
+49,中,5,中,3,1
+25,高,3,高,0,1
+54,低,3,中,4,1
+47,低,3,低,4,1
+37,低,4,低,2,1
+41,高,3,高,3,1
+32,低,2,中,0,0
+61,高,3,中,1,1
+63,高,4,低,2,1
+59,高,1,中,1,1
+41,中,3,中,1,1
+60,中,2,低,4,1
+55,高,4,中,1,1
+30,高,3,中,1,0
+53,中,4,低,0,1
+47,高,3,高,1,0
+29,高,4,低,1,1
+37,中,3,中,1,0
+63,低,4,中,3,0
+59,低,4,中,1,0
+42,高,5,中,1,1
+29,中,5,低,2,1
+47,高,1,中,0,1
+45,中,3,低,3,1
+48,低,4,高,3,1
+24,高,3,高,2,1
+40,中,3,低,0,1
+44,中,1,中,3,1
+34,低,2,中,3,0
+51,中,4,中,3,1
+41,中,3,高,3,1
+60,低,3,低,0,1
+36,中,3,高,6,0
+25,中,4,中,2,1
+45,低,5,低,2,1
+55,中,2,高,2,1
+35,中,4,中,2,0
+46,低,4,低,0,1
+59,低,3,低,2,0
+45,低,5,高,2,1
+25,低,3,中,1,0
+63,高,5,低,0,0
+42,中,2,低,1,1
+61,低,1,低,2,0
+43,中,3,低,3,1
+34,高,3,中,0,1
+41,高,4,低,1,1
+23,中,3,中,5,1
+47,低,5,低,0,0
+58,中,3,中,4,0
+41,低,4,中,2,0
+29,低,2,高,3,0
+40,中,2,低,5,1
+38,高,3,中,2,1
+35,低,2,中,4,0
+48,中,2,高,2,1
+56,高,3,中,3,0
+44,中,2,高,0,1
+27,低,4,高,1,0
+43,低,4,中,2,1
+40,低,1,高,2,0
+31,中,3,高,2,1
+27,高,3,高,3,1
+31,低,4,高,0,1
+64,中,5,低,4,0
+33,中,2,低,0,0
+51,低,3,中,1,0
+42,低,1,高,1,1
+60,中,2,中,2,0
+47,中,4,高,1,1
+41,高,4,低,2,1
+57,低,4,高,2,0
+40,中,2,中,1,0
+29,中,4,中,1,1
+30,中,2,高,3,1
+59,高,3,中,3,1
+39,高,5,中,2,0
+54,中,3,中,1,1
+63,低,5,高,4,1
+41,中,3,高,2,1
+42,低,4,中,1,0
+32,中,2,中,3,0
+36,中,4,低,2,0
+60,中,4,中,2,1
+49,低,3,低,5,0
+54,中,3,高,2,0
+63,低,2,中,1,1
+51,中,2,中,2,0
+37,中,3,高,3,1
+64,中,3,低,2,1
+53,高,4,低,1,1
+58,中,2,高,0,1
+38,中,3,高,3,1
+59,高,1,低,1,0
+39,中,2,低,1,1
+44,低,5,低,3,0
+63,中,3,中,0,0
+29,中,3,高,0,1
+34,低,3,中,8,0
+34,低,5,中,2,0
+47,中,4,中,3,1
+61,高,3,低,0,0
+59,低,5,高,3,1
+52,中,4,高,1,1
+29,高,4,高,1,1
+50,中,1,高,2,1
+36,中,2,低,2,0
+23,中,5,低,1,1
+49,中,2,低,1,1
+33,低,4,中,3,1
+32,中,5,低,4,1
+54,中,3,高,0,0
+24,高,2,低,2,1
+52,高,3,高,1,1
+34,低,3,低,2,1
+61,高,4,高,2,1
+45,低,2,中,5,0
+39,低,3,中,2,1
+36,低,1,低,0,0
+23,低,2,中,2,0
+31,中,5,中,4,1
+22,低,3,低,1,1
+30,中,2,高,5,0
+48,中,1,高,3,1
+22,低,3,中,0,0
+62,中,1,高,5,1
+39,中,4,中,2,1
+54,低,3,低,0,0
+53,高,2,中,0,1
+26,高,2,中,3,1
+42,低,4,低,2,1
+42,低,2,中,1,0
+47,高,5,中,0,1
+28,低,4,高,2,1
+37,低,4,高,1,1
+38,高,2,中,3,1
+42,中,4,高,1,0
+55,中,5,中,2,1
+59,高,1,低,0,0
+46,高,2,中,1,0
+44,中,3,中,1,0
+29,低,3,中,1,1
+47,低,1,低,5,1
+64,低,5,低,0,0
+26,中,4,高,0,0
+55,高,4,中,2,1
+42,中,4,高,2,1
+48,中,2,高,2,1
+61,中,4,高,2,1
+49,高,4,中,5,1
+38,中,2,高,3,1
+51,高,4,中,1,1
+41,低,2,中,2,0
+48,高,4,中,3,1
+59,中,3,低,1,0
+42,中,2,中,3,1
+29,高,1,高,4,1
+35,中,2,低,5,1
+25,低,4,中,1,1
+56,低,2,低,2,0
+23,低,2,高,6,0
+47,中,3,高,2,1
+64,中,3,中,3,1
+55,低,5,中,3,1
+30,中,3,低,2,0
+52,中,2,高,4,0
+48,高,4,中,0,0
+39,中,2,低,2,0
+55,中,1,中,5,1
+38,低,5,中,3,1
+29,低,3,高,2,0
+43,中,3,中,2,1
+52,低,4,中,2,1
+27,中,3,低,1,1
+37,中,5,高,2,1
+37,中,3,中,5,0
+29,低,3,中,0,0
+48,中,3,中,3,1
+27,高,3,中,5,1
+38,中,5,低,1,0
+22,中,5,低,2,0
+62,高,4,中,4,1
+54,低,2,高,3,1
+54,高,2,中,3,0
+49,低,4,低,2,0
+33,高,4,低,3,1
+26,高,3,中,1,1
+28,高,5,中,2,1
+37,高,1,中,1,1
+58,低,3,低,2,1
+43,中,3,高,4,1
+23,低,2,高,2,0
+25,低,2,低,0,0
+59,中,2,中,1,0
+52,中,3,低,1,0
+34,中,3,中,3,0
+26,高,3,中,1,0
+32,高,2,中,1,1
+49,低,2,高,3,1
+58,低,3,中,2,0
+29,中,3,中,3,1
+47,高,3,中,4,1
+56,高,2,低,0,0
+42,低,1,中,5,1
+56,低,2,高,3,0
+37,中,4,中,2,0
+43,中,3,高,1,1
+59,中,3,中,2,0
+38,高,2,中,2,1
+62,高,5,中,4,1
+37,低,3,低,0,0
+55,中,3,低,1,0
+46,高,3,中,1,0
+29,高,4,高,3,1
+55,高,3,中,3,0
+26,低,2,中,1,0
+30,高,1,中,3,0
+54,中,3,中,2,0
+40,低,3,中,1,1
+53,中,1,中,1,0
+40,高,2,高,0,0
+25,高,2,低,1,0
+53,低,1,中,2,1
+25,低,2,中,2,0
+22,低,1,中,2,0
+25,中,2,中,0,0
+55,中,3,中,3,1
+49,低,3,低,3,1
+37,低,3,低,3,0
+44,低,3,中,1,0
+64,中,3,低,1,0
+42,中,2,高,3,1
+53,低,3,低,2,1
+31,高,3,高,2,0
+46,低,2,低,3,1
+56,高,2,低,3,1
+47,中,2,中,2,0
+41,中,1,低,0,1
+51,低,4,低,2,0
+48,中,4,中,1,1
+57,低,4,低,2,0
+59,低,4,高,3,1
+36,中,2,低,1,0
+61,低,1,高,3,1
+42,高,3,低,2,0
+40,中,3,中,0,1
+24,低,5,高,4,1
+33,高,5,低,0,1
+56,中,2,中,4,1
+25,低,2,高,1,0
+53,低,2,高,3,0
+32,中,4,低,2,0
+46,中,2,低,4,0
+25,中,5,高,1,1
+40,中,4,低,4,1
+58,高,4,高,2,1
+37,中,3,高,0,0
+25,中,3,中,4,1
+56,低,4,中,4,1
+30,低,3,低,1,1
+62,低,1,高,1,1
+58,低,3,低,4,0
+33,低,4,中,0,0
+56,高,4,高,0,1
+51,中,3,中,3,1
+28,中,3,中,2,0
+33,高,3,中,5,0
+31,高,1,低,3,0
+55,低,3,中,2,0
+24,中,5,高,2,1
+34,中,1,高,2,1
+51,高,5,高,2,1
+52,高,2,低,1,0
+52,低,3,低,3,1
+52,低,3,中,1,0
+22,中,3,高,3,1
+24,低,1,低,2,0
+58,低,4,中,2,1
+45,中,2,中,2,0
+42,低,3,中,1,0
+33,低,2,中,0,0
+33,低,3,低,1,1
+38,中,1,低,2,1
+45,中,3,低,1,1
+59,中,2,高,1,0
+61,低,3,中,3,0
+38,中,3,低,3,1
+57,中,3,中,3,1
+31,中,2,中,5,0
+38,低,1,高,3,1
+42,低,4,中,2,0
+53,高,2,中,2,1
+53,低,3,低,2,1
+58,中,2,中,2,0
+48,中,2,中,2,0
+56,低,3,中,1,1
+31,低,1,中,0,0
+22,中,2,低,3,0
+33,低,4,高,1,1
+31,高,4,中,5,1
+36,高,3,中,0,0
+31,中,3,中,2,0
+53,高,4,中,1,1
+50,中,2,中,0,1
+62,中,4,高,2,1
+31,中,2,中,3,1
+52,高,3,中,5,1
+32,高,3,中,2,1
+31,低,2,高,0,0
+33,中,5,高,1,0
+53,中,2,低,0,1
+61,高,3,低,1,0
+57,高,5,中,2,1
+47,高,5,低,4,1
+28,低,1,高,4,0
+31,低,3,中,4,0
+43,低,4,低,2,1
+53,高,1,中,2,1
+40,低,2,中,2,0
+23,高,4,低,0,0
+50,中,5,低,0,1
+31,高,4,中,1,1
+54,低,2,高,1,1
+36,低,3,中,2,1
+35,低,3,低,1,1
+61,中,4,中,3,1
+55,中,4,中,0,0
+62,低,3,高,3,1
+43,高,3,中,4,1
+55,中,3,低,4,0
+22,低,2,高,3,0
+32,中,4,低,2,0
+52,高,3,高,2,1
+64,中,3,低,2,0
+34,低,5,低,4,0
+50,高,3,中,2,0
+33,低,4,高,3,1
+46,中,5,中,0,1
+33,中,2,中,4,1
+51,中,5,中,2,1
+48,中,2,高,1,0
+26,低,4,中,1,0
+63,低,3,中,2,1
+41,低,4,中,4,1
+38,高,2,中,0,0
+39,低,5,中,1,0
+45,低,1,高,2,0`;
+    document.getElementById('task-type').value='classification';
+    document.getElementById('max-depth').value=5;
+  }
+}
+</script>
+</body>
+</html>
