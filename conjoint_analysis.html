@@ -505,7 +505,11 @@ function renderOrthoCheck(){
     html+=`<div style="padding:10px 14px;background:#fff3e0;border-left:4px solid #e05c2a;border-radius:6px;margin-bottom:12px;font-size:12px">
       ⚠ <b>重複プロファイルが${dupes.length}件あります。</b> 属性・水準の組み合わせを見直してください。</div>`;
   }
-  html+=`<div class="note" style="margin-bottom:12px">各属性ペアの組み合わせ出現回数を確認します。すべてのセルが同じ回数であれば完全直交です。</div>`;
+  html+=`<div class="note" style="margin-bottom:12px">各属性ペアの組み合わせ出現回数を確認します。すべてのセルが同じ回数であれば完全直交です。<br>
+    <b>【混合水準の制約について】</b> 3水準と2水準が混在する場合（例：3×3×2×2）、
+    完全直交に必要なプロファイル数は数学的にLCM(9,4)=36件となり実用的でありません。
+    L9（9件）が実用上の最善策ですが、<b>2水準同士のペア（デザート×価格など）に非直交が生じるのは避けられません。</b>
+    3水準属性間・3水準と2水準のペアは直交（差0〜1）が保たれており、主要な効用値の推定には支障ありません。</div>`;
   // 各属性の水準出現回数
   html+=`<h3 style="font-size:12px;font-weight:700;margin-bottom:8px">① 各属性の水準出現回数</h3>
     <div class="tbl-wrap"><table><thead><tr><th class="left">属性</th><th class="left">水準</th><th>出現回数</th><th>期待値</th><th>判定</th></tr></thead><tbody>`;
