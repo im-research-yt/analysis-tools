@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コンジョイント分析ツール</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Meiryo',sans-serif;
+     background:#f4f6f9;color:#1a2332;font-size:14px;line-height:1.6}
+header{background:#1a2332;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px}
+header h1{font-size:17px;font-weight:600}
+.badge{background:#e05c2a;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700}
+.disclaimer{background:#fff3cd;border-bottom:1px solid #ffc107;padding:6px 24px;
+            font-size:11px;color:#1a2332;font-weight:700;line-height:1.5}
+.container{max-width:1200px;margin:0 auto;padding:20px 16px}
+.card{background:#fff;border-radius:8px;border:1px solid #e0e4ea;padding:20px;margin-bottom:16px}
+.card h2{font-size:14px;font-weight:700;color:#1a2332;margin-bottom:14px;
+         padding-bottom:8px;border-bottom:2px solid #e05c2a;display:inline-block}
+.step-badge{display:inline-block;background:#e05c2a;color:#fff;font-size:11px;font-weight:700;
+            padding:2px 10px;border-radius:10px;margin-right:8px;vertical-align:middle}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.row>div{flex:1;min-width:160px}
+label{display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:4px;
+      text-transform:uppercase;letter-spacing:.4px}
+select,input[type=number],input[type=text]{width:100%;padding:7px 10px;border:1px solid #d0d5dd;
+  border-radius:6px;font-size:13px;color:#1a2332;background:#fff;outline:none}
+select:focus,input:focus{border-color:#1a2332;box-shadow:0 0 0 2px rgba(26,35,50,.12)}
+textarea{width:100%;padding:10px;border:1px solid #d0d5dd;border-radius:6px;
+         font-size:12px;font-family:monospace;resize:vertical;outline:none;min-height:120px}
+textarea:focus{border-color:#1a2332;box-shadow:0 0 0 2px rgba(26,35,50,.12)}
+.btn-primary{background:#1a2332;color:#fff;border:none;padding:9px 22px;
+             border-radius:6px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-primary:hover{background:#2d3d52}
+.btn-secondary{background:#fff;color:#1a2332;border:1px solid #d0d5dd;
+               padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer}
+.btn-secondary:hover{border-color:#1a2332}
+.btn-dl{background:#0e7c5a;color:#fff;border:none;padding:7px 16px;
+        border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
+.btn-dl:hover{background:#0a5c42}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.err{color:#c0392b;font-size:12px;padding:8px 12px;background:#fdf0ee;
+     border:1px solid #f5c6c0;border-radius:6px;margin-top:8px;display:none}
+.info{font-size:12px;color:#185FA5;padding:8px 12px;background:#e8f0fd;
+      border:1px solid #c5d8f9;border-radius:6px;margin:8px 0}
+.note{font-size:11px;color:#777;margin-top:6px;line-height:1.6}
+.tbl-wrap{overflow-x:auto;margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#1a2332;color:#fff;padding:7px 10px;text-align:center;
+   font-weight:600;font-size:11px;white-space:nowrap}
+th.left{text-align:left}
+td{padding:6px 10px;border-bottom:1px solid #edf0f4;text-align:center;white-space:nowrap}
+td.left{text-align:left}
+tr:nth-child(even) td{background:#f8fafc}
+.stat-row{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px}
+.stat{text-align:center}
+.stat-val{font-size:22px;font-weight:700;color:#185FA5}
+.stat-lbl{font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.4px}
+.tabs{display:flex;gap:0;border-bottom:2px solid #e0e4ea;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;
+     color:#777;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab.active{color:#1a2332;border-bottom-color:#e05c2a}
+.panel{display:none}.panel.active{display:block}
+.attr-block{background:#f8fafc;border:1px solid #e0e4ea;border-radius:6px;padding:12px;
+            flex:1;min-width:200px}
+.attr-block h3{font-size:12px;font-weight:700;color:#1a2332;margin-bottom:8px}
+.level-input{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.level-input input{flex:1;min-width:0}
+.level-input .lbl{font-size:11px;color:#777;white-space:nowrap;min-width:40px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:10px}
+.profile-card{border:1.5px solid #1a2332;border-radius:8px;padding:12px;background:#fff}
+.profile-card .num{font-size:11px;font-weight:700;color:#e05c2a;margin-bottom:6px}
+.profile-card table{font-size:12px}
+.profile-card td{padding:3px 6px;border-bottom:1px solid #f0f0f0;text-align:left;white-space:normal}
+.profile-card td:first-child{color:#555;width:45%}
+.bar-wrap{height:16px;background:#edf0f4;border-radius:4px;overflow:hidden}
+.bar{height:100%;border-radius:4px}
+canvas{max-width:100%}
+.respondent-select{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+@media print{
+  header,.card:not(#result-card),.btn-row,.tabs{display:none}
+  .panel{display:block!important}#tab-cards{display:block!important}
+  .card-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>コンジョイント分析ツール</h1>
+  <span class="badge">Conjoint Analysis</span>
+</header>
+<div class="disclaimer">
+  法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室<br>
+  学習用としてご利用ください。チェックはしていますが計算ミスの可能性がありますので、研究やビジネスでの利用は推奨しません。
+</div>
+
+<div class="container">
+
+<!-- Step 1: 直交計画の生成 -->
+<div class="card" id="card-step1">
+  <h2><span class="step-badge">Step 1</span>直交計画の作成</h2>
+  <div class="row" style="margin-bottom:14px">
+    <div>
+      <label>属性の数</label>
+      <select id="n-attr" onchange="buildAttrInputs()">
+        <option value="2">2</option><option value="3">3</option>
+        <option value="4" selected>4</option><option value="5">5</option>
+        <option value="6">6</option><option value="7">7</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:8px">
+      <button class="btn-secondary" onclick="loadExample(1)">例題：飲み会（2×2×2×2）</button>
+      <button class="btn-secondary" onclick="loadExample(2)">例題：飲み会（3×3×2×2）</button>
+      <button class="btn-secondary" onclick="resetDesign()" style="color:#c0392b;border-color:#c0392b">↺ リセット</button>
+    </div>
+  </div>
+  <div id="attr-inputs"></div>
+  <div class="btn-row">
+    <button class="btn-primary" onclick="generateDesign()">▶ 直交計画を生成</button>
+  </div>
+  <div id="design-err" class="err"></div>
+
+  <!-- 生成結果 -->
+  <div id="design-result" style="display:none;margin-top:16px">
+    <div id="design-info" class="info" style="margin-bottom:10px"></div>
+    <div class="tabs" id="design-tabs">
+      <div class="tab active" onclick="switchDesignTab('profiles')">プロファイル表</div>
+      <div class="tab" onclick="switchDesignTab('ortho')">直交性チェック</div>
+      <div class="tab" onclick="switchDesignTab('cards')">プロファイルカード</div>
+    </div>
+    <div class="panel active" id="dtab-profiles">
+      <div class="btn-row">
+        <button class="btn-dl" onclick="downloadDesignCSV('profiles')">⬇ プロファイル表をCSVでダウンロード</button>
+        <button class="btn-dl" onclick="downloadDesignCSV('dummy')">⬇ ダミー変数表をCSVでダウンロード（Step2で再利用可）</button>
+      </div>
+      <div class="tbl-wrap" id="profile-table-wrap"></div>
+    </div>
+    <div class="panel" id="dtab-ortho">
+      <div id="ortho-wrap"></div>
+    </div>
+    <div class="panel" id="dtab-cards">
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="window.print()">🖨 印刷</button>
+      </div>
+      <div class="card-grid" id="card-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 2: 調査データの入力 -->
+<div class="card" id="card-step2">
+  <h2><span class="step-badge">Step 2</span>調査データの入力</h2>
+  <div class="row" style="margin-bottom:10px">
+    <div>
+      <label>回答形式</label>
+      <select id="response-type">
+        <option value="score">得点（数値）</option>
+        <option value="rank">順位（1位・2位・…）</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:8px">
+      <label class="btn-secondary" style="cursor:pointer;display:inline-flex;align-items:center">
+        📂 CSVを読み込む
+        <input type="file" accept=".csv,.txt" style="display:none" onchange="loadSurveyCSV(event)">
+      </label>
+      <button class="btn-secondary" onclick="loadSurveyExample()">サンプルデータを入力</button>
+    </div>
+  </div>
+  <label>調査データ（行=回答者、列=各プロファイルへの評価）</label>
+  <textarea id="survey-input" placeholder="回答者名,プロファイル1,プロファイル2,...
+田中,8,3,6,7,2,5,4,1
+鈴木,7,4,5,8,1,6,3,2
+..."></textarea>
+  <div class="note">
+    ※ 1行目：ヘッダー（1列目=回答者名、2列目以降=各プロファイルへの評価）<br>
+    ※ 列の順番はStep 1で生成したプロファイル表と対応させてください<br>
+    ※ 順位の場合：1位が最も好む（得点に自動変換します）
+  </div>
+  <div id="survey-err" class="err"></div>
+  <div class="btn-row">
+    <button class="btn-primary" onclick="runAnalysis()">▶ 分析を実行</button>
+  </div>
+</div>
+
+<!-- Step 3: 結果 -->
+<div class="card" id="card-result" style="display:none">
+  <h2><span class="step-badge">Step 3</span>分析結果</h2>
+  <div id="result-info" class="info" style="margin-bottom:12px"></div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchResultTab('utility')">効用値一覧</div>
+    <div class="tab" onclick="switchResultTab('importance')">重要度一覧</div>
+    <div class="tab" onclick="switchResultTab('average')">全体平均</div>
+    <div class="tab" onclick="switchResultTab('individual')">個人別詳細</div>
+    <div class="tab" onclick="switchResultTab('cluster')">cluster.html用CSV</div>
+  </div>
+
+  <div class="panel active" id="rtab-utility">
+    <div class="btn-row"><button class="btn-dl" onclick="downloadResult('utility')">⬇ 効用値CSVをダウンロード</button></div>
+    <div class="tbl-wrap" id="utility-wrap"></div>
+  </div>
+
+  <div class="panel" id="rtab-importance">
+    <div class="btn-row"><button class="btn-dl" onclick="downloadResult('importance')">⬇ 重要度CSVをダウンロード</button></div>
+    <div class="tbl-wrap" id="importance-wrap"></div>
+  </div>
+
+  <div class="panel" id="rtab-average">
+    <div id="average-wrap"></div>
+  </div>
+
+  <div class="panel" id="rtab-individual">
+    <div class="respondent-select">
+      <label style="text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;margin:0">回答者：</label>
+      <select id="respondent-select" onchange="renderIndividual()" style="width:auto;min-width:150px"></select>
+    </div>
+    <div id="individual-wrap"></div>
+  </div>
+
+  <div class="panel" id="rtab-cluster">
+    <p style="font-size:13px;margin-bottom:12px">
+      以下の3種類のCSVを cluster.html に貼り付けてクラスター分析を実行できます。
+    </p>
+    <div class="btn-row">
+      <button class="btn-dl" onclick="downloadResult('cluster-utility')">⬇ ①効用値（cluster用）</button>
+      <button class="btn-dl" onclick="downloadResult('cluster-importance')">⬇ ②重要度（cluster用）</button>
+      <button class="btn-dl" onclick="downloadResult('cluster-raw')">⬇ ③生データ（cluster用）</button>
+    </div>
+    <div class="note" style="margin-top:10px">
+      ※ ①効用値：各水準の効用値でクラスタリング（「何を重視するか」の絶対的な差を捉える）<br>
+      ※ ②重要度：属性の重要度でクラスタリング（「何を重視するか」の構造を捉える）<br>
+      ※ ③生データ：プロファイルへの得点でクラスタリング（モデルを仮定しない）
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 直交配列ライブラリ
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const OA = {
+  L4: {array:[[0,0,0],[0,1,1],[1,0,1],[1,1,0]],runs:4},
+  L8: {array:[[0,0,0,0,0,0,0],[0,0,0,1,1,1,1],[0,1,1,0,0,1,1],[0,1,1,1,1,0,0],[1,0,1,0,1,0,1],[1,0,1,1,0,1,0],[1,1,0,0,1,1,0],[1,1,0,1,0,0,1]],runs:8},
+  L9: {array:[[0,0,0,0],[0,1,1,1],[0,2,2,2],[1,0,1,2],[1,1,2,0],[1,2,0,1],[2,0,2,1],[2,1,0,2],[2,2,1,0]],runs:9},
+  L12:{array:[[0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,1,1,1,1,1,1],[0,0,1,1,1,0,0,0,1,1,1],[0,1,0,1,1,0,1,1,0,0,1],[0,1,1,0,1,1,0,1,0,1,0],[0,1,1,1,0,1,1,0,1,0,0],[1,0,1,1,0,0,1,1,0,1,0],[1,0,1,0,1,1,1,0,0,0,1],[1,0,0,1,1,1,0,1,1,0,0],[1,1,1,0,0,0,0,1,1,0,1],[1,1,0,1,0,1,0,0,0,1,1],[1,1,0,0,1,0,1,0,1,1,0]],runs:12},
+  L16:{array:[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],[0,0,0,1,1,1,1,0,0,0,0,1,1,1,1],[0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],[0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],[0,1,1,0,0,1,1,1,1,0,0,1,1,0,0],[0,1,1,1,1,0,0,0,0,1,1,1,1,0,0],[0,1,1,1,1,0,0,1,1,0,0,0,0,1,1],[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,1,0,1,0,1,0,1,0],[1,0,1,1,0,1,0,0,1,0,1,1,0,1,0],[1,0,1,1,0,1,0,1,0,1,0,0,1,0,1],[1,1,0,0,1,1,0,0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,1,0,0,1,1,0,0,1],[1,1,0,1,0,0,1,0,1,0,1,1,0,0,1],[1,1,0,1,0,0,1,1,0,1,0,0,1,1,0]],runs:16},
+  L18:{array:[[0,0,0,0,0,0,0,0],[0,0,1,1,1,1,1,1],[0,0,2,2,2,2,2,2],[0,1,0,0,1,1,2,2],[0,1,1,1,2,2,0,0],[0,1,2,2,0,0,1,1],[0,2,0,1,0,2,1,2],[0,2,1,2,1,0,2,0],[0,2,2,0,2,1,0,1],[1,0,0,2,2,1,1,0],[1,0,1,0,0,2,2,1],[1,0,2,1,1,0,0,2],[1,1,0,1,2,0,2,1],[1,1,1,2,0,1,0,2],[1,1,2,0,1,2,1,0],[1,2,0,2,1,2,0,1],[1,2,1,0,2,0,1,2],[1,2,2,1,0,1,2,0]],runs:18},
+  L27:{array:[[0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,1,1,1,2,2,2,2,2],[0,0,0,0,2,2,2,2,0,1,1,2,2],[0,1,1,2,0,1,1,2,1,0,2,0,1],[0,1,1,2,1,2,2,0,2,1,0,1,2],[0,1,1,2,2,0,0,1,0,2,1,2,0],[0,2,2,1,0,2,2,1,2,2,0,0,2],[0,2,2,1,1,0,0,2,0,0,1,1,0],[0,2,2,1,2,1,1,0,1,1,2,2,1],[1,0,1,2,0,0,2,1,1,2,1,0,2],[1,0,1,2,1,1,0,2,2,0,2,1,0],[1,0,1,2,2,2,1,0,0,1,0,2,1],[1,1,2,0,0,1,0,2,2,1,0,2,0],[1,1,2,0,1,2,1,0,0,2,1,0,1],[1,1,2,0,2,0,2,1,1,0,2,1,2],[1,2,0,1,0,2,1,0,0,0,2,1,1],[1,2,0,1,1,0,2,1,1,1,0,2,2],[1,2,0,1,2,1,0,2,2,2,1,0,0],[2,0,2,1,0,0,1,2,2,1,2,1,0],[2,0,2,1,1,1,2,0,0,2,0,2,1],[2,0,2,1,2,2,0,1,1,0,1,0,2],[2,1,0,2,0,1,2,0,1,0,1,2,2],[2,1,0,2,1,2,0,1,2,1,2,0,0],[2,1,0,2,2,0,1,2,0,2,0,1,1],[2,2,1,0,0,2,0,1,1,2,2,2,1],[2,2,1,0,1,0,1,2,2,0,0,0,2],[2,2,1,0,2,1,2,0,0,1,1,1,0]],runs:27},
+  OA12_3_2x3:{array:[[0,0,0,0],[0,0,1,1],[0,1,0,1],[0,1,1,0],[1,0,0,1],[1,0,1,0],[1,1,0,0],[1,1,1,1],[2,0,0,0],[2,0,1,1],[2,1,0,1],[2,1,1,0]],runs:12},
+  OA12_3_2x4:{array:[[0,0,0,0,0],[0,0,1,1,1],[0,1,0,1,1],[0,1,1,0,0],[1,0,0,1,0],[1,0,1,0,1],[1,1,0,0,1],[1,1,1,1,0],[2,0,0,0,1],[2,0,1,1,0],[2,1,0,1,0],[2,1,1,0,1]],runs:12},
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// グローバル
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let G = {
+  attrs:[], profiles:[], dummies:[], dummyHeaders:[], oa:null,
+  respondents:[], surveyData:[],
+  results:[] // [{name, coefs, utilities, gaps, importances}]
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ユーティリティ
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showErr(id,m){const e=document.getElementById(id);e.textContent=m;e.style.display='block';}
+function clearErr(id){document.getElementById(id).style.display='none';}
+function dl(csv, fname){
+  const b64=btoa(unescape(encodeURIComponent('\uFEFF'+csv)));
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8;base64,'+b64;
+  a.download=fname; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+function f3(v){return (typeof v==='number')?v.toFixed(3):v;}
+function fp(v){return (typeof v==='number')?(v*100).toFixed(1)+'%':v;}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// タブ切替
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function switchDesignTab(name){
+  ['profiles','ortho','cards'].forEach(n=>{
+    document.getElementById('dtab-'+n).classList.toggle('active',n===name);
+  });
+  document.querySelectorAll('#design-tabs .tab').forEach((t,i)=>{
+    t.classList.toggle('active',['profiles','ortho','cards'][i]===name);
+  });
+  if(name==='ortho') renderOrthoCheck();
+}
+function switchResultTab(name){
+  ['utility','importance','average','individual','cluster'].forEach(n=>{
+    document.getElementById('rtab-'+n).classList.toggle('active',n===name);
+  });
+  document.querySelectorAll('#card-result .tabs .tab').forEach((t,i)=>{
+    t.classList.toggle('active',['utility','importance','average','individual','cluster'][i]===name);
+  });
+  if(name==='individual') renderIndividual();
+  if(name==='average') renderAverage();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Step 1: 直交計画生成
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function buildAttrInputs(){
+  const n=+document.getElementById('n-attr').value;
+  const old=getAttrsFromDOM()||G.attrs||[];
+  const wrap=document.getElementById('attr-inputs');
+  wrap.innerHTML=''; G.attrs=[];
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px';
+  for(let i=0;i<n;i++){
+    const prev=(old&&old[i]&&old[i].levels)?old[i]:{name:`属性${String.fromCharCode(65+i)}`,levels:['水準1','水準2']};
+    const div=document.createElement('div');
+    div.className='attr-block';
+    div.innerHTML=`<h3>属性 ${i+1}</h3>
+      <div style="margin-bottom:8px"><label style="text-transform:none;letter-spacing:0;font-size:11px">属性名</label>
+        <input type="text" id="attr-name-${i}" value="${esc(prev.name)}" placeholder="例：タイプ"></div>
+      <label style="text-transform:none;letter-spacing:0;font-size:11px">水準数</label>
+      <select id="attr-nlvl-${i}" onchange="updateLevelInputs(${i})" style="margin-bottom:8px">
+        <option value="2" ${prev.levels.length===2?'selected':''}>2水準</option>
+        <option value="3" ${prev.levels.length===3?'selected':''}>3水準</option>
+        <option value="4" ${prev.levels.length===4?'selected':''}>4水準</option>
+      </select>
+      <div id="lvl-inputs-${i}"></div>`;
+    grid.appendChild(div); G.attrs.push({});
+  }
+  wrap.appendChild(grid);
+  for(let i=0;i<n;i++) updateLevelInputs(i, old[i]?.levels);
+}
+
+function getAttrsFromDOM(){
+  try{
+    const n=+document.getElementById('n-attr').value; const attrs=[];
+    for(let i=0;i<n;i++){
+      const nameEl=document.getElementById(`attr-name-${i}`);
+      const nlvlEl=document.getElementById(`attr-nlvl-${i}`);
+      if(!nameEl||!nlvlEl) return null;
+      const name=nameEl.value.trim()||`属性${String.fromCharCode(65+i)}`;
+      const nlvl=+nlvlEl.value; const levels=[];
+      for(let j=0;j<nlvl;j++){
+        const el=document.getElementById(`lvl-${i}-${j}`);
+        levels.push(el?el.value.trim()||`水準${j+1}`:`水準${j+1}`);
+      }
+      attrs.push({name,levels});
+    }
+    return attrs;
+  }catch(e){return null;}
+}
+
+function updateLevelInputs(i,prevLevels){
+  const n=+document.getElementById(`attr-nlvl-${i}`).value;
+  const wrap=document.getElementById(`lvl-inputs-${i}`);
+  wrap.innerHTML='';
+  for(let j=0;j<n;j++){
+    const prev=prevLevels?.[j]||`水準${j+1}`;
+    const div=document.createElement('div'); div.className='level-input';
+    div.innerHTML=`<span class="lbl">水準${j+1}</span>
+      <input type="text" id="lvl-${i}-${j}" value="${esc(prev)}" placeholder="例：和食">`;
+    wrap.appendChild(div);
+  }
+}
+
+function selectOA(attrs){
+  const lc=attrs.map(a=>a.levels.length);
+  const maxL=Math.max(...lc); const n=attrs.length;
+  const n2=lc.filter(l=>l===2).length; const n3=lc.filter(l=>l===3).length;
+  if(maxL===2){
+    if(n<=3) return {oa:'L4',type:'pure2'};
+    if(n<=7) return {oa:'L8',type:'pure2'};
+    if(n<=11) return {oa:'L12',type:'pure2'};
+    if(n<=15) return {oa:'L16',type:'pure2'};
+    return null;
+  }
+  if(maxL===3&&n2===0){
+    if(n<=4) return {oa:'L9',type:'pure3'};
+    if(n<=13) return {oa:'L27',type:'pure3'};
+    return null;
+  }
+  if(maxL===3){
+    if(n3===1&&n2<=3) return {oa:'OA12_3_2x3',type:'prebuilt'};
+    if(n3===1&&n2<=4) return {oa:'OA12_3_2x4',type:'prebuilt'};
+    if(n<=4) return {oa:'L9',type:'mixed'};
+    if(n2<=1&&n3<=7) return {oa:'L18',type:'L18mix'};
+    if(n<=8) return {oa:'L18',type:'L18mod'};
+    return null;
+  }
+  if(maxL===4&&n<=4) return {oa:'L16',type:'pseudo4'};
+  return null;
+}
+
+function generateDesign(){
+  clearErr('design-err');
+  const attrs=getAttrsFromDOM(); G.attrs=attrs;
+  const sel=selectOA(attrs);
+  if(!sel){showErr('design-err','この属性・水準の組み合わせには対応する直交配列が見つかりません。');return;}
+  const {oa:oaKey,type:oaType}=sel;
+  const baseOA=OA[oaKey];
+  let profiles=[];
+
+  if(oaType==='prebuilt'){
+    const sorted=[...attrs.map((a,i)=>({...a,origIdx:i}))].sort((a,b)=>b.levels.length-a.levels.length);
+    const colMap=new Array(attrs.length);
+    sorted.forEach((a,col)=>colMap[a.origIdx]=col);
+    for(const row of baseOA.array){
+      const p=new Array(attrs.length);
+      attrs.forEach((_,i)=>p[i]=row[colMap[i]]);
+      profiles.push(p);
+    }
+  } else if(oaType==='pure2'||oaType==='pure3'){
+    const cols=Array.from({length:attrs.length},(_,i)=>i);
+    for(const row of baseOA.array) profiles.push(cols.map((c,i)=>row[c]%attrs[i].levels.length));
+  } else if(oaType==='mixed'){
+    const sorted=[...attrs.map((a,i)=>({...a,origIdx:i}))].sort((a,b)=>b.levels.length-a.levels.length);
+    const colMap=new Array(attrs.length);
+    sorted.forEach((a,col)=>colMap[a.origIdx]=col);
+    for(const row of baseOA.array){
+      const p=new Array(attrs.length);
+      attrs.forEach((_,i)=>p[i]=row[colMap[i]]%attrs[i].levels.length);
+      profiles.push(p);
+    }
+  } else if(oaType==='L18mix'){
+    let c2=0,c3=1;
+    const cols=attrs.map(a=>a.levels.length===2?c2++:c3++);
+    for(const row of baseOA.array) profiles.push(cols.map((c,i)=>row[c]%attrs[i].levels.length));
+  } else if(oaType==='L18mod'){
+    const sorted=[...attrs.map((a,i)=>({...a,origIdx:i}))].sort((a,b)=>b.levels.length-a.levels.length);
+    const colMap=new Array(attrs.length);
+    let c3=1,c2=0,usedC0=false;
+    for(const a of sorted){
+      if(a.levels.length===3){colMap[a.origIdx]=c3++;}
+      else if(!usedC0){colMap[a.origIdx]=0;usedC0=true;}
+      else {colMap[a.origIdx]=c3++;}
+    }
+    for(const row of baseOA.array) profiles.push(colMap.map((c,i)=>row[c]%attrs[i].levels.length));
+  }
+
+  // ダミー変数
+  const dummyHeaders=[];
+  for(let i=0;i<attrs.length;i++)
+    for(let j=1;j<attrs[i].levels.length;j++)
+      dummyHeaders.push(`${attrs[i].name}（${attrs[i].levels[j]}）`);
+  const dummies=profiles.map(p=>{
+    const row=[];
+    for(let i=0;i<attrs.length;i++)
+      for(let j=1;j<attrs[i].levels.length;j++) row.push(p[i]===j?1:0);
+    return row;
+  });
+
+  G.profiles=profiles; G.dummies=dummies; G.dummyHeaders=dummyHeaders;
+
+  // 重複チェック
+  const pKeys=profiles.map(p=>p.join(','));
+  const dupeCount=pKeys.length-new Set(pKeys).size;
+  const orthoNote=oaType==='prebuilt'||oaType==='pure2'||oaType==='pure3'||oaType==='L18mix'
+    ?'　<span style="color:#0e7c5a">✓ 完全直交</span>'
+    :oaType==='mixed'?'　<span style="color:#e05c2a">△ 近似直交（直交性チェックで確認してください）</span>'
+    :'　<span style="color:#e05c2a">△ 近似直交</span>';
+  document.getElementById('design-info').innerHTML=
+    `使用配列：<b>${oaKey}</b>　プロファイル数：<b>${profiles.length}件</b>　属性数：<b>${attrs.length}</b>　水準構成：<b>${attrs.map(a=>a.levels.length).join('×')}</b>${orthoNote}`;
+
+  renderProfileTable(); renderCards();
+  document.getElementById('design-result').style.display='block';
+  switchDesignTab('profiles');
+
+  // 調査データのサンプルも更新
+  updateSurveySample();
+}
+
+function renderProfileTable(){
+  const {attrs,profiles}=G;
+  let html='<table><thead><tr><th>プロファイル番号</th>';
+  attrs.forEach(a=>html+=`<th>${esc(a.name)}</th>`);
+  html+='</tr></thead><tbody>';
+  profiles.forEach((p,i)=>{
+    html+=`<tr><td>プロファイル${i+1}</td>`;
+    p.forEach((vi,ai)=>html+=`<td>${esc(attrs[ai].levels[vi])}</td>`);
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('profile-table-wrap').innerHTML=html;
+}
+
+function renderCards(){
+  const {attrs,profiles}=G;
+  const grid=document.getElementById('card-grid'); grid.innerHTML='';
+  profiles.forEach((p,i)=>{
+    const div=document.createElement('div'); div.className='profile-card';
+    let rows='';
+    p.forEach((vi,ai)=>rows+=`<tr><td>${esc(attrs[ai].name)}</td><td>${esc(attrs[ai].levels[vi])}</td></tr>`);
+    div.innerHTML=`<div class="num">プロファイル ${i+1}</div><table>${rows}</table>
+      <div style="margin-top:8px;padding-top:6px;border-top:1px solid #eee;font-size:11px;color:#777">
+        評価（得点・順位）：___________</div>`;
+    grid.appendChild(div);
+  });
+}
+
+function renderOrthoCheck(){
+  const {attrs,profiles}=G;
+  if(!profiles||!profiles.length) return;
+  const n=attrs.length;
+  const pKeys=profiles.map(p=>p.join(','));
+  const dupes=pKeys.filter((k,i)=>pKeys.indexOf(k)!==i);
+  let html='';
+  if(dupes.length>0){
+    html+=`<div style="padding:10px 14px;background:#fff3e0;border-left:4px solid #e05c2a;border-radius:6px;margin-bottom:12px;font-size:12px">
+      ⚠ <b>重複プロファイルが${dupes.length}件あります。</b> 属性・水準の組み合わせを見直してください。</div>`;
+  }
+  html+=`<div class="note" style="margin-bottom:12px">各属性ペアの組み合わせ出現回数を確認します。すべてのセルが同じ回数であれば完全直交です。</div>`;
+  // 各属性の水準出現回数
+  html+=`<h3 style="font-size:12px;font-weight:700;margin-bottom:8px">① 各属性の水準出現回数</h3>
+    <div class="tbl-wrap"><table><thead><tr><th class="left">属性</th><th class="left">水準</th><th>出現回数</th><th>期待値</th><th>判定</th></tr></thead><tbody>`;
+  attrs.forEach((attr,i)=>{
+    const counts=new Array(attr.levels.length).fill(0);
+    profiles.forEach(p=>counts[p[i]]++);
+    const exp=profiles.length/attr.levels.length;
+    attr.levels.forEach((lv,j)=>{
+      const ok=Math.abs(counts[j]-exp)<0.5;
+      html+=`<tr><td class="left">${j===0?`<b>${esc(attr.name)}</b>`:''}</td>
+        <td class="left">${esc(lv)}</td><td>${counts[j]}</td>
+        <td>${exp%1===0?exp:exp.toFixed(2)}</td>
+        <td style="color:${ok?'#0e7c5a':'#c0392b'};font-weight:700">${ok?'✓ OK':'△ 不均等'}</td></tr>`;
+    });
+  });
+  html+=`</tbody></table></div>`;
+  html+=`<h3 style="font-size:12px;font-weight:700;margin:16px 0 8px">② 属性ペアのクロス集計</h3>`;
+  let allOK=dupes.length===0;
+  for(let i=0;i<n;i++) for(let j=i+1;j<n;j++){
+    const cross={};
+    attrs[i].levels.forEach((_,li)=>attrs[j].levels.forEach((_,lj)=>{cross[`${li}-${lj}`]=0;}));
+    profiles.forEach(p=>cross[`${p[i]}-${p[j]}`]++);
+    const vals=Object.values(cross); const diff=Math.max(...vals)-Math.min(...vals);
+    if(diff>1) allOK=false;
+    const sc=diff===0?'#0e7c5a':diff<=1?'#185FA5':diff<=2?'#e05c2a':'#c0392b';
+    const st=diff===0?'✓ 完全直交':diff<=1?'✓ 直交（差1）':diff<=2?'△ 近似直交（差2）':`✗ 非直交（差${diff}）`;
+    html+=`<div style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;margin-bottom:4px;display:flex;gap:8px;align-items:center">
+        <span>${esc(attrs[i].name)} × ${esc(attrs[j].name)}</span>
+        <span style="color:${sc}">${st}</span></div>
+      <div class="tbl-wrap"><table><thead><tr><th></th>`;
+    attrs[j].levels.forEach(lv=>html+=`<th>${esc(lv)}</th>`);
+    html+=`</tr></thead><tbody>`;
+    attrs[i].levels.forEach((lvi,li)=>{
+      html+=`<tr><td class="left"><b>${esc(lvi)}</b></td>`;
+      attrs[j].levels.forEach((_,lj)=>{
+        const v=cross[`${li}-${lj}`];
+        html+=`<td style="background:${diff<=1?'#e8f5f0':'#fdf0ee'};font-weight:600">${v}</td>`;
+      });
+      html+=`</tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+  }
+  const sc=allOK?'#0e7c5a':'#e05c2a';
+  const bg=allOK?'#e8f5f0':'#fff3e0';
+  const msg=allOK?'✓ すべての属性ペアで直交性が確認されました。':'△ 一部の属性ペアに偏りがあります。設計を見直してください。';
+  document.getElementById('ortho-wrap').innerHTML=
+    `<div style="padding:10px 16px;background:${bg};border-radius:6px;border-left:4px solid ${sc};margin-bottom:14px;font-size:13px;font-weight:600;color:${sc}">${msg}</div>`+html;
+}
+
+function downloadDesignCSV(type){
+  const {attrs,profiles,dummies,dummyHeaders}=G;
+  if(type==='dummy'){
+    // ダミー変数表：属性情報をヘッダーに埋め込む
+    // 1行目：メタ情報（属性名・水準名）
+    // 2行目：ダミー変数ヘッダー
+    const metaRow=['#META',...attrs.map(a=>a.name+':'+a.levels.join('|'))].join(',');
+    const hdrRow=['プロファイル番号',...dummyHeaders].join(',');
+    const rows=[metaRow, hdrRow];
+    profiles.forEach((p,i)=>{
+      rows.push([`プロファイル${i+1}`,...dummies[i]].join(','));
+    });
+    dl(rows.join('\n'),'conjoint_dummy.csv');
+  } else {
+    const rows=[['プロファイル番号',...attrs.map(a=>a.name)].join(',')];
+    profiles.forEach((p,i)=>rows.push([`プロファイル${i+1}`,...p.map((vi,ai)=>attrs[ai].levels[vi])].join(',')));
+    dl(rows.join('\n'),'conjoint_profiles.csv');
+  }
+}
+
+function resetDesign(){
+  document.getElementById('n-attr').value=4;
+  G={...G, attrs:[], profiles:[], dummies:[], dummyHeaders:[]};
+  document.getElementById('attr-inputs').innerHTML='';
+  buildAttrInputs();
+  document.getElementById('design-result').style.display='none';
+  clearErr('design-err');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Step 2: 調査データ
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function loadDesignFromCSV(e){
+  const file=e.target.files[0]; if(!file) return;
+  const tryRead=enc=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      let t=ev.target.result.replace(/^﻿/,'');
+      if(enc==='UTF-8'&&(t.match(/�/g)||[]).length>3){tryRead('Shift-JIS');return;}
+      try{ restoreDesignFromCSV(t); }
+      catch(ex){ alert('直交表CSVの読み込みに失敗しました：'+ex.message); }
+    };
+    r.readAsText(file,enc);
+  };
+  tryRead('UTF-8'); e.target.value='';
+}
+
+function restoreDesignFromCSV(text){
+  const sep2=text.indexOf('\t')>-1&&text.indexOf('\t')<text.indexOf(',') ? '\t' : ',';
+  const lines=[];
+  for(const l of text.split('\n')){const s=l.replace(/\r$/,'');if(s.trim()) lines.push(s);}
+  if(lines.length<3) throw new Error('行数が不足しています');
+  const sep=lines[0].includes('\t')?'\t':',';
+  if(!lines[0].startsWith('#META')) throw new Error('ダミー変数表CSVを読み込んでください（プロファイル表ではありません）');
+  const metaCols=lines[0].split(sep).slice(1);
+  const attrs=metaCols.map(m=>{
+    const idx=m.indexOf(':');
+    const name=m.slice(0,idx);
+    const levels=m.slice(idx+1).split('|');
+    return {name,levels};
+  });
+  const dummyHeaders=lines[1].split(sep).slice(1);
+  const dummies=[];
+  const profiles=[];
+  for(let i=2;i<lines.length;i++){
+    const vals=lines[i].split(sep);
+    const row=vals.slice(1).map(v=>+v);
+    dummies.push(row);
+    let ci=0;
+    const p=attrs.map(attr=>{
+      const lvlDummies=[];
+      for(let j=1;j<attr.levels.length;j++) lvlDummies.push(row[ci++]);
+      const idx=lvlDummies.indexOf(1);
+      return idx===-1?0:idx+1;
+    });
+    profiles.push(p);
+  }
+  G.attrs=attrs; G.profiles=profiles; G.dummies=dummies; G.dummyHeaders=dummyHeaders;
+  const info=document.getElementById('design-loaded-info');
+  info.innerHTML=`✓ 直交表を読み込みました：<b>${attrs.map(a=>a.name).join(' / ')}</b>　プロファイル数：<b>${profiles.length}件</b>　水準構成：<b>${attrs.map(a=>a.levels.length).join('×')}</b>`;
+  info.style.display='block';
+}
+
+function loadSurveyCSV(e){
+  const file=e.target.files[0]; if(!file) return;
+  const tryRead=enc=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      let t=ev.target.result.replace(/^\uFEFF/,'');
+      if(enc==='UTF-8'&&(t.match(/\uFFFD/g)||[]).length>3){tryRead('Shift-JIS');return;}
+      document.getElementById('survey-input').value=t;
+    };
+    r.readAsText(file,enc);
+  };
+  tryRead('UTF-8'); e.target.value='';
+}
+
+function updateSurveySample(){
+  // プロファイル数に合わせたサンプルを自動生成
+}
+
+function loadSurveyExample(){
+  const np=G.profiles.length||8;
+  const names=['田中','鈴木','佐藤','高橋','伊藤','渡辺','山本','中村','小林','加藤'];
+  const lines=[`回答者,${Array.from({length:np},(_,i)=>`プロファイル${i+1}`).join(',')}`];
+  // ランダムな得点を生成（np点満点からランダム順位を得点化）
+  for(let r=0;r<8;r++){
+    const scores=Array.from({length:np},(_,i)=>i+1);
+    scores.sort(()=>Math.random()-0.5);
+    lines.push(`${names[r]},${scores.join(',')}`);
+  }
+  document.getElementById('survey-input').value=lines.join('\n');
+}
+
+function parseSurvey(text){
+  const lines=text.trim().split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2) throw new Error('2行以上（ヘッダー+1名以上）必要です');
+  const sep=lines[0].includes('\t')?'\t':',';
+  const headers=lines[0].split(sep).map(h=>h.trim());
+  const respondents=[], data=[];
+  for(let i=1;i<lines.length;i++){
+    const vals=lines[i].split(sep).map(v=>v.trim());
+    respondents.push(vals[0]||`回答者${i}`);
+    const scores=vals.slice(1).map(v=>{
+      const n=+v;
+      if(isNaN(n)) throw new Error(`${i+1}行目の値が数値ではありません（${v}）`);
+      return n;
+    });
+    data.push(scores);
+  }
+  return {respondents, data};
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// OLS回帰（最小二乗法）
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function ols(X, y){
+  // X: n×k, y: n×1 → coef: k×1
+  const n=X.length, k=X[0].length;
+  // XtX
+  const XtX=Array.from({length:k},(_,i)=>Array.from({length:k},(_,j)=>
+    X.reduce((s,r)=>s+r[i]*r[j],0)));
+  // Xty
+  const Xty=Array.from({length:k},(_,i)=>X.reduce((s,r,ri)=>s+r[i]*y[ri],0));
+  // XtXの逆行列（ガウス消去法）
+  const aug=XtX.map((row,i)=>[...row,...Array.from({length:k},(_,j)=>i===j?1:0)]);
+  for(let col=0;col<k;col++){
+    let maxRow=col;
+    for(let row=col+1;row<k;row++) if(Math.abs(aug[row][col])>Math.abs(aug[maxRow][col])) maxRow=row;
+    [aug[col],aug[maxRow]]=[aug[maxRow],aug[col]];
+    const pivot=aug[col][col];
+    if(Math.abs(pivot)<1e-12) continue;
+    for(let j=0;j<2*k;j++) aug[col][j]/=pivot;
+    for(let row=0;row<k;row++){
+      if(row===col) continue;
+      const factor=aug[row][col];
+      for(let j=0;j<2*k;j++) aug[row][j]-=factor*aug[col][j];
+    }
+  }
+  const inv=aug.map(row=>row.slice(k));
+  // coef = inv @ Xty
+  return Array.from({length:k},(_,i)=>inv[i].reduce((s,v,j)=>s+v*Xty[j],0));
+}
+
+function calcUtilityAndImportance(scores, dummies, attrs){
+  const n=scores.length; const k=dummies[0].length;
+  // X行列（切片込み）
+  const X=dummies.map(row=>[1,...row]);
+  const coefs=ols(X, scores);
+  const intercept=coefs[0];
+  const dummyCoefs=coefs.slice(1); // ダミー変数の係数
+
+  // 各属性・水準の効用値
+  // 基準水準（水準0）の効用=0、水準j（j>=1）の効用=対応するダミー係数
+  let ci=0;
+  const utilities=[];
+  const gaps=[];
+  const importances=[];
+  for(const attr of attrs){
+    const lvlUtils=[0]; // 基準水準=0
+    for(let j=1;j<attr.levels.length;j++){
+      lvlUtils.push(dummyCoefs[ci++]);
+    }
+    const gap=Math.max(...lvlUtils)-Math.min(...lvlUtils);
+    utilities.push(lvlUtils);
+    gaps.push(gap);
+  }
+  const totalGap=gaps.reduce((s,g)=>s+g,0)||1;
+  for(const g of gaps) importances.push(g/totalGap);
+
+  return {intercept, dummyCoefs, utilities, gaps, importances};
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Step 3: 分析実行
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function runAnalysis(){
+  clearErr('survey-err');
+  if(!G.profiles||!G.profiles.length){
+    showErr('survey-err','先にStep 1で直交計画を生成してください。');return;
+  }
+  const text=document.getElementById('survey-input').value;
+  if(!text.trim()){showErr('survey-err','調査データを入力してください。');return;}
+  let parsed;
+  try{parsed=parseSurvey(text);}catch(e){showErr('survey-err',e.message);return;}
+  const {respondents,data}=parsed;
+
+  // プロファイル数チェック
+  const np=G.profiles.length;
+  for(let i=0;i<data.length;i++){
+    if(data[i].length!==np){
+      showErr('survey-err',`「${respondents[i]}」の評価数（${data[i].length}件）がプロファイル数（${np}件）と合いません。`);
+      return;
+    }
+  }
+
+  // 順位→得点変換
+  const responseType=document.getElementById('response-type').value;
+  const processedData=data.map(scores=>{
+    if(responseType==='rank'){
+      // 順位1→np点、順位2→np-1点…
+      return scores.map(r=>np+1-r);
+    }
+    return scores;
+  });
+
+  // 各回答者の効用値・重要度を計算
+  const results=respondents.map((name,i)=>{
+    const res=calcUtilityAndImportance(processedData[i], G.dummies, G.attrs);
+    return {name, rawScores:processedData[i], ...res};
+  });
+
+  G.respondents=respondents; G.surveyData=processedData; G.results=results;
+
+  // result info
+  document.getElementById('result-info').innerHTML=
+    `回答者数：<b>${respondents.length}名</b>　プロファイル数：<b>${np}件</b>　属性数：<b>${G.attrs.length}</b>　回答形式：<b>${responseType==='rank'?'順位（得点に変換）':'得点'}</b>`;
+
+  document.getElementById('card-result').style.display='block';
+  switchResultTab('utility');
+  renderUtility(); renderImportanceTable();
+  document.getElementById('card-result').scrollIntoView({behavior:'smooth'});
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 結果描画
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderUtility(){
+  const {attrs,results}=G;
+  // ヘッダー：属性名・水準名
+  const cols=[];
+  attrs.forEach(attr=>attr.levels.forEach(lv=>cols.push(`${attr.name}：${lv}`)));
+  let html=`<div class="tbl-wrap"><table><thead><tr><th class="left">回答者</th>`;
+  cols.forEach(c=>html+=`<th>${esc(c)}</th>`);
+  html+=`</tr></thead><tbody>`;
+  results.forEach(r=>{
+    html+=`<tr><td class="left"><b>${esc(r.name)}</b></td>`;
+    r.utilities.forEach(lvlUtils=>lvlUtils.forEach(u=>html+=`<td>${f3(u)}</td>`));
+    html+=`</tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  document.getElementById('utility-wrap').innerHTML=html;
+}
+
+function renderImportanceTable(){
+  const {attrs,results}=G;
+  let html=`<div class="tbl-wrap"><table><thead><tr><th class="left">回答者</th>`;
+  attrs.forEach(a=>html+=`<th>${esc(a.name)}</th>`);
+  html+=`</tr></thead><tbody>`;
+  results.forEach(r=>{
+    html+=`<tr><td class="left"><b>${esc(r.name)}</b></td>`;
+    r.importances.forEach(imp=>html+=`<td>${fp(imp)}</td>`);
+    html+=`</tr>`;
+  });
+  html+=`</tbody></table></div>
+    <div class="note" style="margin-top:8px">※ 各行の合計は100%になります</div>`;
+  document.getElementById('importance-wrap').innerHTML=html;
+}
+
+function renderAverage(){
+  const {attrs,results}=G;
+  const n=results.length;
+  // 平均効用値
+  const avgUtils=attrs.map((_,ai)=>
+    G.attrs[ai].levels.map((_,li)=>
+      results.reduce((s,r)=>s+r.utilities[ai][li],0)/n));
+  // 平均重要度
+  const avgImp=attrs.map((_,ai)=>results.reduce((s,r)=>s+r.importances[ai],0)/n);
+  const maxImp=Math.max(...avgImp)||1;
+
+  let html=`<h3 style="font-size:13px;font-weight:700;margin-bottom:12px">平均重要度</h3>
+    <div class="tbl-wrap"><table><thead><tr><th class="left">属性</th><th>平均重要度</th><th style="width:40%">バー</th></tr></thead><tbody>`;
+  const colors=['#185FA5','#e05c2a','#0e7c5a','#8e44ad','#c0392b','#f39c12','#16a085'];
+  attrs.forEach((attr,ai)=>{
+    const imp=avgImp[ai];
+    html+=`<tr><td class="left"><b>${esc(attr.name)}</b></td>
+      <td>${fp(imp)}</td>
+      <td><div class="bar-wrap"><div class="bar" style="width:${(imp/maxImp*100).toFixed(1)}%;background:${colors[ai%colors.length]}"></div></div></td>
+    </tr>`;
+  });
+  html+=`</tbody></table></div>`;
+
+  html+=`<h3 style="font-size:13px;font-weight:700;margin:20px 0 12px">属性別・水準別の平均効用値</h3>`;
+  attrs.forEach((attr,ai)=>{
+    const color=colors[ai%colors.length];
+    const utils=avgUtils[ai];
+    const maxU=Math.max(...utils.map(Math.abs))||1;
+    html+=`<div style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:${color};margin-bottom:6px">${esc(attr.name)}</div>
+      <div class="tbl-wrap"><table><thead><tr>`;
+    attr.levels.forEach(lv=>html+=`<th>${esc(lv)}</th>`);
+    html+=`</tr></thead><tbody><tr>`;
+    utils.forEach(u=>html+=`<td style="font-weight:600">${f3(u)}</td>`);
+    html+=`</tr></tbody></table></div>
+      <div style="display:flex;gap:8px;margin-top:6px">`;
+    utils.forEach((u,li)=>{
+      const w=Math.abs(u)/maxU*100;
+      html+=`<div style="flex:1;text-align:center;font-size:10px;color:#555">${esc(attr.levels[li])}<br>
+        <div style="height:60px;display:flex;align-items:flex-end;justify-content:center">
+          <div style="width:30px;height:${w.toFixed(0)}%;background:${u>=0?color:'#aaa'};border-radius:3px 3px 0 0"></div>
+        </div></div>`;
+    });
+    html+=`</div></div>`;
+  });
+  document.getElementById('average-wrap').innerHTML=html;
+}
+
+function renderIndividual(){
+  const {attrs,results}=G;
+  // セレクトボックスを更新
+  const sel=document.getElementById('respondent-select');
+  if(sel.options.length===0){
+    results.forEach((r,i)=>{
+      const opt=document.createElement('option');
+      opt.value=i; opt.textContent=r.name;
+      sel.appendChild(opt);
+    });
+  }
+  const idx=+sel.value||0;
+  const r=results[idx];
+  if(!r) return;
+
+  const colors=['#185FA5','#e05c2a','#0e7c5a','#8e44ad','#c0392b','#f39c12','#16a085'];
+
+  let html=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div>
+      <h3 style="font-size:12px;font-weight:700;margin-bottom:8px">重要度</h3>
+      <div class="tbl-wrap"><table><thead><tr><th class="left">属性</th><th>重要度</th><th style="width:40%">バー</th></tr></thead><tbody>`;
+  const maxImp=Math.max(...r.importances)||1;
+  attrs.forEach((attr,ai)=>{
+    const imp=r.importances[ai];
+    html+=`<tr><td class="left"><b>${esc(attr.name)}</b></td>
+      <td>${fp(imp)}</td>
+      <td><div class="bar-wrap"><div class="bar" style="width:${(imp/maxImp*100).toFixed(1)}%;background:${colors[ai%colors.length]}"></div></div></td></tr>`;
+  });
+  html+=`</tbody></table></div></div>
+    <div>
+      <h3 style="font-size:12px;font-weight:700;margin-bottom:8px">切片・係数</h3>
+      <div class="tbl-wrap"><table><thead><tr><th class="left">項目</th><th>係数</th></tr></thead><tbody>
+      <tr><td class="left">切片</td><td>${f3(r.intercept)}</td></tr>`;
+  G.dummyHeaders.forEach((h,i)=>html+=`<tr><td class="left">${esc(h)}</td><td>${f3(r.dummyCoefs[i])}</td></tr>`);
+  html+=`</tbody></table></div></div></div>`;
+
+  html+=`<h3 style="font-size:12px;font-weight:700;margin-bottom:8px">効用値</h3>
+    <div class="tbl-wrap"><table><thead><tr><th class="left">属性</th>`;
+  const maxLvl=Math.max(...attrs.map(a=>a.levels.length));
+  for(let j=0;j<maxLvl;j++) html+=`<th>水準${j+1}</th>`;
+  html+=`<th>GAP</th></tr></thead><tbody>`;
+  attrs.forEach((attr,ai)=>{
+    html+=`<tr><td class="left"><b>${esc(attr.name)}</b></td>`;
+    for(let j=0;j<maxLvl;j++){
+      if(j<attr.levels.length)
+        html+=`<td title="${esc(attr.levels[j])}">${f3(r.utilities[ai][j])}</td>`;
+      else html+=`<td style="background:#f4f6f9">—</td>`;
+    }
+    html+=`<td style="font-weight:700">${f3(r.gaps[ai])}</td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+
+  html+=`<h3 style="font-size:12px;font-weight:700;margin:12px 0 8px">プロファイル評価（得点）</h3>
+    <div class="tbl-wrap"><table><thead><tr>`;
+  G.profiles.forEach((_,i)=>html+=`<th>P${i+1}</th>`);
+  html+=`</tr></thead><tbody><tr>`;
+  r.rawScores.forEach(s=>html+=`<td>${s}</td>`);
+  html+=`</tr></tbody></table></div>`;
+
+  document.getElementById('individual-wrap').innerHTML=html;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ダウンロード
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function downloadResult(type){
+  const {attrs,results}=G;
+  let rows=[], fname='';
+
+  if(type==='utility'){
+    const cols=[];
+    attrs.forEach(attr=>attr.levels.forEach(lv=>cols.push(`${attr.name}：${lv}`)));
+    rows=[['回答者',...cols].join(',')];
+    results.forEach(r=>{
+      const vals=r.utilities.flatMap(u=>u);
+      rows.push([r.name,...vals.map(v=>v.toFixed(4))].join(','));
+    });
+    fname='conjoint_utility.csv';
+
+  } else if(type==='importance'){
+    rows=[['回答者',...attrs.map(a=>a.name)].join(',')];
+    results.forEach(r=>{
+      rows.push([r.name,...r.importances.map(v=>v.toFixed(4))].join(','));
+    });
+    fname='conjoint_importance.csv';
+
+  } else if(type==='cluster-utility'){
+    // 効用値（基準水準を除く）
+    const cols=[];
+    attrs.forEach(attr=>attr.levels.slice(1).forEach(lv=>cols.push(`${attr.name}（${lv}）`)));
+    rows=[['ケース',...cols].join(',')];
+    results.forEach(r=>{
+      const vals=r.utilities.flatMap(u=>u.slice(1));
+      rows.push([r.name,...vals.map(v=>v.toFixed(4))].join(','));
+    });
+    fname='cluster_utility.csv';
+
+  } else if(type==='cluster-importance'){
+    rows=[['ケース',...attrs.map(a=>a.name)].join(',')];
+    results.forEach(r=>{
+      rows.push([r.name,...r.importances.map(v=>v.toFixed(4))].join(','));
+    });
+    fname='cluster_importance.csv';
+
+  } else if(type==='cluster-raw'){
+    const hdrs=G.profiles.map((_,i)=>`P${i+1}`);
+    rows=[['ケース',...hdrs].join(',')];
+    results.forEach(r=>{
+      rows.push([r.name,...r.rawScores].join(','));
+    });
+    fname='cluster_raw.csv';
+  }
+
+  dl(rows.join('\n'), fname);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 例題
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function loadExample(n){
+  if(n===1){
+    document.getElementById('n-attr').value=4;
+    document.getElementById('attr-inputs').innerHTML='';
+    buildAttrInputs();
+    const data=[
+      {name:'タイプ',levels:['和食','洋食']},
+      {name:'席のタイプ',levels:['テーブル席','座敷席']},
+      {name:'デザート',levels:['なし','あり']},
+      {name:'価格',levels:['3000円','4000円']},
+    ];
+    data.forEach((d,i)=>{
+      document.getElementById(`attr-name-${i}`).value=d.name;
+      document.getElementById(`attr-nlvl-${i}`).value=d.levels.length;
+      updateLevelInputs(i);
+      d.levels.forEach((l,j)=>{document.getElementById(`lvl-${i}-${j}`).value=l;});
+    });
+  } else {
+    document.getElementById('n-attr').value=4;
+    document.getElementById('attr-inputs').innerHTML='';
+    buildAttrInputs();
+    const data=[
+      {name:'タイプ',levels:['和食','洋食','フレンチ']},
+      {name:'席のタイプ',levels:['テーブル席','座敷席','カウンター席']},
+      {name:'デザート',levels:['なし','あり']},
+      {name:'価格',levels:['3000円','4000円']},
+    ];
+    data.forEach((d,i)=>{
+      document.getElementById(`attr-name-${i}`).value=d.name;
+      document.getElementById(`attr-nlvl-${i}`).value=d.levels.length;
+      updateLevelInputs(i);
+      d.levels.forEach((l,j)=>{document.getElementById(`lvl-${i}-${j}`).value=l;});
+    });
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 初期化
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+buildAttrInputs();
+</script>
+</body>
+</html>
