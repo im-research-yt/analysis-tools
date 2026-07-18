@@ -121,7 +121,9 @@ R02,655,862,1047,1385
 <!-- 結果 -->
 <div class="card" id="result-card" style="display:none">
   <h2>分析結果</h2>
-  <div id="result-info" class="info" style="margin-bottom:12px"></div>
+  <div id="result-info" class="info" style="margin-bottom:8px"></div>
+  <div id="overlap-warn" style="display:none;padding:10px 14px;background:#fff8e1;
+       border:1px solid #ffc107;border-radius:6px;font-size:12px;margin-bottom:12px;color:#5d4037"></div>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab('graph')">4曲線グラフ</div>
@@ -365,7 +367,22 @@ function calcPSM(rows, step, method){
   const IPP=findIntersection(cumData,'ch','ex');
   const OPP=findIntersection(cumData,'tc','te');
 
-  return {priceRange, cumData, points:{PMC,PME,IPP,OPP}};
+  // 区間重複チェック：差=0が2点以上連続しているペアがあるか
+  const pairKeys=[['tc','ex','PMC'],['ch','te','PME'],['ch','ex','IPP'],['tc','te','OPP']];
+  const overlapWarnings=[];
+  for(const [f1,f2,label] of pairKeys){
+    const zeros=cumData.filter(d=>Math.abs(d[f1]-d[f2])<1e-9);
+    // 連続する0区間が2点以上あるか
+    let maxRun=0, run=0;
+    for(let i=0;i<cumData.length;i++){
+      if(Math.abs(cumData[i][f1]-cumData[i][f2])<1e-9) run++;
+      else run=0;
+      maxRun=Math.max(maxRun,run);
+    }
+    if(maxRun>=2) overlapWarnings.push({label, maxRun, step});
+  }
+
+  return {priceRange, cumData, points:{PMC,PME,IPP,OPP}, overlapWarnings};
 }
 
 // ─── メイン実行 ───
@@ -380,7 +397,7 @@ function runPSM(){
 
   const step=+document.getElementById('price-step').value||100;
   const method=document.getElementById('interp-method').value;
-  const {priceRange,cumData,points}=calcPSM(rows,step,method);
+  const {priceRange,cumData,points,overlapWarnings}=calcPSM(rows,step,method);
 
   G={rows,priceRange,cumData,points};
 
@@ -389,6 +406,19 @@ function runPSM(){
   let info=`有効回答数：<b>${rows.length}名</b>　価格刻み：<b>${step}円</b>　交点計算：<b>${methodLabel[method]}</b>`;
   if(skipped>0) info+=`　<span style="color:#e05c2a">逆転回答除外：${skipped}件</span>`;
   document.getElementById('result-info').innerHTML=info;
+
+  // 区間重複警告
+  const warnEl=document.getElementById('overlap-warn');
+  if(method==='linear' && overlapWarnings.length>0){
+    const labels=overlapWarnings.map(w=>`${w.label}（${w.maxRun}点連続）`).join('、');
+    warnEl.innerHTML=`⚠ <b>${labels} で差=0の区間が連続しています。</b>
+      線形補間では区間の端点が採用されます。
+      <a href="#" onclick="document.getElementById('interp-method').value='midpoint';runPSM();return false;"
+         style="color:#185FA5;font-weight:700">→ 中点法に切り替えて再計算する</a>`;
+    warnEl.style.display='block';
+  } else {
+    warnEl.style.display='none';
+  }
 
   document.getElementById('result-card').style.display='block';
   switchTab('graph');
