@@ -82,7 +82,8 @@ canvas{display:block;width:100%;max-width:100%}
 <div class="card">
   <h2>データの入力</h2>
   <div class="btn-row" style="margin-bottom:10px">
-    <button class="btn-secondary" onclick="loadExample()">例題データを入力</button>
+    <button class="btn-secondary" onclick="loadExample(1)">例題1（PMC=OPPの典型例）</button>
+    <button class="btn-secondary" onclick="loadExample(2)">例題2（4交点が全て異なる）</button>
     <label class="btn-secondary" style="cursor:pointer;display:inline-flex;align-items:center">
       📂 CSVを開く
       <input type="file" accept=".csv,.txt" style="display:none" onchange="loadCSVFile(event)">
@@ -105,6 +106,14 @@ R02,655,862,1047,1385
       <label style="text-transform:none;letter-spacing:0;font-size:12px;font-weight:600;margin:0">価格刻み（円）：</label>
       <input type="number" id="price-step" value="100" min="10" max="1000" step="10"
              style="width:80px;padding:6px 8px;border:1px solid #d0d5dd;border-radius:6px;font-size:13px">
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <label style="text-transform:none;letter-spacing:0;font-size:12px;font-weight:600;margin:0">交点計算方法：</label>
+      <select id="interp-method" style="padding:6px 8px;border:1px solid #d0d5dd;border-radius:6px;font-size:12px">
+        <option value="nearest">最近接点法（Excel・講義資料と同じ）</option>
+        <option value="linear" selected>線形補間（より精密）</option>
+        <option value="midpoint">中点法（重なり区間の中点）</option>
+      </select>
     </div>
   </div>
 </div>
@@ -212,7 +221,32 @@ function loadCSVFile(e){
   tryRead('UTF-8'); e.target.value='';
 }
 
-function loadExample(){
+function loadExample(n){
+  if(n===2){
+    document.getElementById('csv-input').value=
+`回答者ID,①安すぎる（円）,②安い（円）,③高い（円）,④高すぎる（円）
+S01,300,600,1100,1500
+S02,350,650,1150,1550
+S03,280,580,1080,1480
+S04,400,700,1200,1600
+S05,320,620,1120,1520
+S06,360,660,1160,1560
+S07,340,640,1140,1540
+S08,380,680,1180,1580
+S09,420,720,1220,1620
+S10,310,610,1110,1510
+S11,370,670,1170,1570
+S12,330,630,1130,1530
+S13,390,690,1190,1590
+S14,290,590,1090,1490
+S15,410,710,1210,1610
+S16,900,1100,1500,2000
+S17,950,1150,1550,2050
+S18,850,1050,1450,1950
+S19,1000,1200,1600,2100
+S20,920,1120,1520,2020`;
+    return;
+  }
   document.getElementById('csv-input').value=
 `回答者ID,①安すぎる（円）,②安い（円）,③高い（円）,④高すぎる（円）
 R01,723,879,1218,1438
@@ -257,7 +291,7 @@ function parseCSV(text){
 }
 
 // ─── PSM計算 ───
-function calcPSM(rows, step){
+function calcPSM(rows, step, method){
   const n=rows.length;
   const allPrices=[...rows.flatMap(r=>[r.c1,r.c2,r.c3,r.c4])];
   const pMin=Math.floor(Math.min(...allPrices)/step)*step;
@@ -267,39 +301,69 @@ function calcPSM(rows, step){
   for(let p=pMin;p<=pMax;p+=step) priceRange.push(p);
 
   const cumData=priceRange.map(p=>{
-    // ①安すぎる：この価格「以上」を安すぎると回答した割合（高い価格ほど0に近づく）
     const tc=rows.filter(r=>r.c1>=p).length/n;
-    // ②安い：この価格「以上」を安いと回答した割合（高い価格ほど0に近づく）
     const ch=rows.filter(r=>r.c2>=p).length/n;
-    // ③高い：この価格「以下」を高いと回答した割合（高い価格ほど1に近づく）
     const ex=rows.filter(r=>r.c3<=p).length/n;
-    // ④高すぎる：この価格「以下」を高すぎると回答した割合（高い価格ほど1に近づく）
     const te=rows.filter(r=>r.c4<=p).length/n;
     return {p, tc, ch, ex, te};
   });
 
-  // 交点を線形補間で精密計算
-  function interpolate(data, f1, f2){
-    // f1(p) - f2(p) が符号変化する点を見つける
-    for(let i=0;i<data.length-1;i++){
-      const d1=data[i][f1]-data[i][f2];
-      const d2=data[i+1][f1]-data[i+1][f2];
-      if(d1===0) return data[i].p;
-      if(d1*d2<=0){
-        // 線形補間
-        const p1=data[i].p, p2=data[i+1].p;
-        return Math.round(p1 + (p2-p1)*(-d1)/(d2-d1));
+  // ── 交点計算（3メソッド対応） ──
+  function findIntersection(data, f1, f2){
+    const diffs=data.map(d=>d[f1]-d[f2]);
+    const absDiffs=diffs.map(Math.abs);
+
+    if(method==='nearest'){
+      // 最近接点法：差の絶対値が最小のグリッド点（ExcelのINDEX/MATCH相当）
+      const minDiff=Math.min(...absDiffs);
+      return data[absDiffs.indexOf(minDiff)].p;
+
+    } else if(method==='linear'){
+      // 線形補間：符号が変わる前後2点から補間
+      for(let i=0;i<data.length-1;i++){
+        const d1=diffs[i], d2=diffs[i+1];
+        if(d1===0) return data[i].p;
+        if(d1*d2<=0){
+          const p1=data[i].p, p2=data[i+1].p;
+          return Math.round(p1+(p2-p1)*(-d1)/(d2-d1));
+        }
       }
+      // 交差なし→最近接点にフォールバック
+      const minDiff=Math.min(...absDiffs);
+      return data[absDiffs.indexOf(minDiff)].p;
+
+    } else {
+      // 中点法：差=0が続く区間（または最小差が続く区間）の中点
+      const minDiff=Math.min(...absDiffs);
+      // 差が最小値（または0）になっているインデックスを全て収集
+      const tol=minDiff+1e-9;
+      const indices=absDiffs.reduce((arr,v,i)=>v<=tol?[...arr,i]:arr,[]);
+      if(!indices.length){
+        return data[absDiffs.indexOf(minDiff)].p;
+      }
+      // 連続する区間を特定
+      const segments=[];
+      let seg=[indices[0]];
+      for(let k=1;k<indices.length;k++){
+        if(indices[k]===indices[k-1]+1) seg.push(indices[k]);
+        else { segments.push(seg); seg=[indices[k]]; }
+      }
+      segments.push(seg);
+      // 符号が変化する（または0になる）最初の区間の中点
+      let targetSeg=segments[0];
+      for(const s of segments){
+        const startD=diffs[s[0]], endD=diffs[s[s.length-1]];
+        if(startD*endD<=0||startD===0||endD===0){ targetSeg=s; break; }
+      }
+      const midIdx=targetSeg[Math.floor((targetSeg.length-1)/2)];
+      return data[midIdx].p;
     }
-    // 補間できない場合は差分最小
-    const diffs=data.map(d=>Math.abs(d[f1]-d[f2]));
-    return data[diffs.indexOf(Math.min(...diffs))].p;
   }
 
-  const PMC=interpolate(cumData,'tc','ex');  // ①と③の交点
-  const PME=interpolate(cumData,'ch','te');  // ②と④の交点
-  const IPP=interpolate(cumData,'ch','ex');  // ②と③の交点
-  const OPP=interpolate(cumData,'tc','te');  // ①と④の交点
+  const PMC=findIntersection(cumData,'tc','ex');
+  const PME=findIntersection(cumData,'ch','te');
+  const IPP=findIntersection(cumData,'ch','ex');
+  const OPP=findIntersection(cumData,'tc','te');
 
   return {priceRange, cumData, points:{PMC,PME,IPP,OPP}};
 }
@@ -315,12 +379,14 @@ function runPSM(){
   if(rows.length<3){showErr('有効な回答が3件以上必要です');return;}
 
   const step=+document.getElementById('price-step').value||100;
-  const {priceRange,cumData,points}=calcPSM(rows,step);
+  const method=document.getElementById('interp-method').value;
+  const {priceRange,cumData,points}=calcPSM(rows,step,method);
 
   G={rows,priceRange,cumData,points};
 
   // 統計情報
-  let info=`有効回答数：<b>${rows.length}名</b>　価格刻み：<b>${step}円</b>`;
+  const methodLabel={'nearest':'最近接点法','linear':'線形補間','midpoint':'中点法'};
+  let info=`有効回答数：<b>${rows.length}名</b>　価格刻み：<b>${step}円</b>　交点計算：<b>${methodLabel[method]}</b>`;
   if(skipped>0) info+=`　<span style="color:#e05c2a">逆転回答除外：${skipped}件</span>`;
   document.getElementById('result-info').innerHTML=info;
 
