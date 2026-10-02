@@ -6,7 +6,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCA / 因子分析アプリ v202606052306</title>
+<title>PCA / 因子分析アプリ</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -63,6 +63,9 @@ select:focus,input:focus{border-color:#378add}
 </style>
 </head>
 <body>
+<div style="background:#fff3cd;border-bottom:1px solid #ffc107;padding:6px 24px;font-size:11px;color:#1a2332;font-weight:700;line-height:1.5">
+  法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室<br>学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。
+</div>
 <div class="container">
 
 <h1>
@@ -222,6 +225,22 @@ select:focus,input:focus{border-color:#378add}
 </div>
 
 </div><!-- /container -->
+
+<!-- ===== Rスクリプト（検算用） ===== -->
+<div id="rscript-wrap" style="max-width:1100px;margin:0 auto;padding:0 16px 40px">
+  <div style="background:#fff;border:1px solid #d0d5dd;border-radius:10px;padding:16px 18px">
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px">Rで同じ計算をする（検算用スクリプト）</div>
+    <div style="font-size:12px;color:#555;line-height:1.7;margin-bottom:10px">
+      いま入力しているデータと設定を埋め込んだRスクリプトを作ります。RStudioに貼り付けて実行すると、このアプリと同じ計算をRの標準的な関数で行い、結果を並べて確かめられます。
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <button type="button" onclick="rsMake()" style="padding:8px 14px;border:none;border-radius:6px;background:#1a2332;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Rスクリプトを作成</button>
+      <button type="button" id="rs-copy-btn" onclick="rsCopy()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">コピー</button>
+      <button type="button" onclick="rsDownload()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">.Rファイルを保存</button>
+    </div>
+    <textarea id="rs-text" readonly spellcheck="false" placeholder="「Rスクリプトを作成」を押すと、ここに表示されます" style="width:100%;height:300px;box-sizing:border-box;font-family:Consolas,Menlo,monospace;font-size:12px;line-height:1.5;padding:10px;border:1px solid #d0d5dd;border-radius:6px;background:#fafbfc;white-space:pre;overflow:auto"></textarea>
+  </div>
+</div>
 
 <script>
 // ─── 例題データ ───────────────────────────────────────────
@@ -393,77 +412,64 @@ function eigen(A){
 }
 
 // ─── バリマックス回転 ──────────────────────────────────────
+// Rの stats::varimax(normalize=TRUE, eps=1e-5) と同じ手順（Kaiser正規化あり、反復は特異値分解の極分解で更新）
 function varimax(L,m,nf){
-  let rot=Array.from({length:m},(_,i)=>Array.from({length:nf},(_,j)=>L[i][j]));
-  for(let iter=0;iter<500;iter++){
-    let changed=false;
-    for(let p=0;p<nf-1;p++) for(let q=p+1;q<nf;q++){
-      let A=0,B=0,C=0,D=0;
-      for(let i=0;i<m;i++){
-        const u=rot[i][p]**2-rot[i][q]**2, v=2*rot[i][p]*rot[i][q];
-        A+=u; B+=v; C+=u**2-v**2; D+=u*v;
-      }
-      const num=2*(m*D-A*B), den=m*C-(A**2-B**2);
-      if(Math.abs(den)<1e-10) continue;
-      const th=0.25*Math.atan2(num,den);
-      if(Math.abs(th)<1e-6) continue;
-      changed=true;
-      const c=Math.cos(th),s=Math.sin(th);
-      for(let i=0;i<m;i++){
-        const t1=c*rot[i][p]+s*rot[i][q],t2=-s*rot[i][p]+c*rot[i][q];
-        rot[i][p]=t1; rot[i][q]=t2;
-      }
-    }
-    if(!changed) break;
+  if(nf<2) return L.map(r=>r.slice(0,nf));
+  const eps=1e-5;
+  let x=Array.from({length:m},(_,i)=>Array.from({length:nf},(_,j)=>L[i][j]));
+  const sc=x.map(r=>Math.sqrt(r.reduce((s,v)=>s+v*v,0)));
+  x=x.map((r,i)=>r.map(v=>sc[i]>0?v/sc[i]:v));          // Kaiser正規化
+  let T=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>i===j?1:0));
+  let d=0;
+  for(let it=0;it<1000;it++){
+    const z=matMul(x,T,m,nf,nf);
+    const colSS=Array.from({length:nf},(_,j)=>z.reduce((s,r)=>s+r[j]*r[j],0));
+    // B = x' (z^3 - z diag(colSS)/m)
+    const Zm=z.map(r=>r.map((v,j)=>v*v*v-v*colSS[j]/m));
+    const B=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>x.reduce((s,r,k)=>s+r[i]*Zm[k][j],0)));
+    // 極分解 T = B (B'B)^(-1/2)、特異値の和 = Σ sqrt(固有値(B'B))
+    const BtB=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>B.reduce((s,r)=>s+r[i]*r[j],0)));
+    const e=eigen(BtB);                                    // e.vectors[k] = k番目の固有ベクトル
+    const lam=e.values.map(v=>Math.max(v,1e-300));
+    const W=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>
+      e.vectors.reduce((s,vec,k)=>s+vec[i]*vec[j]/Math.sqrt(lam[k]),0)));
+    T=matMul(B,W,nf,nf,nf);
+    const dpast=d; d=lam.reduce((s,v)=>s+Math.sqrt(v),0);
+    if(d<dpast*(1+eps)) break;
   }
-  return rot;
+  let z=matMul(x,T,m,nf,nf);
+  z=z.map((r,i)=>r.map(v=>v*sc[i]));                      // 正規化を戻す
+  return z;
 }
 
 // ─── プロマックス回転 ────────────────────────────────────
 // バリマックス後の負荷量をべき乗してパターン行列・構造行列・因子間相関を求める
-function promax(varimaxLoad, m, nf, power=3){
-  // Step1: 各列をノルムで正規化してターゲット行列Tを作成
+function promax(varimaxLoad, m, nf, power=4){
+  // Rのstats::promax / SPSSと同じ手順（べき乗 kappa=4）
+  // Step1: ターゲット行列 T = sign(v)*|v|^power
   const T=Array.from({length:m},(_,i)=>Array.from({length:nf},(_,j)=>{
     const v=varimaxLoad[i][j];
     return Math.sign(v)*Math.pow(Math.abs(v),power);
   }));
-
-  // Step2: 回転行列 L = (V'V)^-1 V'T を最小二乗で求める
-  // V = varimaxLoad (m×nf), T = target (m×nf)
-  // VtV (nf×nf)
+  // Step2: 最小二乗の回転行列 U = (V'V)^-1 V'T
   const VtV=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>
-    Array.from({length:m},(_,k)=>varimaxLoad[k][i]*varimaxLoad[k][j])
-      .reduce((a,b)=>a+b,0)
-  ));
-  // VtT (nf×nf)
+    Array.from({length:m},(_,k)=>varimaxLoad[k][i]*varimaxLoad[k][j]).reduce((a,b)=>a+b,0)));
   const VtT=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>
-    Array.from({length:m},(_,k)=>varimaxLoad[k][i]*T[k][j])
-      .reduce((a,b)=>a+b,0)
-  ));
-  // L = inv(VtV) * VtT
-  const invVtV=matInv(VtV,nf);
-  const L=matMul(invVtV,VtT,nf,nf,nf);
-
-  // Step3: パターン行列 P = V * L
+    Array.from({length:m},(_,k)=>varimaxLoad[k][i]*T[k][j]).reduce((a,b)=>a+b,0)));
+  let U=matMul(matInv(VtV,nf),VtT,nf,nf,nf);
+  // Step3: 因子間相関 Phi=(U'U)^-1 の対角が1になるよう、Uの各列をスケーリング
+  const UtU0=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>
+    Array.from({length:nf},(_,k)=>U[k][i]*U[k][j]).reduce((a,b)=>a+b,0)));
+  const inv0=matInv(UtU0,nf);
+  U=U.map(row=>row.map((v,j)=>v*Math.sqrt(inv0[j][j])));
+  const UtU=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>
+    Array.from({length:nf},(_,k)=>U[k][i]*U[k][j]).reduce((a,b)=>a+b,0)));
+  const phi=matInv(UtU,nf);
+  // Step4: パターン行列 P = V U、構造行列 S = P Phi
   const P=Array.from({length:m},(_,i)=>Array.from({length:nf},(_,j)=>
-    Array.from({length:nf},(_,k)=>varimaxLoad[i][k]*L[k][j])
-      .reduce((a,b)=>a+b,0)
-  ));
-
-  // Step4: 因子間相関行列 Phi = (L'L) を正規化
-  const LtL=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>
-    Array.from({length:nf},(_,k)=>L[k][i]*L[k][j]).reduce((a,b)=>a+b,0)
-  ));
-  // 対角を1に正規化: Phi[i][j] = LtL[i][j] / sqrt(LtL[i][i]*LtL[j][j])
-  const phi=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>
-    i===j?1:LtL[i][j]/Math.sqrt(LtL[i][i]*LtL[j][j])
-  ));
-
-  // Step5: 構造行列 S = P * Phi
+    Array.from({length:nf},(_,k)=>varimaxLoad[i][k]*U[k][j]).reduce((a,b)=>a+b,0)));
   const structure=Array.from({length:m},(_,i)=>Array.from({length:nf},(_,j)=>
-    Array.from({length:nf},(_,k)=>P[i][k]*phi[k][j]).reduce((a,b)=>a+b,0)
-  ));
-
+    Array.from({length:nf},(_,k)=>P[i][k]*phi[k][j]).reduce((a,b)=>a+b,0)));
   return{pattern:P, structure, phi};
 }
 
@@ -690,7 +696,7 @@ function runAnalysis(){
     for(let i=0;i<m;i++){
       const h2=fLbls.reduce((s,_,j)=>s+rotLoad[i][j]**2,0);
       html+=`<tr><td>${selVarNames[i]}</td>
-        ${fLbls.map((_,j)=>{const v=rotLoad[i][j];return`<td class="${Math.abs(v)>=thresh?'hi-rot':''}">${f4(v)}</td>`}).join('')}
+        ${fLbls.map((_,j)=>{const v=(isPM&&pmResult?pmResult.pattern:rotLoad)[i][j];return`<td class="${Math.abs(v)>=thresh?'hi-rot':''}">${f4(v)}</td>`}).join('')}
         <td>${f4(h2)}</td></tr>`;
     }
     // 因子寄与（バリマックスのみ）
@@ -1363,6 +1369,135 @@ function switchTab(id){
   document.querySelector(`[onclick="switchTab('${id}')"]`).classList.add('active');
   document.getElementById(`panel-${id}`).classList.add('active');
 }
+
+
+
+
+// ───────── Rスクリプト出力（検算用）の共通部品 ─────────
+function rsRaw(text){
+  // R 4.0以降の raw string: r"---( ... )---"
+  let d='---';
+  while(text.indexOf(')'+d+'"')>=0) d+='-';
+  return 'r"'+d+'(\n'+text.replace(/\r\n?/g,'\n').replace(/\s+$/,'')+'\n)'+d+'"';
+}
+function rsHeader(title, pkgLines){
+  const L=[
+    '# =====================================================================',
+    '# '+title,
+    '# このスクリプトは、アプリに入力したデータと設定をそのまま埋め込んであります。',
+    '# RStudioに貼り付けて、上から順に実行してください。',
+    '# 日本語が文字化けするときは、RStudioの File > Reopen with Encoding > UTF-8 で開き直してください。',
+    '# ====================================================================='
+  ];
+  if(pkgLines&&pkgLines.length){ L.push('','# 初回だけ、必要なパッケージをインストールしてください（先頭の # を外して実行）'); pkgLines.forEach(p=>L.push(p)); }
+  return L;
+}
+function rsMake(){
+  const ta=document.getElementById('rs-text');
+  try{ ta.value=buildRScript(); }
+  catch(e){ ta.value='# スクリプトを作成できませんでした: '+e.message; }
+}
+function rsCopy(){
+  const ta=document.getElementById('rs-text');
+  if(!ta.value) rsMake();
+  ta.focus(); ta.select();
+  let ok=false;
+  try{ ok=document.execCommand('copy'); }catch(e){}
+  if(!ok && navigator.clipboard){ navigator.clipboard.writeText(ta.value).catch(()=>{}); }
+  const b=document.getElementById('rs-copy-btn'); const old=b.textContent;
+  b.textContent='コピーしました'; setTimeout(()=>{b.textContent=old;},1500);
+}
+function rsDownload(){
+  const ta=document.getElementById('rs-text');
+  if(!ta.value) rsMake();
+  const b64=btoa(unescape(encodeURIComponent('﻿'+ta.value)));
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8;base64,'+b64;
+  a.download=RS_FILENAME;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+const RS_FILENAME='pca_fa_check.R';
+function buildRScript(){
+  if(!parsedData) throw new Error('先にデータを読み込んでください');
+  const sel=getSelIdx();
+  if(sel.length<3) throw new Error('変数を3つ以上選択してください');
+  const useCorr=document.getElementById('mat-type').value==='corr';
+  const analType=document.getElementById('anal-type').value;
+  const isFA=(analType==='fa'||analType==='pm'), isPM=analType==='pm';
+  const egNum=+document.getElementById('eg-num').value;
+  const faMethod=document.getElementById('factor-num-method')?.value||'auto';
+  const faManual=+(document.getElementById('factor-num-manual')?.value||3);
+  // 採用する成分・因子数（アプリの runAnalysis と同じ規則）
+  const st=computeStats(rawMatrix,sel,useCorr);
+  const ev=eigen(st.S).values; const m=sel.length;
+  const contrib=ev.map(v=>v/ev.reduce((a,b)=>a+b,0));
+  let nf=1;
+  if(isFA && faMethod==='manual'){ nf=Math.min(Math.max(1,faManual),m-1); }
+  else{
+    for(let i=m-1;i>=0;i--) if(ev[i]>=1){nf=i+1;break;}
+    if(!isFA){ let c=0; for(let i=0;i<m;i++){c+=contrib[i];if(c>=0.9){nf=Math.max(nf,i+1);break;}} }
+  }
+  nf=Math.max(nf,egNum);
+  const csv=['id,'+varNames.map((_,i)=>'v'+(i+1)).join(',')]
+    .concat(rawMatrix.map((r,i)=>caseNames[i]+','+r.join(','))).join('\n');
+  const L=rsHeader((isFA?'因子分析（主成分法ベース）':'主成分分析')+': アプリ(pca.html)と同じ計算をRで行う（標準関数 eigen / varimax / promax）');
+  L.push('',
+    '# 変数の対応: '+varNames.map((v,i)=>'v'+(i+1)+'='+v.trim()).join(', '),
+    '',
+    '# 1. データ（1列目はケース名）',
+    'dat <- read.csv(text = '+rsRaw(csv)+', header = TRUE, row.names = 1)',
+    'vars <- c('+sel.map(i=>i+1).join(', ')+')   # アプリで選んだ変数（列番号）',
+    'X <- as.matrix(dat[, vars, drop = FALSE])',
+    'm <- ncol(X)',
+    '',
+    '# 2. '+(useCorr?'相関係数行列':'分散共分散行列')+'の固有値分解',
+    'S <- '+(useCorr?'cor(X)':'cov(X)'),
+    'e <- eigen(S)',
+    '# 固有ベクトルの向き: アプリと同じく、各成分の係数の合計が正になる向きにそろえる',
+    'V <- sweep(e$vectors, 2, ifelse(colSums(e$vectors) < 0, -1, 1), "*")',
+    'eig <- e$values',
+    '',
+    '# 3. 固有値と寄与率（アプリの「固有値・寄与率」に対応）',
+    'print(data.frame(component = 1:m, eigenvalue = eig, contribution = eig / sum(eig),',
+    '                 cumulative = cumsum(eig) / sum(eig)))',
+    '',
+    '# 4. 採用する'+(isFA?'因子':'成分')+'数（アプリの採用数 = '+nf+'）',
+    'nf <- '+nf,
+    '',
+    '# 5. 負荷量 = 固有ベクトル x sqrt(固有値)',
+    'L <- V[, 1:nf, drop = FALSE] %*% diag(sqrt(eig[1:nf]), nf)',
+    'rownames(L) <- colnames(X)',
+    'cat("'+(isFA?'因子負荷量（回転前）':'主成分負荷量')+'\\n"); print(round(L, 4))',
+    'cat("共通性\\n"); print(round(rowSums(L^2), 4))');
+  if(isFA){
+    L.push('',
+      '# 6. バリマックス回転（Rの stats::varimax。Kaiser正規化あり、アプリと同じ）',
+      'vm <- varimax(L)',
+      'cat("バリマックス回転後の因子負荷量\\n"); print(round(unclass(vm$loadings), 4))');
+    if(isPM) L.push('',
+      '# 7. プロマックス回転（Rの stats::promax。べき乗 m = 4）',
+      'pm <- promax(L, m = 4)',
+      'pattern <- unclass(pm$loadings)                 # パターン行列',
+      'Phi <- solve(crossprod(pm$rotmat))              # 因子間相関',
+      'structure <- pattern %*% Phi                    # 構造行列',
+      'cat("パターン行列\\n"); print(round(pattern, 4))',
+      'cat("因子間相関\\n"); print(round(Phi, 4))',
+      'cat("構造行列\\n"); print(round(structure, 4))');
+  }
+  L.push('',
+    '# '+(isFA?'8':'6')+'. 主成分得点（アプリのスコアに対応）',
+    'Z <- '+(useCorr?'scale(X)':'scale(X, scale = FALSE)'),
+    'scores <- Z %*% V[, 1:nf, drop = FALSE]',
+    'print(head(round(scores, 4)))',
+    '',
+    '# 参考: prcomp でも同じ固有値（標準偏差の2乗）が得られます',
+    'print(round(prcomp(X, scale. = '+(useCorr?'TRUE':'FALSE')+')$sdev^2, 4))',
+    '',
+    '# スクリープロット',
+    'plot(eig, type = "b", xlab = "component", ylab = "eigenvalue"); abline(h = 1, lty = 2)');
+  return L.join('\n')+'\n';
+}
+
 </script>
 </body>
 </html>

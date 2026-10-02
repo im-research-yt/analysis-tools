@@ -56,6 +56,9 @@ select:focus,input:focus{border-color:#0e7c5a}
 </style>
 </head>
 <body>
+<div style="background:#fff3cd;border-bottom:1px solid #ffc107;padding:6px 24px;font-size:11px;color:#1a2332;font-weight:700;line-height:1.5">
+  法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室<br>学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。
+</div>
 <div class="container">
 
 <h1>
@@ -92,7 +95,7 @@ select:focus,input:focus{border-color:#0e7c5a}
 行3,3,18,22"></textarea>
   <div id="parse-info" class="info" style="display:none"></div>
   <div class="note">
-    ※ クロス集計表の形式です。行・列に**2カテゴリ以上**、全セルは**非負の整数**（度数・頻度）を入力してください。
+    ※ クロス集計表の形式です。行・列に<b>2カテゴリ以上</b>、全セルは<b>非負の整数</b>（度数・頻度）を入力してください。
   </div>
 </div>
 
@@ -145,6 +148,22 @@ select:focus,input:focus{border-color:#0e7c5a}
   <div id="result-content"></div>
 </div>
 
+</div>
+
+<!-- ===== Rスクリプト（検算用） ===== -->
+<div id="rscript-wrap" style="max-width:1100px;margin:0 auto;padding:0 16px 40px">
+  <div style="background:#fff;border:1px solid #d0d5dd;border-radius:10px;padding:16px 18px">
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px">Rで同じ計算をする（検算用スクリプト）</div>
+    <div style="font-size:12px;color:#555;line-height:1.7;margin-bottom:10px">
+      いま入力しているデータと設定を埋め込んだRスクリプトを作ります。RStudioに貼り付けて実行すると、このアプリと同じ計算をRの標準的な関数で行い、結果を並べて確かめられます。
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <button type="button" onclick="rsMake()" style="padding:8px 14px;border:none;border-radius:6px;background:#1a2332;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Rスクリプトを作成</button>
+      <button type="button" id="rs-copy-btn" onclick="rsCopy()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">コピー</button>
+      <button type="button" onclick="rsDownload()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">.Rファイルを保存</button>
+    </div>
+    <textarea id="rs-text" readonly spellcheck="false" placeholder="「Rスクリプトを作成」を押すと、ここに表示されます" style="width:100%;height:300px;box-sizing:border-box;font-family:Consolas,Menlo,monospace;font-size:12px;line-height:1.5;padding:10px;border:1px solid #d0d5dd;border-radius:6px;background:#fafbfc;white-space:pre;overflow:auto"></textarea>
+  </div>
 </div>
 
 <script>
@@ -379,13 +398,30 @@ function correspondenceAnalysis(P, coordType){
   const df = (nr-1)*(nc-1);
   // p値の近似（カイ二乗分布の上側確率）
   function chiSqPval(x, k){
-    // Wilson-Hilferty近似
+    // カイ二乗分布の上側確率 = 正則化不完全ガンマ関数 Q(k/2, x/2)（級数展開／連分数）
     if(x<=0||k<=0) return 1;
-    const z=(Math.pow(x/k,1/3)-(1-2/(9*k)))/Math.sqrt(2/(9*k));
-    // 標準正規分布の上側確率
-    const t=1/(1+0.2316419*Math.abs(z));
-    const p=0.3989423*Math.exp(-z*z/2)*(t*(0.319381530+t*(-0.356563782+t*(1.781477937+t*(-1.821255978+t*1.330274429)))));
-    return z>0?p:1-p;
+    const a=k/2, xx=x/2;
+    function lgamma(z){
+      const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+      let y=z, t=z+5.5; t-=(z+0.5)*Math.log(t);
+      let ser=1.000000000190015;
+      for(let j=0;j<6;j++) ser+=c[j]/++y;
+      return -t+Math.log(2.5066282746310005*ser/z);
+    }
+    if(xx<a+1){
+      let ap=a, sum=1/a, del=sum;
+      for(let n=0;n<1000;n++){ap++; del*=xx/ap; sum+=del; if(Math.abs(del)<Math.abs(sum)*1e-14) break;}
+      return Math.max(0,Math.min(1,1-sum*Math.exp(-xx+a*Math.log(xx)-lgamma(a))));
+    }
+    let b=xx+1-a, c=1/1e-300, d=1/b, h=d;
+    for(let i=1;i<1000;i++){
+      const an=-i*(i-a); b+=2;
+      d=an*d+b; if(Math.abs(d)<1e-300) d=1e-300;
+      c=b+an/c; if(Math.abs(c)<1e-300) c=1e-300;
+      d=1/d; const del=d*c; h*=del;
+      if(Math.abs(del-1)<1e-14) break;
+    }
+    return Math.max(0,Math.min(1,Math.exp(-xx+a*Math.log(xx)-lgamma(a))*h));
   }
   const pval = chiSqPval(chiSq, df);
 
@@ -417,6 +453,9 @@ function runCA(){
   }
   const total=contingency.flat().reduce((a,b)=>a+b,0);
   if(total===0){showErr('合計度数が0です'); return;}
+  if(contingency.some(r=>r.reduce((a,b)=>a+b,0)===0) || contingency[0].some((_,j)=>contingency.reduce((a,r)=>a+r[j],0)===0)){
+    showErr('合計が0の行または列があります。その行・列を除いてください。'); return;
+  }
 
   const coordType=document.getElementById('coord-type').value;
 
@@ -602,7 +641,7 @@ function runCA(){
       <td style="text-align:left">各次元が総慣性に占める割合（%）。各次元の重要度を示す。</td>
       <td style="text-align:left">Proportion of inertia = xx.x%</td></tr>
     <tr><td style="text-align:left"><b>累積寄与率</b></td>
-      <td style="text-align:left">第1次元から第k次元までの寄与率の合計。80%以上であれど2次元マップで十分とされる。</td>
+      <td style="text-align:left">第1次元から第k次元までの寄与率の合計。80%以上であれば2次元マップで十分とされる。</td>
       <td style="text-align:left">Cumulative proportion = xx.x%</td></tr>
     <tr><td style="text-align:left"><b>主座標（Principal Coordinates）</b></td>
       <td style="text-align:left">対称マップで使用。行・列ともに主座標で描画。直感的に読みやすいが、行と列の点間距離は数学的に無意味。</td>
@@ -1009,6 +1048,94 @@ function switchTab(id){
   document.querySelector(`[onclick="switchTab('${id}')"]`).classList.add('active');
   document.getElementById(`panel-${id}`).classList.add('active');
 }
+
+
+
+
+// ───────── Rスクリプト出力（検算用）の共通部品 ─────────
+function rsRaw(text){
+  // R 4.0以降の raw string: r"---( ... )---"
+  let d='---';
+  while(text.indexOf(')'+d+'"')>=0) d+='-';
+  return 'r"'+d+'(\n'+text.replace(/\r\n?/g,'\n').replace(/\s+$/,'')+'\n)'+d+'"';
+}
+function rsHeader(title, pkgLines){
+  const L=[
+    '# =====================================================================',
+    '# '+title,
+    '# このスクリプトは、アプリに入力したデータと設定をそのまま埋め込んであります。',
+    '# RStudioに貼り付けて、上から順に実行してください。',
+    '# 日本語が文字化けするときは、RStudioの File > Reopen with Encoding > UTF-8 で開き直してください。',
+    '# ====================================================================='
+  ];
+  if(pkgLines&&pkgLines.length){ L.push('','# 初回だけ、必要なパッケージをインストールしてください（先頭の # を外して実行）'); pkgLines.forEach(p=>L.push(p)); }
+  return L;
+}
+function rsMake(){
+  const ta=document.getElementById('rs-text');
+  try{ ta.value=buildRScript(); }
+  catch(e){ ta.value='# スクリプトを作成できませんでした: '+e.message; }
+}
+function rsCopy(){
+  const ta=document.getElementById('rs-text');
+  if(!ta.value) rsMake();
+  ta.focus(); ta.select();
+  let ok=false;
+  try{ ok=document.execCommand('copy'); }catch(e){}
+  if(!ok && navigator.clipboard){ navigator.clipboard.writeText(ta.value).catch(()=>{}); }
+  const b=document.getElementById('rs-copy-btn'); const old=b.textContent;
+  b.textContent='コピーしました'; setTimeout(()=>{b.textContent=old;},1500);
+}
+function rsDownload(){
+  const ta=document.getElementById('rs-text');
+  if(!ta.value) rsMake();
+  const b64=btoa(unescape(encodeURIComponent('﻿'+ta.value)));
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8;base64,'+b64;
+  a.download=RS_FILENAME;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+const RS_FILENAME='correspondence_analysis_check.R';
+function buildRScript(){
+  const text=document.getElementById('csv-input').value.trim();
+  if(!text) throw new Error('先にクロス集計表を入力してください');
+  if(!N||!contingency.length) throw new Error('クロス集計表を読み込めませんでした（行・列とも2カテゴリ以上）');
+  const coord=document.getElementById('coord-type').value;
+  const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l);
+  const L=rsHeader('コレスポンデンス分析: アプリ(ca.html)と同じ計算をRで行う（caパッケージ）',
+    ['# install.packages("ca")']);
+  L.push('',
+    'library(ca)',
+    '',
+    '# 1. クロス集計表（行=行カテゴリ、列=列カテゴリ、セルは度数）',
+    'tab <- as.matrix(read.csv(text = '+rsRaw(lines.join('\n'))+',',
+    '                          header = TRUE, row.names = 1, check.names = FALSE))',
+    '',
+    '# 2. コレスポンデンス分析（特異値分解）',
+    'res <- ca(tab)',
+    'try(print(summary(res)), silent = TRUE)   # 質量、慣性、寄与度など（次元が1つだけの表では表示できません）',
+    '',
+    '# 3. 慣性（固有値）と寄与率（アプリの「慣性・寄与率」タブに対応）',
+    'inertia <- res$sv^2',
+    'print(data.frame(dim = seq_along(inertia), sv = res$sv, inertia = inertia,',
+    '                 contribution = inertia / sum(inertia), cumulative = cumsum(inertia) / sum(inertia)))',
+    'cat("総慣性:", sum(inertia), "\\n")',
+    '',
+    '# 4. カイ二乗検定（アプリの カイ二乗 = 総慣性 x 総度数、自由度 (行-1) x (列-1) と同じ）',
+    'chi <- suppressWarnings(chisq.test(tab))',
+    'print(c(chisq = unname(chi$statistic), df = unname(chi$parameter), p = chi$p.value))',
+    '',
+    '# 5. 座標（アプリの「座標」タブに対応。符号は向きが逆になることがあります）',
+    '#    標準座標: res$rowcoord / res$colcoord   主座標: 標準座標 x 特異値');
+  L.push('row_principal <- sweep(res$rowcoord, 2, res$sv, "*")',
+    'col_principal <- sweep(res$colcoord, 2, res$sv, "*")',
+    'print(round(row_principal, 4)); print(round(col_principal, 4))');
+  if(coord==='row') L.push('# アプリの設定は「行主体」: 行=主座標、列=標準座標','if (length(res$sv) >= 2) plot(res, map = "rowprincipal")');
+  else if(coord==='col') L.push('# アプリの設定は「列主体」: 行=標準座標、列=主座標','if (length(res$sv) >= 2) plot(res, map = "colprincipal")');
+  else L.push('# アプリの設定は「対称マップ」: 行・列とも主座標','if (length(res$sv) >= 2) plot(res, map = "symmetric")   # 次元が1つだけの表ではマップを描けません');
+  return L.join('\n')+'\n';
+}
+
 </script>
 </body>
 </html>

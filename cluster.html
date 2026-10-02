@@ -80,7 +80,7 @@ code{font-family:monospace;background:#f4f6f9;padding:1px 5px;border-radius:3px;
   <span class="badge">Hierarchical Clustering</span>
 </header>
 <div style="background:#fff3cd;border-bottom:1px solid #ffc107;padding:6px 24px;font-size:11px;color:#1a2332;font-weight:700;line-height:1.5">
-  法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室<br>学習用としてご利用ください。チェックはしていますが計算ミスの可能性がありますので、研究やビジネスでの利用は推奨しません。
+  法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室<br>学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。
 </div>
 
 <div class="container">
@@ -106,6 +106,7 @@ code{font-family:monospace;background:#f4f6f9;padding:1px 5px;border-radius:3px;
 <!-- 分析設定 -->
 <div class="card">
   <h2>分析設定</h2>
+  <div style="font-size:12px;color:#666;margin-bottom:8px">※ Ward法はユークリッド距離（または距離の2乗）、重心法は「ユークリッド距離の2乗」を前提とする方法です。ほかの距離との組み合わせでは、結果の解釈に注意してください。</div>
   <div class="row">
     <div>
       <label>距離指標</label>
@@ -232,6 +233,22 @@ code{font-family:monospace;background:#f4f6f9;padding:1px 5px;border-radius:3px;
   </div>
 </div>
 
+</div>
+
+<!-- ===== Rスクリプト（検算用） ===== -->
+<div id="rscript-wrap" style="max-width:1100px;margin:0 auto;padding:0 16px 40px">
+  <div style="background:#fff;border:1px solid #d0d5dd;border-radius:10px;padding:16px 18px">
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px">Rで同じ計算をする（検算用スクリプト）</div>
+    <div style="font-size:12px;color:#555;line-height:1.7;margin-bottom:10px">
+      いま入力しているデータと設定を埋め込んだRスクリプトを作ります。RStudioに貼り付けて実行すると、このアプリと同じ計算をRの標準的な関数で行い、結果を並べて確かめられます。
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <button type="button" onclick="rsMake()" style="padding:8px 14px;border:none;border-radius:6px;background:#1a2332;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Rスクリプトを作成</button>
+      <button type="button" id="rs-copy-btn" onclick="rsCopy()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">コピー</button>
+      <button type="button" onclick="rsDownload()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">.Rファイルを保存</button>
+    </div>
+    <textarea id="rs-text" readonly spellcheck="false" placeholder="「Rスクリプトを作成」を押すと、ここに表示されます" style="width:100%;height:300px;box-sizing:border-box;font-family:Consolas,Menlo,monospace;font-size:12px;line-height:1.5;padding:10px;border:1px solid #d0d5dd;border-radius:6px;background:#fafbfc;white-space:pre;overflow:auto"></textarea>
+  </div>
 </div>
 
 <script>
@@ -445,7 +462,7 @@ function standardize(data, method){
     const col=data.map(r=>r[j]);
     const mean=col.reduce((a,b)=>a+b,0)/n;
     if(method==='zscore'){
-      const sd=Math.sqrt(col.reduce((a,v)=>a+(v-mean)**2,0)/n)||1;
+      const sd=Math.sqrt(col.reduce((a,v)=>a+(v-mean)**2,0)/(n-1))||1;  // Rのscale()と同じ（n-1で割る）
       for(let i=0;i<n;i++) result[i][j]=(data[i][j]-mean)/sd;
     } else { // minmax
       const mn=Math.min(...col), mx=Math.max(...col), rng=mx-mn||1;
@@ -479,7 +496,7 @@ function calcDist(data, method){
 }
 
 // ─── 階層クラスタリング（Lance-Williams公式） ───
-function hierarchicalCluster(distMat, method){
+function hierarchicalCluster(distMat, method, sq){
   const n=distMat.length;
   // 作業用距離行列（クラスターサイズも管理）
   let D=distMat.map(r=>[...r]);
@@ -527,6 +544,9 @@ function hierarchicalCluster(distMat, method){
         // 単純重心法
         d=(na/(na+nb))*D[minI][k]+(nb/(na+nb))*D[minJ][k]
           -(na*nb/(na+nb)**2)*D[minI][minJ];
+      } else if(method==='ward' && sq){
+        // 入力が「距離の2乗」のときはそのままLance-Williams（Ward.D）
+        d=((nk+na)*D[minI][k]+(nk+nb)*D[minJ][k]-nk*D[minI][minJ])/(nk+na+nb);
       } else if(method==='ward'){
         d=Math.sqrt(
           ((nk+na)*D[minI][k]**2+(nk+nb)*D[minJ][k]**2-nk*D[minI][minJ]**2)
@@ -613,12 +633,12 @@ function runClustering(){
   }
 
   const {merges:tmpMerges}=hierarchicalCluster(
-    calcDist(stdData, distMethod), linkageMethod
+    calcDist(stdData, distMethod), linkageMethod, distMethod==='euclidean2'
   );
   const autoK=autoDetectK(tmpMerges);
   G.nClusters=nClustVal==='auto'?autoK:Math.max(2,Math.min(+nClustVal,cases.length-1));
   const distMat=calcDist(stdData,distMethod);
-  const {merges,heights}=hierarchicalCluster(distMat,linkageMethod);
+  const {merges,heights}=hierarchicalCluster(distMat,linkageMethod,distMethod==='euclidean2');
   // autoK をUIに反映
   if(nClustVal==='auto'){
     document.getElementById('n-clusters').value='auto';
@@ -897,6 +917,119 @@ function downloadCSV(){
   a.href=url; a.download='cluster_result.csv';
   a.click(); URL.revokeObjectURL(url);
 }
+
+
+
+
+// ───────── Rスクリプト出力（検算用）の共通部品 ─────────
+function rsRaw(text){
+  // R 4.0以降の raw string: r"---( ... )---"
+  let d='---';
+  while(text.indexOf(')'+d+'"')>=0) d+='-';
+  return 'r"'+d+'(\n'+text.replace(/\r\n?/g,'\n').replace(/\s+$/,'')+'\n)'+d+'"';
+}
+function rsHeader(title, pkgLines){
+  const L=[
+    '# =====================================================================',
+    '# '+title,
+    '# このスクリプトは、アプリに入力したデータと設定をそのまま埋め込んであります。',
+    '# RStudioに貼り付けて、上から順に実行してください。',
+    '# 日本語が文字化けするときは、RStudioの File > Reopen with Encoding > UTF-8 で開き直してください。',
+    '# ====================================================================='
+  ];
+  if(pkgLines&&pkgLines.length){ L.push('','# 初回だけ、必要なパッケージをインストールしてください（先頭の # を外して実行）'); pkgLines.forEach(p=>L.push(p)); }
+  return L;
+}
+function rsMake(){
+  const ta=document.getElementById('rs-text');
+  try{ ta.value=buildRScript(); }
+  catch(e){ ta.value='# スクリプトを作成できませんでした: '+e.message; }
+}
+function rsCopy(){
+  const ta=document.getElementById('rs-text');
+  if(!ta.value) rsMake();
+  ta.focus(); ta.select();
+  let ok=false;
+  try{ ok=document.execCommand('copy'); }catch(e){}
+  if(!ok && navigator.clipboard){ navigator.clipboard.writeText(ta.value).catch(()=>{}); }
+  const b=document.getElementById('rs-copy-btn'); const old=b.textContent;
+  b.textContent='コピーしました'; setTimeout(()=>{b.textContent=old;},1500);
+}
+function rsDownload(){
+  const ta=document.getElementById('rs-text');
+  if(!ta.value) rsMake();
+  const b64=btoa(unescape(encodeURIComponent('﻿'+ta.value)));
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8;base64,'+b64;
+  a.download=RS_FILENAME;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+const RS_FILENAME='cluster_check.R';
+function buildRScript(){
+  const text=document.getElementById('csv-input').value;
+  if(!text.trim()) throw new Error('先にデータを入力してください');
+  const parsed=parseCSV(text);
+  const dist=document.getElementById('dist-method').value;
+  const link=document.getElementById('linkage-method').value;
+  const std=document.getElementById('standardize').value;
+  const nclVal=document.getElementById('n-clusters').value;
+  const rawLines=text.trim().split(/\r?\n/).filter(l=>l.trim());
+  const sepc=rawLines[0].includes('\t')?'\t':',';
+  const p=parsed.varNames.length;
+  rawLines[0]=['case'].concat(parsed.varNames.map((_,i)=>'v'+(i+1))).join(sepc);
+  const method= link==='ward' ? (dist==='euclidean2'?'ward.D':'ward.D2') : link;
+  const distCode={
+    euclidean:'dist(X, method = "euclidean")',
+    euclidean2:'dist(X, method = "euclidean")^2',
+    manhattan:'dist(X, method = "manhattan")',
+    cosine:'as.dist(1 - tcrossprod(X) / outer(sqrt(rowSums(X^2)), sqrt(rowSums(X^2))))'
+  }[dist];
+  const stdCode={
+    none:'# 標準化なし',
+    zscore:'X <- scale(X)   # Zスコア（平均0、標準偏差1。n-1で割る）',
+    minmax:'X <- apply(X, 2, function(v) (v - min(v)) / (max(v) - min(v)))   # Min-Max（0〜1）'
+  }[std];
+  const L=rsHeader('階層クラスター分析: アプリ(cluster.html)と同じ計算をRで行う（標準関数 hclust のみ）');
+  L.push('',
+    '# 変数の対応: '+parsed.varNames.map((v,i)=>'v'+(i+1)+'='+v).join(', '),
+    '',
+    '# 1. データ（1列目はケース名）',
+    'dat <- read.csv(text = '+rsRaw(rawLines.join('\n'))+',',
+    '                sep = "'+(sepc==='\t'?'\\t':',')+'", header = TRUE, row.names = 1)',
+    'X <- as.matrix(dat)',
+    '',
+    '# 2. 標準化と距離',
+    stdCode,
+    'D <- '+distCode,
+    '',
+    '# 3. 階層クラスタリング（結合法: '+link+' → hclust の method = "'+method+'"）',
+    'hc <- hclust(D, method = "'+method+'")',
+    '');
+  if(nclVal==='auto'){
+    L.push('# 4. クラスター数: アプリの「自動（最大段差）」と同じ規則',
+      '#    併合高さの増加量が最大になる直前でカット（最小2）',
+      'nm  <- length(hc$height)',
+      'dif <- c(hc$height[1], diff(hc$height))',
+      'k   <- if (nm < 2) 2 else max(2, nm + 1 - which.max(dif[-1]))');
+  } else {
+    L.push('# 4. クラスター数（アプリで指定した値）',
+      'k <- '+Math.max(2,Math.min(+nclVal,parsed.cases.length-1)));
+  }
+  L.push('',
+    'cl <- cutree(hc, k = k)',
+    '',
+    '# 5. 結果（アプリの「デンドログラム」「所属」タブと比べてください）',
+    'cat("クラスター数 k =", k, "\\n")',
+    'cat("併合の高さ:\\n"); print(round(hc$height, 4))',
+    'print(data.frame(case = rownames(X), cluster = cl))',
+    'print(table(cl))',
+    '',
+    '# 6. デンドログラム',
+    'plot(hc, hang = -1)',
+    'rect.hclust(hc, k = k)');
+  return L.join('\n')+'\n';
+}
+
 </script>
 </body>
 </html>

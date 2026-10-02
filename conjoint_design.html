@@ -89,7 +89,7 @@ tr:nth-child(even) td{background:#f8fafc}
   <span class="badge">Conjoint Design</span>
 </header>
 <div style="background:#fff3cd;border-bottom:1px solid #ffc107;padding:6px 24px;font-size:11px;color:#1a2332;font-weight:700;line-height:1.5">
-  法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室<br>学習用としてご利用ください。チェックはしていますが計算ミスの可能性がありますので、研究やビジネスでの利用は推奨しません。
+  法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室<br>学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。
 </div>
 
 <div class="container">
@@ -193,6 +193,22 @@ tr:nth-child(even) td{background:#f8fafc}
 
 </div><!-- /container -->
 
+<!-- ===== Rスクリプト（検算用） ===== -->
+<div id="rscript-wrap" style="max-width:1100px;margin:0 auto;padding:0 16px 40px">
+  <div style="background:#fff;border:1px solid #d0d5dd;border-radius:10px;padding:16px 18px">
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px">Rで同じ計算をする（検算用スクリプト）</div>
+    <div style="font-size:12px;color:#555;line-height:1.7;margin-bottom:10px">
+      いま入力しているデータと設定を埋め込んだRスクリプトを作ります。RStudioに貼り付けて実行すると、このアプリと同じ計算をRの標準的な関数で行い、結果を並べて確かめられます。
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <button type="button" onclick="rsMake()" style="padding:8px 14px;border:none;border-radius:6px;background:#1a2332;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Rスクリプトを作成</button>
+      <button type="button" id="rs-copy-btn" onclick="rsCopy()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">コピー</button>
+      <button type="button" onclick="rsDownload()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">.Rファイルを保存</button>
+    </div>
+    <textarea id="rs-text" readonly spellcheck="false" placeholder="「Rスクリプトを作成」を押すと、ここに表示されます" style="width:100%;height:300px;box-sizing:border-box;font-family:Consolas,Menlo,monospace;font-size:12px;line-height:1.5;padding:10px;border:1px solid #d0d5dd;border-radius:6px;background:#fafbfc;white-space:pre;overflow:auto"></textarea>
+  </div>
+</div>
+
 <script>
 // ─── 直交配列ライブラリ ───────────────────────────────────
 // 各配列は [run × col] の形式（0-indexed）
@@ -231,16 +247,7 @@ const OA = {
   },
   // L16: 16行15列、各列2水準
   L16: {
-    array: [
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],
-      [0,0,0,1,1,1,1,0,0,0,0,1,1,1,1],[0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-      [0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],[0,1,1,0,0,1,1,1,1,0,0,1,1,0,0],
-      [0,1,1,1,1,0,0,0,0,1,1,1,1,0,0],[0,1,1,1,1,0,0,1,1,0,0,0,0,1,1],
-      [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,1,0,1,0,1,0,1,0],
-      [1,0,1,1,0,1,0,0,1,0,1,1,0,1,0],[1,0,1,1,0,1,0,1,0,1,0,0,1,0,1],
-      [1,1,0,0,1,1,0,0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,1,0,0,1,1,0,0,1],
-      [1,1,0,1,0,0,1,0,1,0,1,1,0,0,1],[1,1,0,1,0,0,1,1,0,1,0,0,1,1,0]
-    ],
+    array: [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],[0,0,0,1,1,1,1,0,0,0,0,1,1,1,1],[0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],[0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],[0,1,1,0,0,1,1,1,1,0,0,1,1,0,0],[0,1,1,1,1,0,0,0,0,1,1,1,1,0,0],[0,1,1,1,1,0,0,1,1,0,0,0,0,1,1],[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,1,0,1,0,1,0,1,0],[1,0,1,1,0,1,0,0,1,0,1,1,0,1,0],[1,0,1,1,0,1,0,1,0,1,0,0,1,0,1],[1,1,0,0,1,1,0,0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,1,0,0,1,1,0,0,1],[1,1,0,1,0,0,1,0,1,1,0,1,0,0,1],[1,1,0,1,0,0,1,1,0,0,1,0,1,1,0]],
     levels: [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2], runs: 16
   },
   // L18: 18行8列（1列2水準+7列3水準）
@@ -266,31 +273,12 @@ const OA = {
   },
   // OA12_3_2x4: 12行5列（3×2×2×2×2）
   OA12_3_2x4: {
-    array: [
-      [0,0,0,0,0],[0,0,1,1,1],[0,1,0,1,1],[0,1,1,0,0],
-      [1,0,0,1,0],[1,0,1,0,1],[1,1,0,0,1],[1,1,1,1,0],
-      [2,0,0,0,1],[2,0,1,1,0],[2,1,0,1,0],[2,1,1,0,1]
-    ],
+    array: [[0,1,0,1,1],[0,0,0,0,0],[0,1,1,1,0],[0,0,1,0,1],[1,1,1,0,1],[1,0,1,1,1],[1,0,0,1,0],[1,1,0,0,0],[2,0,0,1,1],[2,1,1,1,0],[2,0,1,0,0],[2,1,0,0,1]],
     levels: [3,2,2,2,2], runs: 12
   },
   // L27: 27行13列、各列3水準
   L27: {
-    array: [
-      [0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,1,1,1,2,2,2,2,2],
-      [0,0,0,0,2,2,2,2,0,1,1,2,2],[0,1,1,2,0,1,1,2,1,0,2,0,1],
-      [0,1,1,2,1,2,2,0,2,1,0,1,2],[0,1,1,2,2,0,0,1,0,2,1,2,0],
-      [0,2,2,1,0,2,2,1,2,2,0,0,2],[0,2,2,1,1,0,0,2,0,0,1,1,0],
-      [0,2,2,1,2,1,1,0,1,1,2,2,1],[1,0,1,2,0,0,2,1,1,2,1,0,2],
-      [1,0,1,2,1,1,0,2,2,0,2,1,0],[1,0,1,2,2,2,1,0,0,1,0,2,1],
-      [1,1,2,0,0,1,0,2,2,1,0,2,0],[1,1,2,0,1,2,1,0,0,2,1,0,1],
-      [1,1,2,0,2,0,2,1,1,0,2,1,2],[1,2,0,1,0,2,1,0,0,0,2,1,1],
-      [1,2,0,1,1,0,2,1,1,1,0,2,2],[1,2,0,1,2,1,0,2,2,2,1,0,0],
-      [2,0,2,1,0,0,1,2,2,1,2,1,0],[2,0,2,1,1,1,2,0,0,2,0,2,1],
-      [2,0,2,1,2,2,0,1,1,0,1,0,2],[2,1,0,2,0,1,2,0,1,0,1,2,2],
-      [2,1,0,2,1,2,0,1,2,1,2,0,0],[2,1,0,2,2,0,1,2,0,2,0,1,1],
-      [2,2,1,0,0,2,0,1,1,2,2,2,1],[2,2,1,0,1,0,1,2,2,0,0,0,2],
-      [2,2,1,0,2,1,2,0,0,1,1,1,0]
-    ],
+    array: [[0,0,0,0,0,0,0,0,0,0,0,0,0],[1,0,1,2,0,1,2,0,1,2,0,1,2],[2,0,2,1,0,2,1,0,2,1,0,2,1],[0,1,1,1,0,0,0,1,1,1,2,2,2],[1,1,2,0,0,1,2,1,2,0,2,0,1],[2,1,0,2,0,2,1,1,0,2,2,1,0],[0,2,2,2,0,0,0,2,2,2,1,1,1],[1,2,0,1,0,1,2,2,0,1,1,2,0],[2,2,1,0,0,2,1,2,1,0,1,0,2],[0,0,0,0,1,1,1,1,1,1,1,1,1],[1,0,1,2,1,2,0,1,2,0,1,2,0],[2,0,2,1,1,0,2,1,0,2,1,0,2],[0,1,1,1,1,1,1,2,2,2,0,0,0],[1,1,2,0,1,2,0,2,0,1,0,1,2],[2,1,0,2,1,0,2,2,1,0,0,2,1],[0,2,2,2,1,1,1,0,0,0,2,2,2],[1,2,0,1,1,2,0,0,1,2,2,0,1],[2,2,1,0,1,0,2,0,2,1,2,1,0],[0,0,0,0,2,2,2,2,2,2,2,2,2],[1,0,1,2,2,0,1,2,0,1,2,0,1],[2,0,2,1,2,1,0,2,1,0,2,1,0],[0,1,1,1,2,2,2,0,0,0,1,1,1],[1,1,2,0,2,0,1,0,1,2,1,2,0],[2,1,0,2,2,1,0,0,2,1,1,0,2],[0,2,2,2,2,2,2,1,1,1,0,0,0],[1,2,0,1,2,0,1,1,2,0,0,1,2],[2,2,1,0,2,1,0,1,0,2,0,2,1]],
     levels: [3,3,3,3,3,3,3,3,3,3,3,3,3], runs: 27
   }
 };
@@ -431,7 +419,7 @@ function selectOA(attrs){
   }
 
   // 4水準を含む（疑似4水準: 2列の2水準で表現）→ L16
-  if(maxL===4 && n<=4) return {oa:'L16', type:'pseudo4'};
+  if(maxL===4 && levelCounts.every(l=>l===2||l===4) && 3*levelCounts.filter(l=>l===4).length+n2<=15) return {oa:'L16',type:'pseudo4'};
 
   return null;
 }
@@ -508,17 +496,26 @@ function generateDesign(){
     }
 
   } else if(oaType==='pseudo4'){
-    // 4水準属性を2列の2水準で表現（L16使用）
-    let colIdx=0;
-    const attrCols=attrs.map(a=>{
-      if(a.levels.length===4){const c=[colIdx,colIdx+1];colIdx+=2;return c;}
-      const c=[colIdx];colIdx+=1;return c;
-    });
+    // 4水準属性は L16 の独立な2列(j1,j2)と、その交互作用列(j1 xor j2)の3列を専有する（完全直交）
+    const used=new Set(), attrCols=new Array(attrs.length);
+    const n4idx=attrs.map((a,i)=>a.levels.length===4?i:-1).filter(i=>i>=0);
+    const lines=[];
+    (function dfs(t){
+      if(t===n4idx.length) return true;
+      for(let j1=1;j1<=15;j1++) for(let j2=j1+1;j2<=15;j2++){
+        const j3=j1^j2;
+        if(used.has(j1)||used.has(j2)||used.has(j3)) continue;
+        used.add(j1);used.add(j2);used.add(j3); lines[t]=[j1,j2];
+        if(dfs(t+1)) return true;
+        used.delete(j1);used.delete(j2);used.delete(j3);
+      }
+      return false;
+    })(0);
+    n4idx.forEach((ai,t)=>attrCols[ai]=lines[t]);
+    let nextCol=1;
+    attrs.forEach((a,i)=>{ if(a.levels.length===2){ while(used.has(nextCol)) nextCol++; used.add(nextCol); attrCols[i]=[nextCol]; } });
     for(const row of baseOA.array){
-      profiles.push(attrCols.map((cs,i)=>{
-        if(cs.length===2){const v=row[cs[0]]*2+row[cs[1]];return Math.min(v,attrs[i].levels.length-1);}
-        return row[cs[0]]%attrs[i].levels.length;
-      }));
+      profiles.push(attrCols.map(cs=> cs.length===2 ? row[cs[0]-1]*2+row[cs[1]-1] : row[cs[0]-1]));
     }
   }
 
@@ -556,7 +553,7 @@ function generateDesign(){
   // 直交性タイプに応じた注記
   const orthoNote=
     oaType==='prebuilt'?'　<span style="color:#0e7c5a">✓ 完全直交</span>':
-    oaType==='pure2'||oaType==='pure3'?'　<span style="color:#0e7c5a">✓ 完全直交</span>':
+    oaType==='pure2'||oaType==='pure3'||oaType==='pseudo4'?'　<span style="color:#0e7c5a">✓ 完全直交</span>':
     oaType==='L18mix'?'　<span style="color:#0e7c5a">✓ 完全直交</span>':
     oaType==='mixed'?'　<span style="color:#e05c2a">△ 近似直交（直交性チェックで確認してください）</span>':
     oaType==='L18mod'?'　<span style="color:#e05c2a">△ 近似直交（2水準属性が多い場合は属性数を見直してください）</span>':'';
@@ -821,6 +818,97 @@ function resetAll(){
 
 // ─── 初期化 ───
 buildAttrInputs();
+
+
+
+
+// ───────── Rスクリプト出力（検算用）の共通部品 ─────────
+function rsRaw(text){
+  // R 4.0以降の raw string: r"---( ... )---"
+  let d='---';
+  while(text.indexOf(')'+d+'"')>=0) d+='-';
+  return 'r"'+d+'(\n'+text.replace(/\r\n?/g,'\n').replace(/\s+$/,'')+'\n)'+d+'"';
+}
+function rsHeader(title, pkgLines){
+  const L=[
+    '# =====================================================================',
+    '# '+title,
+    '# このスクリプトは、アプリに入力したデータと設定をそのまま埋め込んであります。',
+    '# RStudioに貼り付けて、上から順に実行してください。',
+    '# 日本語が文字化けするときは、RStudioの File > Reopen with Encoding > UTF-8 で開き直してください。',
+    '# ====================================================================='
+  ];
+  if(pkgLines&&pkgLines.length){ L.push('','# 初回だけ、必要なパッケージをインストールしてください（先頭の # を外して実行）'); pkgLines.forEach(p=>L.push(p)); }
+  return L;
+}
+function rsMake(){
+  const ta=document.getElementById('rs-text');
+  try{ ta.value=buildRScript(); }
+  catch(e){ ta.value='# スクリプトを作成できませんでした: '+e.message; }
+}
+function rsCopy(){
+  const ta=document.getElementById('rs-text');
+  if(!ta.value) rsMake();
+  ta.focus(); ta.select();
+  let ok=false;
+  try{ ok=document.execCommand('copy'); }catch(e){}
+  if(!ok && navigator.clipboard){ navigator.clipboard.writeText(ta.value).catch(()=>{}); }
+  const b=document.getElementById('rs-copy-btn'); const old=b.textContent;
+  b.textContent='コピーしました'; setTimeout(()=>{b.textContent=old;},1500);
+}
+function rsDownload(){
+  const ta=document.getElementById('rs-text');
+  if(!ta.value) rsMake();
+  const b64=btoa(unescape(encodeURIComponent('﻿'+ta.value)));
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8;base64,'+b64;
+  a.download=RS_FILENAME;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+const RS_FILENAME='conjoint_design_check.R';
+function buildRScript(){
+  if(!G.profiles||!G.profiles.length) throw new Error('先に直交計画を生成してください');
+  const attrs=G.attrs, prof=G.profiles;
+  const q=s=>'"'+String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';
+  const L=rsHeader('コンジョイント分析の直交計画: アプリ(conjoint_design.html)が作った計画をRで検査する（標準関数のみ）');
+  L.push('',
+    '# 1. アプリが生成した計画（プロファイル x 属性）。使用した直交配列: '+(G.oa||'-')+'、プロファイル数: '+prof.length,
+    'design <- data.frame(');
+  attrs.forEach((a,i)=>{
+    const col=prof.map(p=>q(a.levels[p[i]])).join(', ');
+    L.push('  '+q(a.name)+' = factor(c('+col+'), levels = c('+a.levels.map(q).join(', ')+'))'+(i<attrs.length-1?',':''));
+  });
+  L.push('  , check.names = FALSE)',
+    'print(design)',
+    '',
+    '# 2. 各水準が何回ずつ現れるか',
+    'for (nm in names(design)) { cat("\\n", nm, "\\n"); print(table(design[[nm]])) }',
+    '',
+    '# 3. 属性のペアごとの直交性（度数が「周辺度数の積 / 全体」に比例していれば直交）',
+    'is_orth <- function(a, b) {',
+    '  t <- table(a, b); e <- outer(rowSums(t), colSums(t)) / sum(t)',
+    '  max(abs(t - e))      # 0なら完全直交。1以下ならほぼ直交',
+    '}',
+    'nms <- names(design)',
+    'if (length(nms) >= 2) {',
+    '  pr <- combn(nms, 2)',
+    '  dev <- apply(pr, 2, function(p) is_orth(design[[p[1]]], design[[p[2]]]))',
+    '  print(data.frame(属性1 = pr[1, ], 属性2 = pr[2, ], 最大のずれ = round(dev, 4)))',
+    '}',
+    '',
+    '# 4. 主効果が推定できるか（ダミー変数の計画行列のランクが、パラメータ数と同じならOK）',
+    'X <- model.matrix(~ ., data = design)',
+    'cat("ランク:", qr(X)$rank, " / パラメータ数:", ncol(X), "\\n")',
+    '',
+    '# 5. 効果コーディング（各属性で合計0）にしたときの、「異なる属性どうし」の列の相関。',
+    '#    すべて0なら、属性ごとの効用値は互いに独立に推定できます（同じ属性内の列は、3水準以上だと相関が出ますが問題ありません）',
+    'Xe <- model.matrix(~ ., data = design, contrasts.arg = lapply(design, function(x) "contr.sum"))',
+    'grp <- attr(Xe, "assign")[-1]; Ce <- cor(Xe[, -1, drop = FALSE])',
+    'cross <- outer(grp, grp, "!=")',
+    'cat("異なる属性間の相関の最大値（絶対値）:", round(max(abs(Ce[cross])), 4), "\\n")');
+  return L.join('\n')+'\n';
+}
+
 </script>
 </body>
 </html>

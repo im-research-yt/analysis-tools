@@ -74,7 +74,7 @@ tr:nth-child(even) td{background:#f8fafc}
   <span class="badge">Decision Tree</span>
 </header>
 <div style="background:#fff3cd;border-bottom:1px solid #ffc107;padding:6px 24px;font-size:11px;color:#1a2332;font-weight:700;line-height:1.5">
-  法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室<br>学習用としてご利用ください。チェックはしていますが計算ミスの可能性がありますので、研究やビジネスでの利用は推奨しません。
+  法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室<br>学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。
 </div>
 <div class="container">
 
@@ -141,8 +141,58 @@ tr:nth-child(even) td{background:#f8fafc}
   </div>
 
   <div class="panel active" id="tab-tree">
-    <div class="note" style="margin-bottom:8px">
-      ※ スクロールして全体を確認できます。ノードをクリックすると詳細を表示します。
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      <div class="note">※ スクロールして全体を確認できます。</div>
+      <label style="font-size:12px;color:#555;font-weight:600;text-transform:none;letter-spacing:0">
+        ノード幅：
+        <select id="node-width" onchange="drawTree()" style="font-size:12px;padding:3px 8px;border:1px solid #ddd;border-radius:4px;width:auto">
+          <option value="120">小（120px）</option>
+          <option value="160">中（160px）</option>
+          <option value="200" selected>標準（200px）</option>
+          <option value="260">大（260px）</option>
+        </select>
+      </label>
+      <label style="font-size:12px;color:#555;font-weight:600;text-transform:none;letter-spacing:0">
+        縦間隔：
+        <select id="v-gap" onchange="drawTree()" style="font-size:12px;padding:3px 8px;border:1px solid #ddd;border-radius:4px;width:auto">
+          <option value="30">狭い（30px）</option>
+          <option value="50" selected>標準（50px）</option>
+          <option value="80">広い（80px）</option>
+        </select>
+      </label>
+      <label style="font-size:12px;color:#555;font-weight:600;text-transform:none;letter-spacing:0">
+        フォントサイズ：
+        <select id="font-size" onchange="drawTree()" style="font-size:12px;padding:3px 8px;border:1px solid #ddd;border-radius:4px;width:auto">
+          <option value="9">小（9px）</option>
+          <option value="11" selected>標準（11px）</option>
+          <option value="13">大（13px）</option>
+        </select>
+      </label>
+      <label style="font-size:12px;color:#555;font-weight:600;text-transform:none;letter-spacing:0">
+        表示倍率：
+        <select id="tree-zoom" onchange="applyZoom()" style="font-size:12px;padding:3px 8px;border:1px solid #ddd;border-radius:4px;width:auto">
+          <option value="0.1">10%</option>
+          <option value="0.2">20%</option>
+          <option value="0.3">30%</option>
+          <option value="0.4">40%</option>
+          <option value="0.5">50%</option>
+          <option value="0.6">60%</option>
+          <option value="0.7">70%</option>
+          <option value="0.8">80%</option>
+          <option value="0.9">90%</option>
+          <option value="1.0" selected>100%</option>
+          <option value="1.1">110%</option>
+          <option value="1.2">120%</option>
+          <option value="1.3">130%</option>
+          <option value="1.4">140%</option>
+          <option value="1.5">150%</option>
+          <option value="1.6">160%</option>
+          <option value="1.7">170%</option>
+          <option value="1.8">180%</option>
+          <option value="1.9">190%</option>
+          <option value="2.0">200%</option>
+        </select>
+      </label>
     </div>
     <div id="tree-svg-wrap"></div>
   </div>
@@ -192,6 +242,22 @@ tr:nth-child(even) td{background:#f8fafc}
 </div>
 
 </div>
+<!-- ===== Rスクリプト（検算用） ===== -->
+<div id="rscript-wrap" style="max-width:1100px;margin:0 auto;padding:0 16px 40px">
+  <div style="background:#fff;border:1px solid #d0d5dd;border-radius:10px;padding:16px 18px">
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px">Rで同じ計算をする（検算用スクリプト）</div>
+    <div style="font-size:12px;color:#555;line-height:1.7;margin-bottom:10px">
+      いま入力しているデータと設定を埋め込んだRスクリプトを作ります。RStudioに貼り付けて実行すると、このアプリと同じ計算をRの標準的な関数で行い、結果を並べて確かめられます。
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <button type="button" onclick="rsMake()" style="padding:8px 14px;border:none;border-radius:6px;background:#1a2332;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Rスクリプトを作成</button>
+      <button type="button" id="rs-copy-btn" onclick="rsCopy()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">コピー</button>
+      <button type="button" onclick="rsDownload()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">.Rファイルを保存</button>
+    </div>
+    <textarea id="rs-text" readonly spellcheck="false" placeholder="「Rスクリプトを作成」を押すと、ここに表示されます" style="width:100%;height:300px;box-sizing:border-box;font-family:Consolas,Menlo,monospace;font-size:12px;line-height:1.5;padding:10px;border:1px solid #d0d5dd;border-radius:6px;background:#fafbfc;white-space:pre;overflow:auto"></textarea>
+  </div>
+</div>
+
 <script>
 // ─── グローバル ───
 let G = {
@@ -278,25 +344,43 @@ function splitScore(left, right, task, classes){
   return (mse(left)*left.length+mse(right)*right.length)/n;
 }
 
-function bestSplit(rows, features, task, classes){
+function bestSplit(rows, features, task, classes, minLeaf){
   let bestScore=Infinity, bestFeat=null, bestVal=null, bestLeft=[], bestRight=[];
+  const consider=(feat,val,left,right)=>{
+    if(!left.length||!right.length) return;
+    if(left.length<(minLeaf||1)||right.length<(minLeaf||1)) return;  // 葉の最小サンプル数を満たす分割だけを候補にする
+    const score=splitScore(left,right,task,classes);
+    if(score<bestScore){
+      bestScore=score; bestFeat=feat; bestVal=val;
+      bestLeft=left; bestRight=right;
+    }
+  };
   for(const feat of features){
     const vals=[...new Set(rows.map(r=>r[feat]))].sort((a,b)=>a>b?1:-1);
-    for(let i=0;i<vals.length-1;i++){
-      const threshold=(typeof vals[i]==='number')?(vals[i]+vals[i+1])/2:vals[i];
-      let left,right;
-      if(typeof vals[i]==='number'){
-        left=rows.filter(r=>r[feat]<=threshold);
-        right=rows.filter(r=>r[feat]>threshold);
-      } else {
-        left=rows.filter(r=>r[feat]===vals[i]);
-        right=rows.filter(r=>r[feat]!==vals[i]);
+    if(typeof vals[0]==='number'){
+      // 数値: 隣り合う値の中点で分割（Rのrpartと同じ）
+      for(let i=0;i<vals.length-1;i++){
+        const threshold=(vals[i]+vals[i+1])/2;
+        consider(feat,threshold,
+          rows.filter(r=>r[feat]<=threshold),
+          rows.filter(r=>r[feat]>threshold));
       }
-      if(!left.length||!right.length) continue;
-      const score=splitScore(left,right,task,classes);
-      if(score<bestScore){
-        bestScore=score; bestFeat=feat; bestVal=threshold;
-        bestLeft=left; bestRight=right;
+    } else if(vals.length<=12){
+      // カテゴリ: 水準を2グループに分けるすべての組み合わせを試す（Rのrpartと同じ）
+      const k=vals.length;
+      for(let mask=1; mask<(1<<(k-1)); mask++){
+        const sub=[]; // 先頭の水準は常に右側に置く（左右の入れ替えによる重複を避ける）
+        for(let j=1;j<k;j++) if(mask&(1<<(j-1))) sub.push(vals[j]);
+        consider(feat,sub,
+          rows.filter(r=>sub.includes(r[feat])),
+          rows.filter(r=>!sub.includes(r[feat])));
+      }
+    } else {
+      // 水準が13以上: 1水準 対 その他（計算量のため）
+      for(const v of vals){
+        consider(feat,[v],
+          rows.filter(r=>r[feat]===v),
+          rows.filter(r=>r[feat]!==v));
       }
     }
   }
@@ -307,43 +391,60 @@ function bestSplit(rows, features, task, classes){
 function majorityClass(rows){
   const cnt={};
   rows.forEach(r=>{cnt[r._y]=(cnt[r._y]||0)+1;});
-  return Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0];
+  return Object.keys(cnt).sort((a,b)=>(cnt[b]-cnt[a])||(a<b?-1:a>b?1:0))[0];  // 同数のときは名前順（scikit-learnと同じ）
 }
 function meanVal(rows){ return rows.reduce((s,r)=>s+r._y,0)/rows.length; }
 
-function buildTree(rows, features, task, classes, depth, maxDepth, minSplit, minLeaf, importance){
+// 葉の「損失」: 分類=誤分類数、回帰=平方和（Rのrpartのrisk）
+function nodeRisk(rows, task){
+  if(task==='classification'){
+    const c={}; rows.forEach(r=>{c[r._y]=(c[r._y]||0)+1;});
+    return rows.length-Math.max(...Object.values(c));
+  }
+  return mse(rows)*rows.length;
+}
+
+function makeLeaf(rows, task, classes){
+  const n=rows.length;
+  return {leaf:true,
+    pred: task==='classification'?majorityClass(rows):meanVal(rows),
+    n,
+    dist: task==='classification'?
+      Object.fromEntries(classes.map(c=>[c,rows.filter(r=>r._y===c).length])):null,
+    impurity: task==='classification'?gini([rows],classes):mse(rows),
+    risk: nodeRisk(rows,task)};
+}
+
+function buildTree(rows, features, task, classes, depth, maxDepth, minSplit, minLeaf){
   const n=rows.length;
   // 終了条件
   const allSame=new Set(rows.map(r=>r._y)).size===1;
-  if(depth>=maxDepth||n<minSplit||allSame){
-    const pred=task==='classification'?majorityClass(rows):meanVal(rows);
-    const dist=task==='classification'?
-      Object.fromEntries(classes.map(c=>[c,rows.filter(r=>r._y===c).length])):null;
-    return {leaf:true, pred, n, dist,
-            impurity:task==='classification'?gini([rows],classes):mse(rows)};
-  }
-  const {feat,val,score,left,right}=bestSplit(rows,features,task,classes);
-  if(!feat||left.length<minLeaf||right.length<minLeaf){
-    const pred=task==='classification'?majorityClass(rows):meanVal(rows);
-    const dist=task==='classification'?
-      Object.fromEntries(classes.map(c=>[c,rows.filter(r=>r._y===c).length])):null;
-    return {leaf:true, pred, n, dist,
-            impurity:task==='classification'?gini([rows],classes):mse(rows)};
-  }
-  // 重要度の計算
+  if(depth>=maxDepth||n<minSplit||allSame) return makeLeaf(rows,task,classes);
+  const {feat,val,score,left,right}=bestSplit(rows,features,task,classes,minLeaf);
+  if(!feat||left.length<minLeaf||right.length<minLeaf) return makeLeaf(rows,task,classes);
+
   const parentImp=task==='classification'?gini([rows],classes):mse(rows);
-  const childImp=(left.length*splitScore(left,[],task,classes)+
-                  right.length*splitScore(right,[],task,classes))/n;
-  const gain=(parentImp-score)*n;
-  importance[feat]=(importance[feat]||0)+gain;
+  const L=buildTree(left,features,task,classes,depth+1,maxDepth,minSplit,minLeaf);
+  const R=buildTree(right,features,task,classes,depth+1,maxDepth,minSplit,minLeaf);
+  // 枝刈り: この分割（とその下の分割）で損失が減らないなら分割しない（Rのrpart(cp=0)と同じ）
+  const parentRisk=nodeRisk(rows,task);
+  if(parentRisk-(L.risk+R.risk) <= 1e-12) return makeLeaf(rows,task,classes);
 
   return {
     leaf:false, feat, val, score, n,
     impurity: parentImp,
     pred: task==='classification'?majorityClass(rows):meanVal(rows),
-    left: buildTree(left,features,task,classes,depth+1,maxDepth,minSplit,minLeaf,importance),
-    right: buildTree(right,features,task,classes,depth+1,maxDepth,minSplit,minLeaf,importance),
+    risk: L.risk+R.risk,
+    left:L, right:R,
   };
+}
+
+// 変数の重要度: 各分割での不純度の減少量（×サンプル数）を変数ごとに合計
+function collectImportance(node, importance){
+  if(node.leaf) return;
+  importance[node.feat]=(importance[node.feat]||0)+(node.impurity-node.score)*node.n;
+  collectImportance(node.left,importance);
+  collectImportance(node.right,importance);
 }
 
 function predict(node, row){
@@ -351,7 +452,7 @@ function predict(node, row){
   if(typeof node.val==='number'){
     return row[node.feat]<=node.val?predict(node.left,row):predict(node.right,row);
   } else {
-    return row[node.feat]===node.val?predict(node.left,row):predict(node.right,row);
+    return node.val.includes(row[node.feat])?predict(node.left,row):predict(node.right,row);
   }
 }
 
@@ -381,7 +482,8 @@ function runTree(){
   const data=rows.map(r=>({...r, _y:task==='regression'?+r[target]:r[target]}));
 
   const importance={};
-  const tree=buildTree(data,features,task,classes,0,maxDepth,minSplit,minLeaf,importance);
+  const tree=buildTree(data,features,task,classes,0,maxDepth,minSplit,minLeaf);
+  collectImportance(tree,importance);
 
   // 重要度の正規化
   const totalImp=Object.values(importance).reduce((s,v)=>s+v,0)||1;
@@ -411,16 +513,21 @@ function runTree(){
   document.getElementById('result-card').style.display='block';
   switchTab('tree');
   drawTree();
+  setTimeout(applyZoom,50);
   renderImportance();
   renderPredict(accuracy, rmse);
   renderRules();
   document.getElementById('result-card').scrollIntoView({behavior:'smooth'});
+  setTimeout(applyZoom, 50);
 }
 
 // ─── ツリー図描画 ───
 function drawTree(){
   const wrap=document.getElementById('tree-svg-wrap');
-  const NODE_W=180, NODE_H=80, H_GAP=30, V_GAP=60;
+  const NODE_W=+(document.getElementById('node-width')?.value||200);
+  const NODE_H=80, H_GAP=20;
+  const V_GAP=+(document.getElementById('v-gap')?.value||50);
+  const FONT_SZ=+(document.getElementById('font-size')?.value||11);
   const task=G.task;
   const classes=G.classes;
 
@@ -476,7 +583,7 @@ function drawTree(){
         svg+=`<line x1="${x}" y1="${y+NODE_H}" x2="${lPos.x}" y2="${lPos.y}"
                stroke="#aaa" stroke-width="1.5"/>`;
         svg+=`<text x="${(x+lPos.x)/2-12}" y="${(y+NODE_H+lPos.y)/2}"
-               font-size="10" fill="#185FA5" font-family="sans-serif">Yes</text>`;
+               font-size="${FONT_SZ-1}" fill="#185FA5" font-family="sans-serif">Yes</text>`;
       }
       // 右子ノードのインデックスを探す
       function findRight(pid, nodes){
@@ -500,7 +607,7 @@ function drawTree(){
         svg+=`<line x1="${x}" y1="${y+NODE_H}" x2="${rp.x}" y2="${rp.y}"
                stroke="#aaa" stroke-width="1.5"/>`;
         svg+=`<text x="${(x+rp.x)/2+4}" y="${(y+NODE_H+rp.y)/2}"
-               font-size="10" fill="#e05c2a" font-family="sans-serif">No</text>`;
+               font-size="${FONT_SZ-1}" fill="#e05c2a" font-family="sans-serif">No</text>`;
       }
     }
   });
@@ -520,7 +627,7 @@ function drawTree(){
     const lines=[];
     if(!isLeaf){
       const valStr=typeof node.val==='number'?
-        `≤ ${node.val.toFixed(2)}`:`= ${node.val}`;
+        `≤ ${node.val.toFixed(2)}`:`∈ {${node.val.join(', ')}}`;
       lines.push({text:`${node.feat} ${valStr}`, bold:true, color:'#1a2332'});
       lines.push({text:`n = ${node.n}`, bold:false, color:'#555'});
       if(G.task==='classification')
@@ -543,7 +650,7 @@ function drawTree(){
     lines.forEach((l,i)=>{
       const esc=l.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       svg+=`<text x="${x}" y="${startY+i*lineH}" text-anchor="middle"
-             font-size="11" font-family="sans-serif"
+             font-size="${FONT_SZ}" font-family="sans-serif"
              font-weight="${l.bold?'700':'400'}" fill="${l.color}">${esc}</text>`;
     });
   });
@@ -630,8 +737,8 @@ function renderRules(){
       rules.push({path:[...path], pred:predStr, n:node.n});
       return;
     }
-    const valStr=typeof node.val==='number'?`≤ ${node.val.toFixed(2)}`:`= ${node.val}`;
-    const valStrR=typeof node.val==='number'?`> ${node.val.toFixed(2)}`:`≠ ${node.val}`;
+    const valStr=typeof node.val==='number'?`≤ ${node.val.toFixed(2)}`:`∈ {${node.val.join(', ')}}`;
+    const valStrR=typeof node.val==='number'?`> ${node.val.toFixed(2)}`:`∉ {${node.val.join(', ')}}`;
     extract(node.left, [...path, `${node.feat} ${valStr}`]);
     extract(node.right, [...path, `${node.feat} ${valStrR}`]);
   }
@@ -667,6 +774,21 @@ function downloadPredictions(){
   a.href='data:text/csv;charset=utf-8;base64,'+b64;
   a.download='decision_tree_predictions.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+// ─── ズーム ───
+function applyZoom(){
+  const scale=+(document.getElementById('tree-zoom')?.value||1.0);
+  const svg=document.querySelector('#tree-svg-wrap svg');
+  if(svg) svg.style.transform=`scale(${scale})`;
+  if(svg) svg.style.transformOrigin='top left';
+  // ラッパーの高さをスケールに合わせて調整
+  const wrap=document.getElementById('tree-svg-wrap');
+  if(svg&&wrap){
+    const h=+svg.getAttribute('height')||400;
+    const w=+svg.getAttribute('width')||600;
+    wrap.style.minHeight=(h*scale)+'px';
+  }
 }
 
 // ─── 例題 ───
@@ -1223,6 +1345,108 @@ function loadExample(n){
     document.getElementById('max-depth').value=5;
   }
 }
+
+
+
+
+// ───────── Rスクリプト出力（検算用）の共通部品 ─────────
+function rsRaw(text){
+  // R 4.0以降の raw string: r"---( ... )---"
+  let d='---';
+  while(text.indexOf(')'+d+'"')>=0) d+='-';
+  return 'r"'+d+'(\n'+text.replace(/\r\n?/g,'\n').replace(/\s+$/,'')+'\n)'+d+'"';
+}
+function rsHeader(title, pkgLines){
+  const L=[
+    '# =====================================================================',
+    '# '+title,
+    '# このスクリプトは、アプリに入力したデータと設定をそのまま埋め込んであります。',
+    '# RStudioに貼り付けて、上から順に実行してください。',
+    '# 日本語が文字化けするときは、RStudioの File > Reopen with Encoding > UTF-8 で開き直してください。',
+    '# ====================================================================='
+  ];
+  if(pkgLines&&pkgLines.length){ L.push('','# 初回だけ、必要なパッケージをインストールしてください（先頭の # を外して実行）'); pkgLines.forEach(p=>L.push(p)); }
+  return L;
+}
+function rsMake(){
+  const ta=document.getElementById('rs-text');
+  try{ ta.value=buildRScript(); }
+  catch(e){ ta.value='# スクリプトを作成できませんでした: '+e.message; }
+}
+function rsCopy(){
+  const ta=document.getElementById('rs-text');
+  if(!ta.value) rsMake();
+  ta.focus(); ta.select();
+  let ok=false;
+  try{ ok=document.execCommand('copy'); }catch(e){}
+  if(!ok && navigator.clipboard){ navigator.clipboard.writeText(ta.value).catch(()=>{}); }
+  const b=document.getElementById('rs-copy-btn'); const old=b.textContent;
+  b.textContent='コピーしました'; setTimeout(()=>{b.textContent=old;},1500);
+}
+function rsDownload(){
+  const ta=document.getElementById('rs-text');
+  if(!ta.value) rsMake();
+  const b64=btoa(unescape(encodeURIComponent('﻿'+ta.value)));
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8;base64,'+b64;
+  a.download=RS_FILENAME;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+const RS_FILENAME='decision_tree_check.R';
+function buildRScript(){
+  const text=document.getElementById('csv-input').value;
+  if(!text.trim()) throw new Error('先にデータを入力してください');
+  const parsed=parseCSV(text);
+  const {features,target,rows}=parsed;
+  let task=document.getElementById('task-type').value;
+  const yVals=rows.map(r=>r[target]);
+  if(task==='auto'){
+    const unique=[...new Set(yVals)];
+    task=(unique.length<=10&&unique.some(v=>typeof v==='string'||Number.isInteger(+v)&&unique.length<=10))?'classification':'regression';
+  }
+  const maxDepth=+document.getElementById('max-depth').value||4;
+  const minSplit=+document.getElementById('min-split').value||2;
+  const minLeaf=+document.getElementById('min-leaf').value||1;
+  const rawLines=text.trim().split(/\r?\n/).filter(l=>l.trim());
+  const sepc=rawLines[0].includes('\t')?'\t':',';
+  const names=features.map((_,i)=>'x'+(i+1)).concat(['y']);
+  rawLines[0]=names.join(sepc);
+  const L=rsHeader('決定木: アプリ(decision_tree.html)と同じ計算をRで行う（rpartパッケージ）',
+    ['# install.packages("rpart")']);
+  L.push('',
+    'library(rpart)',
+    '',
+    '# 変数の対応: '+features.map((f,i)=>'x'+(i+1)+'='+f).join(', ')+', y='+target+'（目的変数）',
+    '',
+    '# 1. データ（文字の列は自動で factor になる）',
+    'dat <- read.csv(text = '+rsRaw(rawLines.join('\n'))+',',
+    '                sep = "'+(sepc==='\t'?'\\t':',')+'", header = TRUE, stringsAsFactors = TRUE)');
+  if(task==='classification') L.push('dat$y <- factor(dat$y)   # 分類木: 目的変数をカテゴリとして扱う');
+  L.push('',
+    '# 2. 決定木（'+(task==='classification'?'分類木。不純度はジニ係数':'回帰木。分割基準は平方和の減少')+'）',
+    '#    cp = 0: 複雑さによる枝刈りをしない。ただし、分割しても損失が減らない枝は、rpartの仕様で切り落とされる',
+    '#    xval = 0, maxcompete = 0, maxsurrogate = 0: 交差検証・競合分割・代理分割は使わない（アプリと同じ条件）',
+    'fit <- rpart(y ~ ., data = dat,',
+    '             method = "'+(task==='classification'?'class':'anova')+'",',
+    '             control = rpart.control(minsplit = '+minSplit+', minbucket = '+minLeaf+', maxdepth = '+maxDepth+',',
+    '                                     cp = 0, xval = 0, maxcompete = 0, maxsurrogate = 0))',
+    '',
+    '# 3. 木の構造（アプリの「ツリー図」「ルール」タブと比べてください）',
+    'print(fit)',
+    '',
+    '# 4. 変数の重要度（合計1に正規化。アプリの「重要度」タブに対応）',
+    'imp <- fit$variable.importance',
+    'print(round(imp / sum(imp), 4))',
+    '',
+    '# 5. 学習データでの精度');
+  if(task==='classification') L.push('pred <- predict(fit, type = "class")','cat("正解率:", round(mean(pred == dat$y), 4), "\\n")','print(table(実測 = dat$y, 予測 = pred))');
+  else L.push('pred <- predict(fit)','cat("RMSE:", round(sqrt(mean((pred - dat$y)^2)), 4), "\\n")');
+  L.push('',
+    '# 6. グラフ（rpart.plotパッケージがあれば、より見やすくなります: install.packages("rpart.plot")）',
+    'plot(fit, uniform = TRUE, margin = 0.1); text(fit, use.n = TRUE, cex = 0.8)');
+  return L.join('\n')+'\n';
+}
+
 </script>
 </body>
 </html>
