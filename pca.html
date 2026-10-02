@@ -1373,6 +1373,7 @@ function switchTab(id){
 
 
 
+
 // ───────── Rスクリプト出力（検算用）の共通部品 ─────────
 function rsRaw(text){
   // R 4.0以降の raw string: r"---( ... )---"
@@ -1399,7 +1400,8 @@ function rsMake(){
 }
 function rsCopy(){
   const ta=document.getElementById('rs-text');
-  if(!ta.value) rsMake();
+  rsMake();   // 入力が変わっていてもよいよう、毎回作り直す
+  if(ta.value.indexOf('# スクリプトを作成できませんでした')===0) return;
   ta.focus(); ta.select();
   let ok=false;
   try{ ok=document.execCommand('copy'); }catch(e){}
@@ -1409,7 +1411,8 @@ function rsCopy(){
 }
 function rsDownload(){
   const ta=document.getElementById('rs-text');
-  if(!ta.value) rsMake();
+  rsMake();
+  if(ta.value.indexOf('# スクリプトを作成できませんでした')===0) return;
   const b64=btoa(unescape(encodeURIComponent('﻿'+ta.value)));
   const a=document.createElement('a');
   a.href='data:text/plain;charset=utf-8;base64,'+b64;
