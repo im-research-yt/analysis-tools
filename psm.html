@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PSM分析ツール</title>
+<title>PSM Analysis Tool</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Meiryo',sans-serif;
      background:#f4f6f9;color:#1a2332;font-size:14px;line-height:1.6}
-header{background:#1a2332;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px}
+header{background:#233A9A;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px}
 header h1{font-size:17px;font-weight:600}
-.badge{background:#e05c2a;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700}
-.disclaimer{background:#fff3cd;border-bottom:1px solid #ffc107;padding:6px 24px;
-            font-size:11px;color:#1a2332;font-weight:700;line-height:1.5}
+.badge{background:#F28018;color:#1a2332;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700}
+.disclaimer{background:#F28018;border-bottom:0;padding:10px 24px;margin-bottom:20px;
+            font-size:12px;color:#1a2332;font-weight:700;line-height:1.6}
 .container{max-width:1100px;margin:0 auto;padding:20px 16px}
 .card{background:#fff;border-radius:8px;border:1px solid #e0e4ea;padding:20px;margin-bottom:16px}
 .card h2{font-size:14px;font-weight:700;color:#1a2332;margin-bottom:14px;
@@ -64,67 +64,63 @@ canvas{display:block;width:100%;max-width:100%}
      color:#777;border-bottom:2px solid transparent;margin-bottom:-2px}
 .tab.active{color:#1a2332;border-bottom-color:#e05c2a}
 .panel{display:none}.panel.active{display:block}
+
+.langsw{margin-left:auto;display:flex;gap:4px}
+.langsw button{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45);border-radius:6px;
+  padding:3px 10px;font-size:12px;cursor:pointer}
+.langsw button.on{background:#fff;color:#233A9A;font-weight:700}
+.foot{max-width:1100px;margin:0 auto;padding:0 16px 28px;font-size:11px;color:#777}
 </style>
+<script data-goatcounter="https://yuki-toyoda.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 <header>
-  <h1>PSM分析ツール</h1>
+  <h1 data-i="h1"></h1>
   <span class="badge">Price Sensitivity Measurement</span>
+  <div class="langsw"><button type="button" data-lang="ja" onclick="setLang('ja')">日本語</button><button type="button" data-lang="en" onclick="setLang('en')">English</button></div>
 </header>
-<div class="disclaimer">
-  法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室<br>
-  学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。
-</div>
+<div class="disclaimer"><span data-i="disc1"></span><br><span data-i="disc2"></span></div>
 
 <div class="container">
 
-<!-- データ入力 -->
 <div class="card">
-  <h2>データの入力</h2>
+  <h2 data-i="cardData"></h2>
   <div class="btn-row" style="margin-bottom:10px">
-    <button class="btn-secondary" onclick="loadExample(1)">例題1（PMC=OPPの典型例）</button>
-    <button class="btn-secondary" onclick="loadExample(2)">例題2（4交点が全て異なる）</button>
-    <label class="btn-secondary" style="cursor:pointer;display:inline-flex;align-items:center">
-      📂 CSVを開く
+    <button class="btn-secondary" onclick="loadExample(1)" data-i="ex1"></button>
+    <button class="btn-secondary" onclick="loadExample(2)" data-i="ex2"></button>
+    <label class="btn-secondary" style="cursor:pointer;display:inline-flex;align-items:center;text-transform:none;letter-spacing:0;margin:0;font-weight:400">
+      <span data-i="openCsv"></span>
       <input type="file" accept=".csv,.txt" style="display:none" onchange="loadCSVFile(event)">
     </label>
   </div>
-  <label>CSV形式（1行目：ヘッダー、列：回答者ID・①安すぎる・②安い・③高い・④高すぎる）</label>
-  <textarea id="csv-input" placeholder="回答者ID,①安すぎる（円）,②安い（円）,③高い（円）,④高すぎる（円）
-R01,723,879,1218,1438
-R02,655,862,1047,1385
-..."></textarea>
-  <div class="note">
-    ※ 各回答者は ①安すぎる ＜ ②安い ＜ ③高い ＜ ④高すぎる の順になっている必要があります<br>
-    ※ 逆転回答（順序が逆の行）は自動的に除外します<br>
-    ※ 列の順番は固定です（回答者ID、①〜④の順）
-  </div>
+  <label data-i="csvLabel" style="text-transform:none;letter-spacing:0"></label>
+  <textarea id="csv-input" data-ip="csvPh"></textarea>
+  <div class="note" data-ih="csvNotes"></div>
   <div id="err-msg" class="err"></div>
   <div class="btn-row">
-    <button class="btn-primary" onclick="runPSM()">▶ 分析を実行</button>
+    <button class="btn-primary" onclick="runPSM()" data-i="run"></button>
     <div style="display:flex;align-items:center;gap:8px;margin-left:8px">
-      <label style="text-transform:none;letter-spacing:0;font-size:12px;font-weight:600;margin:0">交点が複数あるとき：</label>
+      <label data-i="multi" style="text-transform:none;letter-spacing:0;font-size:12px;font-weight:600;margin:0"></label>
       <select id="interp-method" style="padding:6px 8px;border:1px solid #d0d5dd;border-radius:6px;font-size:12px">
-        <option value="min" selected>最小の価格（Rの既定）</option>
-        <option value="max">最大の価格</option>
-        <option value="mean">平均</option>
+        <option value="min" selected data-i="mMin"></option>
+        <option value="max" data-i="mMax"></option>
+        <option value="mean" data-i="mMean"></option>
       </select>
     </div>
   </div>
 </div>
 
-<!-- 結果 -->
 <div class="card" id="result-card" style="display:none">
-  <h2>分析結果</h2>
+  <h2 data-i="cardResult"></h2>
   <div id="result-info" class="info" style="margin-bottom:8px"></div>
   <div id="overlap-warn" style="display:none;padding:10px 14px;background:#fff8e1;
        border:1px solid #ffc107;border-radius:6px;font-size:12px;margin-bottom:12px;color:#5d4037"></div>
 
   <div class="tabs">
-    <div class="tab active" onclick="switchTab('graph')">曲線グラフ</div>
-    <div class="tab" onclick="switchTab('points')">交点・価格帯</div>
-    <div class="tab" onclick="switchTab('table')">累積集計表</div>
-    <div class="tab" onclick="switchTab('glossary')">用語解説</div>
+    <div class="tab active" onclick="switchTab('graph')" data-i="tabGraph"></div>
+    <div class="tab" onclick="switchTab('points')" data-i="tabPoints"></div>
+    <div class="tab" onclick="switchTab('table')" data-i="tabTable"></div>
+    <div class="tab" onclick="switchTab('glossary')" data-i="tabGloss"></div>
   </div>
 
   <div class="panel active" id="tab-graph">
@@ -132,91 +128,187 @@ R02,655,862,1047,1385
       <canvas id="psm-canvas"></canvas>
     </div>
     <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#e05c2a"></div>①安すぎる（累積%）</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#185FA5"></div>②安い（累積%）</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#0e7c5a"></div>③高い（累積%）</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#8e44ad"></div>④高すぎる（累積%）</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#fff;border:2px dashed #185FA5"></div>安くない（②の反転）</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#fff;border:2px dashed #0e7c5a"></div>高くない（③の反転）</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e05c2a"></div><span data-i="lg1"></span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#185FA5"></div><span data-i="lg2"></span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#0e7c5a"></div><span data-i="lg3"></span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#8e44ad"></div><span data-i="lg4"></span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fff;border:2px dashed #185FA5"></div><span data-i="lgN2"></span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fff;border:2px dashed #0e7c5a"></div><span data-i="lgN3"></span></div>
     </div>
   </div>
 
   <div class="panel" id="tab-points">
     <div class="stat-row" id="points-stat"></div>
     <div id="range-vis"></div>
-    <div class="note" style="margin-top:12px">
-      ※ 交点の定義と計算は、Rの pricesensitivitymeter パッケージ（Van Westendorp 1976 に基づく）に合わせています<br>
-      ※ PMC〜PMEが「許容価格帯」、OPP付近が最も受け入れられやすい価格の目安です
-    </div>
+    <div class="note" style="margin-top:12px" data-ih="pointsNote"></div>
   </div>
 
   <div class="panel" id="tab-table">
     <div class="btn-row">
-      <button class="btn-dl" onclick="downloadCSV()">⬇ 累積集計表をCSVでダウンロード</button>
+      <button class="btn-dl" onclick="downloadCSV()" data-i="dlCsv"></button>
     </div>
     <div class="tbl-wrap" id="table-wrap"></div>
   </div>
 
   <div class="panel" id="tab-glossary">
-    <div class="tbl-wrap"><table>
-      <thead><tr><th class="left">用語</th><th class="left">英語名</th><th class="left">説明</th></tr></thead>
-      <tbody>
-        <tr><td class="left"><b>PSM分析</b></td><td class="left">Price Sensitivity Measurement</td>
-            <td class="left">消費者の価格感度を測定し、適正価格帯を特定するマーケティング調査手法。4つの価格質問への回答から許容価格帯を算出する。</td></tr>
-        <tr><td class="left"><b>①安すぎる</b></td><td class="left">Too Cheap</td>
-            <td class="left">「この価格では品質が不安になる（安すぎる）」と感じる価格。この価格以上を「安すぎる」と回答した人の累積割合で曲線を描く。</td></tr>
-        <tr><td class="left"><b>②安い</b></td><td class="left">Cheap / Acceptable Low</td>
-            <td class="left">「この価格はお値打ちで買いやすい（安い）」と感じる価格。この価格以上を「安い」と回答した割合の累積曲線。</td></tr>
-        <tr><td class="left"><b>③高い</b></td><td class="left">Expensive / Acceptable High</td>
-            <td class="left">「この価格は少し高いと感じ始める（高い）」価格。この価格以下を「高い」と回答した割合の累積曲線。</td></tr>
-        <tr><td class="left"><b>④高すぎる</b></td><td class="left">Too Expensive</td>
-            <td class="left">「この価格では高すぎて買えない（高すぎる）」と感じる価格。この価格以下を「高すぎる」と回答した割合の累積曲線。</td></tr>
-        <tr><td class="left"><b>PMC</b></td><td class="left">Point of Marginal Cheapness（下限価格）</td>
-            <td class="left">①安すぎる曲線と「安くない」曲線（②安いの反転）の交点。これより低い価格は「安すぎて品質不安」と感じる人が増える下限。</td></tr>
-        <tr><td class="left"><b>PME</b></td><td class="left">Point of Marginal Expensiveness（上限価格）</td>
-            <td class="left">④高すぎる曲線と「高くない」曲線（③高いの反転）の交点。これより高い価格は「高すぎて買えない」と感じる人が増える上限。</td></tr>
-        <tr><td class="left"><b>IPP</b></td><td class="left">Indifference Price Point（無関心価格点）</td>
-            <td class="left">②安い曲線と③高い曲線の交点。「安い」と「高い」が拮抗する価格。多くの消費者が「普通の価格」と感じる点。</td></tr>
-        <tr><td class="left"><b>OPP</b></td><td class="left">Optimum Price Point（妥協価格点）</td>
-            <td class="left">①安すぎる曲線と④高すぎる曲線の交点。「安すぎる」と「高すぎる」の拒絶者が最も少ない最適価格。</td></tr>
-        <tr><td class="left"><b>許容価格帯</b></td><td class="left">Acceptable Price Range</td>
-            <td class="left">PMC〜PMEの範囲。この価格帯が消費者に受け入れられる価格ゾーン。</td></tr>
-      </tbody>
-    </table></div>
+    <div class="tbl-wrap" id="gloss-wrap"></div>
   </div>
 </div>
 
 </div>
-<!-- ===== Rスクリプト（検算用） ===== -->
-<div id="rscript-wrap" style="max-width:1100px;margin:0 auto;padding:0 16px 40px">
+<div id="rscript-wrap" style="max-width:1100px;margin:0 auto;padding:0 16px 24px">
   <div style="background:#fff;border:1px solid #d0d5dd;border-radius:10px;padding:16px 18px">
-    <div style="font-weight:700;font-size:15px;margin-bottom:6px">Rで同じ計算をする（検算用スクリプト）</div>
-    <div style="font-size:12px;color:#555;line-height:1.7;margin-bottom:10px">
-      いま入力しているデータと設定を埋め込んだRスクリプトを作ります。RStudioに貼り付けて実行すると、このアプリと同じ計算をRの標準的な関数で行い、結果を並べて確かめられます。
-    </div>
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px" data-i="rsTitle"></div>
+    <div style="font-size:12px;color:#555;line-height:1.7;margin-bottom:10px" data-i="rsDesc"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-      <button type="button" onclick="rsMake()" style="padding:8px 14px;border:none;border-radius:6px;background:#1a2332;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Rスクリプトを作成</button>
-      <button type="button" id="rs-copy-btn" onclick="rsCopy()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">コピー</button>
-      <button type="button" onclick="rsDownload()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">.Rファイルを保存</button>
+      <button type="button" onclick="rsMake()" data-i="rsMake" style="padding:8px 14px;border:none;border-radius:6px;background:#1a2332;color:#fff;font-size:13px;font-weight:600;cursor:pointer"></button>
+      <button type="button" id="rs-copy-btn" onclick="rsCopy()" data-i="rsCopy" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer"></button>
+      <button type="button" onclick="rsDownload()" data-i="rsSave" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer"></button>
     </div>
-    <textarea id="rs-text" readonly spellcheck="false" placeholder="「Rスクリプトを作成」を押すと、ここに表示されます" style="width:100%;height:300px;box-sizing:border-box;font-family:Consolas,Menlo,monospace;font-size:12px;line-height:1.5;padding:10px;border:1px solid #d0d5dd;border-radius:6px;background:#fafbfc;white-space:pre;overflow:auto"></textarea>
+    <textarea id="rs-text" readonly spellcheck="false" data-ip="rsPh" style="width:100%;height:300px;box-sizing:border-box;font-family:Consolas,Menlo,monospace;font-size:12px;line-height:1.5"></textarea>
   </div>
 </div>
+<div class="foot" data-i="foot"></div>
 
 <script>
+// ===================== i18n core (JA / EN) =====================
+// 使い方: 各要素に data-i="キー"(textContent) / data-ih="キー"(innerHTML) / data-ip="キー"(placeholder) を付ける。
+// 動的な文字列は t('キー', 引数...) を使う。辞書の値は文字列、または関数。
+const I18N={ja:{},en:{}};
+let LANG='ja';
+function detectLang(){
+  try{const q=new URLSearchParams(location.search).get('lang'); if(q==='ja'||q==='en') return q;}catch(e){}
+  try{const s=localStorage.getItem('tool_lang'); if(s==='ja'||s==='en') return s;}catch(e){}
+  return ((navigator.language||'en')+'').toLowerCase().indexOf('ja')===0?'ja':'en';
+}
+function t(key){
+  const a=Array.prototype.slice.call(arguments,1);
+  let s=I18N[LANG]&&I18N[LANG][key];
+  if(s===undefined) s=I18N.en[key];
+  if(s===undefined) return key;
+  return typeof s==='function'?s.apply(null,a):s;
+}
+function applyI18n(){
+  document.documentElement.lang=LANG;
+  document.title=t('title');
+  document.querySelectorAll('[data-i]').forEach(e=>{e.textContent=t(e.getAttribute('data-i'));});
+  document.querySelectorAll('[data-ih]').forEach(e=>{e.innerHTML=t(e.getAttribute('data-ih'));});
+  document.querySelectorAll('[data-ip]').forEach(e=>{e.setAttribute('placeholder',t(e.getAttribute('data-ip')));});
+  document.querySelectorAll('.langsw button').forEach(b=>{b.classList.toggle('on',b.getAttribute('data-lang')===LANG);});
+  if(typeof onLangChange==='function') onLangChange();
+}
+function setLang(l){
+  LANG=l;
+  try{localStorage.setItem('tool_lang',l);}catch(e){}
+  applyI18n();
+}
+// =================================================================
+
+// ───────── 辞書 ─────────
+const CSV1_JA=`回答者ID,①安すぎる（円）,②安い（円）,③高い（円）,④高すぎる（円）`;
+const CSV1_EN=`respondent_id,(1) too cheap,(2) cheap,(3) expensive,(4) too expensive`;
+Object.assign(I18N.ja,{
+ title:'PSM分析ツール', h1:'PSM分析ツール',
+ disc1:'法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室',
+ disc2:'学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。',
+ cardData:'データの入力', ex1:'例題1（PMC=OPPの典型例）', ex2:'例題2（4交点が全て異なる）', openCsv:'📂 CSVを開く',
+ csvLabel:'CSV形式（1行目：ヘッダー、列：回答者ID・①安すぎる・②安い・③高い・④高すぎる）',
+ csvPh:CSV1_JA+'\nR01,723,879,1218,1438\nR02,655,862,1047,1385\n...',
+ csvNotes:'※ 各回答者は ①安すぎる ＜ ②安い ＜ ③高い ＜ ④高すぎる の順になっている必要があります<br>※ 逆転回答（順序が逆の行）は自動的に除外します<br>※ 列の順番は固定です（回答者ID、①〜④の順）',
+ run:'▶ 分析を実行', multi:'交点が複数あるとき：', mMin:'最小の価格（Rの既定）', mMax:'最大の価格', mMean:'平均',
+ cardResult:'分析結果', tabGraph:'曲線グラフ', tabPoints:'交点・価格帯', tabTable:'累積集計表', tabGloss:'用語解説',
+ lg1:'①安すぎる（累積%）', lg2:'②安い（累積%）', lg3:'③高い（累積%）', lg4:'④高すぎる（累積%）', lgN2:'安くない（②の反転）', lgN3:'高くない（③の反転）',
+ pointsNote:'※ 交点の定義と計算は、Rの pricesensitivitymeter パッケージ（Van Westendorp 1976 に基づく）に合わせています<br>※ PMC〜PMEが「許容価格帯」、OPP付近が最も受け入れられやすい価格の目安です',
+ dlCsv:'⬇ 累積集計表をCSVでダウンロード',
+ rsTitle:'Rで同じ計算をする（検算用スクリプト）',
+ rsDesc:'いま入力しているデータと設定を埋め込んだRスクリプトを作ります。RStudioに貼り付けて実行すると、このアプリと同じ計算をRの標準的な関数で行い、結果を並べて確かめられます。',
+ rsMake:'Rスクリプトを作成', rsCopy:'コピー', rsSave:'.Rファイルを保存', rsPh:'「Rスクリプトを作成」を押すと、ここに表示されます', copied:'コピーしました',
+ foot:'このツールは、Claude（Anthropic）の支援を受けて開発しました。',
+ errNoData:'データを入力してください', errMin2:'2行以上必要です', errMin3:'有効な回答が3件以上必要です',
+ none:'なし', unit:'円', axisX:'価格（円）', axisY:'回答者の割合（%）',
+ info:(n,k,mlabel,sk)=>`有効回答数：<b>${n}名</b>　価格軸：<b>回答に現れた価格（${k}点）</b>　交点が複数あるとき：<b>${mlabel}</b>`+(sk>0?`　<span style="color:#e05c2a">逆転回答除外：${sk}件</span>`:''),
+ mlabel:{min:'最小',max:'最大',mean:'平均'},
+ stPMC:'PMC（下限価格）', stOPP:'OPP（妥協価格点）', stIPP:'IPP（無関心価格点）', stPME:'PME（上限価格）',
+ sPMC:'①安すぎる × 安くない', sOPP:'①安すぎる × ④高すぎる', sIPP:'②安い × ③高い', sPME:'④高すぎる × 高くない',
+ rangeH:'許容価格帯（PMC〜PME）', thMeasure:'指標', thPrice:'価格', thMeaning:'意味',
+ rPMC:'PMC（下限）', rOPP:'OPP（妥協価格点）', rIPP:'IPP（無関心価格点）', rPME:'PME（上限）', rRange:'許容価格帯',
+ mPMC:'これ以下は「安すぎて品質不安」が増える', mOPP:'拒絶者（安すぎ＋高すぎ）が最も少ない価格', mIPP:'「安い」と「高い」が拮抗する、多数派の標準価格感', mPME:'これ以上は「高すぎて買えない」が増える',
+ mRange:(w)=>`消費者に受け入れられる価格ゾーン（幅：${w}円）`,
+ thP:'価格（円）', th1:'①安すぎる<br>累積%', th2:'②安い<br>累積%', th3:'③高い<br>累積%', th4:'④高すぎる<br>累積%', thN2:'安くない<br>(1-②)', thN3:'高くない<br>(1-③)', near:'付近：',
+ csvHead:'価格（円）,①安すぎる累積%,②安い累積%,③高い累積%,④高すぎる累積%,安くない(1-②)%,高くない(1-③)%',
+ csvPMC:'PMC（下限価格）', csvOPP:'OPP（妥協価格点）', csvIPP:'IPP（無関心価格点）', csvPME:'PME（上限価格）',
+ glossHead:['用語','英語名','説明'],
+ gloss:[
+  ['PSM分析','Price Sensitivity Measurement','消費者の価格感度を測定し、適正価格帯を特定するマーケティング調査手法。4つの価格質問への回答から許容価格帯を算出する。'],
+  ['①安すぎる','Too Cheap','「この価格では品質が不安になる（安すぎる）」と感じる価格。この価格以上を「安すぎる」と回答した人の累積割合で曲線を描く。'],
+  ['②安い','Cheap / Acceptable Low','「この価格はお値打ちで買いやすい（安い）」と感じる価格。この価格以上を「安い」と回答した割合の累積曲線。'],
+  ['③高い','Expensive / Acceptable High','「この価格は少し高いと感じ始める（高い）」価格。この価格以下を「高い」と回答した割合の累積曲線。'],
+  ['④高すぎる','Too Expensive','「この価格では高すぎて買えない（高すぎる）」と感じる価格。この価格以下を「高すぎる」と回答した割合の累積曲線。'],
+  ['PMC','Point of Marginal Cheapness（下限価格）','①安すぎる曲線と「安くない」曲線（②安いの反転）の交点。これより低い価格は「安すぎて品質不安」と感じる人が増える下限。'],
+  ['PME','Point of Marginal Expensiveness（上限価格）','④高すぎる曲線と「高くない」曲線（③高いの反転）の交点。これより高い価格は「高すぎて買えない」と感じる人が増える上限。'],
+  ['IPP','Indifference Price Point（無関心価格点）','②安い曲線と③高い曲線の交点。「安い」と「高い」が拮抗する価格。多くの消費者が「普通の価格」と感じる点。'],
+  ['OPP','Optimum Price Point（妥協価格点）','①安すぎる曲線と④高すぎる曲線の交点。「安すぎる」と「高すぎる」の拒絶者が最も少ない最適価格。'],
+  ['許容価格帯','Acceptable Price Range','PMC〜PMEの範囲。この価格帯が消費者に受け入れられる価格ゾーン。']
+ ]
+});
+Object.assign(I18N.en,{
+ title:'PSM Analysis Tool', h1:'PSM Analysis Tool',
+ disc1:'Yuki Toyoda Laboratory, Graduate School of Innovation Management, Hosei University',
+ disc2:'This is a learning tool. It may contain calculation errors, so please verify the results with other software before using them in research or business.',
+ cardData:'Data input', ex1:'Example 1 (typical case: PMC = OPP)', ex2:'Example 2 (all four intersections differ)', openCsv:'📂 Open CSV',
+ csvLabel:'CSV format (row 1: header; columns: respondent ID, (1) too cheap, (2) cheap, (3) expensive, (4) too expensive)',
+ csvPh:CSV1_EN+'\nR01,723,879,1218,1438\nR02,655,862,1047,1385\n...',
+ csvNotes:'* Each respondent must satisfy (1) too cheap &lt; (2) cheap &lt; (3) expensive &lt; (4) too expensive<br>* Respondents whose answers are in the wrong order are excluded automatically<br>* The column order is fixed (respondent ID, then (1) to (4))',
+ run:'▶ Run analysis', multi:'If there are multiple intersections:', mMin:'Lowest price (R default)', mMax:'Highest price', mMean:'Mean',
+ cardResult:'Results', tabGraph:'Curves', tabPoints:'Intersections & range', tabTable:'Cumulative table', tabGloss:'Glossary',
+ lg1:'(1) Too cheap (cumulative %)', lg2:'(2) Cheap (cumulative %)', lg3:'(3) Expensive (cumulative %)', lg4:'(4) Too expensive (cumulative %)', lgN2:'Not cheap (inverse of (2))', lgN3:'Not expensive (inverse of (3))',
+ pointsNote:'* The definitions and calculations of the intersections follow the R package pricesensitivitymeter (based on Van Westendorp 1976)<br>* PMC to PME is the acceptable price range; the area around OPP is a guide to the most acceptable price',
+ dlCsv:'⬇ Download the cumulative table as CSV',
+ rsTitle:'Run the same calculation in R (check script)',
+ rsDesc:'This creates an R script with your current data and settings embedded. Paste it into RStudio and run it: R performs the same calculation with its standard function, so you can compare the results side by side.',
+ rsMake:'Create R script', rsCopy:'Copy', rsSave:'Save .R file', rsPh:'Press "Create R script" and the script will appear here', copied:'Copied',
+ foot:'This tool was developed with the assistance of Claude (Anthropic).',
+ errNoData:'Please enter data', errMin2:'At least 2 rows are required', errMin3:'At least 3 valid responses are required',
+ none:'n/a', unit:'', axisX:'Price', axisY:'Share of respondents (%)',
+ info:(n,k,mlabel,sk)=>`Valid responses: <b>${n}</b>　Price axis: <b>prices appearing in the answers (${k} points)</b>　If multiple intersections: <b>${mlabel}</b>`+(sk>0?`　<span style="color:#e05c2a">Excluded (reversed order): ${sk}</span>`:''),
+ mlabel:{min:'lowest',max:'highest',mean:'mean'},
+ stPMC:'PMC (lower bound)', stOPP:'OPP (optimal price point)', stIPP:'IPP (indifference price point)', stPME:'PME (upper bound)',
+ sPMC:'(1) Too cheap × Not cheap', sOPP:'(1) Too cheap × (4) Too expensive', sIPP:'(2) Cheap × (3) Expensive', sPME:'(4) Too expensive × Not expensive',
+ rangeH:'Acceptable price range (PMC to PME)', thMeasure:'Measure', thPrice:'Price', thMeaning:'Meaning',
+ rPMC:'PMC (lower)', rOPP:'OPP (optimal price point)', rIPP:'IPP (indifference price point)', rPME:'PME (upper)', rRange:'Acceptable price range',
+ mPMC:'Below this price, "too cheap (quality doubts)" answers increase', mOPP:'The price with the fewest rejectors (too cheap + too expensive)', mIPP:'Where "cheap" and "expensive" balance: the majority\'s sense of a standard price', mPME:'Above this price, "too expensive to buy" answers increase',
+ mRange:(w)=>`The price zone acceptable to consumers (width: ${w})`,
+ thP:'Price', th1:'(1) Too cheap<br>cum. %', th2:'(2) Cheap<br>cum. %', th3:'(3) Expensive<br>cum. %', th4:'(4) Too expensive<br>cum. %', thN2:'Not cheap<br>(1-(2))', thN3:'Not expensive<br>(1-(3))', near:'near: ',
+ csvHead:'Price,(1) Too cheap cum %,(2) Cheap cum %,(3) Expensive cum %,(4) Too expensive cum %,Not cheap (1-(2)) %,Not expensive (1-(3)) %',
+ csvPMC:'PMC (lower bound)', csvOPP:'OPP (optimal price point)', csvIPP:'IPP (indifference price point)', csvPME:'PME (upper bound)',
+ glossHead:['Term','Full name','Description and survey question'],
+ gloss:[
+  ['PSM','Price Sensitivity Measurement (Van Westendorp)','A marketing research method that measures consumers\' price sensitivity and identifies an acceptable price range from answers to four price questions.'],
+  ['(1) Too cheap','Too Cheap','"At what price would you consider the product to be priced so low that you would feel the quality could not be very good?" The curve is the cumulative share of respondents who answered "too cheap" at this price or above.'],
+  ['(2) Cheap','Cheap / Bargain','"At what price would you consider the product to be a bargain, a great buy for the money?" The curve is the cumulative share who answered "cheap" at this price or above.'],
+  ['(3) Expensive','Expensive / Getting expensive','"At what price would you consider the product to be getting expensive, so that it is not out of the question, but you would have to give some thought to buying it?" The curve is the cumulative share who answered "expensive" at this price or below.'],
+  ['(4) Too expensive','Too Expensive','"At what price would you consider the product to be so expensive that you would not consider buying it?" The curve is the cumulative share who answered "too expensive" at this price or below.'],
+  ['PMC','Point of Marginal Cheapness (lower bound)','The intersection of the "too cheap" curve and the "not cheap" curve (inverse of "cheap"). Below this price, more people doubt the quality.'],
+  ['PME','Point of Marginal Expensiveness (upper bound)','The intersection of the "too expensive" curve and the "not expensive" curve (inverse of "expensive"). Above this price, more people say they cannot buy.'],
+  ['IPP','Indifference Price Point','The intersection of the "cheap" and "expensive" curves: where the two balance. Many consumers see this as a normal price.'],
+  ['OPP','Optimal Price Point','The intersection of the "too cheap" and "too expensive" curves: the price with the fewest rejectors on either side.'],
+  ['Acceptable price range','Acceptable Price Range','The range from PMC to PME: the price zone consumers accept.']
+ ]
+});
+
 // 表示用の数値整形（小数1桁まで）
-const fmt=v=>(v===null||v===undefined||isNaN(v))?'なし':(+v).toLocaleString(undefined,{maximumFractionDigits:1});
+const fmt=v=>(v===null||v===undefined||isNaN(v))?t('none'):(+v).toLocaleString(undefined,{maximumFractionDigits:1});
+const fmtU=v=>(v===null||v===undefined||isNaN(v))?t('none'):fmt(v)+t('unit');
 
-// ─── グローバル ───
-let G = {rows:[], priceRange:[], cumData:[], points:{}};
+let G = {rows:[], priceRange:[], cumData:[], points:{}, skipped:0, method:'min'};
+let HAS_RESULT=false;
 
-// ─── タブ ───
 function switchTab(name){
   ['graph','points','table','glossary'].forEach(n=>{
     document.getElementById('tab-'+n).classList.toggle('active',n===name);
   });
-  document.querySelectorAll('.tab').forEach((t,i)=>{
-    t.classList.toggle('active',['graph','points','table','glossary'][i]===name);
+  document.querySelectorAll('.tab').forEach((tb,i)=>{
+    tb.classList.toggle('active',['graph','points','table','glossary'][i]===name);
   });
   if(name==='graph') drawChart();
 }
@@ -224,26 +316,21 @@ function switchTab(name){
 function showErr(m){const e=document.getElementById('err-msg');e.textContent=m;e.style.display='block';}
 function clearErr(){document.getElementById('err-msg').style.display='none';}
 
-// ─── CSV読み込み ───
 function loadCSVFile(e){
   const file=e.target.files[0]; if(!file) return;
   const tryRead=enc=>{
     const r=new FileReader();
     r.onload=ev=>{
-      let t=ev.target.result.replace(/^\uFEFF/,'');
-      if(enc==='UTF-8'&&(t.match(/\uFFFD/g)||[]).length>3){tryRead('Shift-JIS');return;}
-      document.getElementById('csv-input').value=t;
+      let tx=ev.target.result.replace(/^﻿/,'');
+      if(enc==='UTF-8'&&(tx.match(/�/g)||[]).length>3){tryRead('Shift-JIS');return;}
+      document.getElementById('csv-input').value=tx;
     };
     r.readAsText(file,enc);
   };
   tryRead('UTF-8'); e.target.value='';
 }
 
-function loadExample(n){
-  if(n===2){
-    document.getElementById('csv-input').value=
-`回答者ID,①安すぎる（円）,②安い（円）,③高い（円）,④高すぎる（円）
-S01,300,600,1100,1500
+const EX2_ROWS=`S01,300,600,1100,1500
 S02,350,650,1150,1550
 S03,280,580,1080,1480
 S04,400,700,1200,1600
@@ -263,11 +350,7 @@ S17,950,1150,1550,2050
 S18,850,1050,1450,1950
 S19,1000,1200,1600,2100
 S20,920,1120,1520,2020`;
-    return;
-  }
-  document.getElementById('csv-input').value=
-`回答者ID,①安すぎる（円）,②安い（円）,③高い（円）,④高すぎる（円）
-R01,723,879,1218,1438
+const EX1_ROWS=`R01,723,879,1218,1438
 R02,655,862,1047,1385
 R03,728,1051,1390,1768
 R04,501,673,974,1232
@@ -287,12 +370,15 @@ R17,595,892,1091,1421
 R18,745,906,1225,1433
 R19,632,802,1170,1379
 R20,729,976,1197,1463`;
+function loadExample(n){
+  const head=(LANG==='ja'?CSV1_JA:CSV1_EN);
+  document.getElementById('csv-input').value=head+'\n'+(n===2?EX2_ROWS:EX1_ROWS);
 }
 
 // ─── CSV解析 ───
 function parseCSV(text){
   const lines=text.trim().split(/\r?\n/).filter(l=>l.trim());
-  if(lines.length<2) throw new Error('2行以上必要です');
+  if(lines.length<2) throw new Error(t('errMin2'));
   const sep=lines[0].includes('\t')?'\t':',';
   const rows=[];
   let skipped=0;
@@ -354,32 +440,34 @@ function calcPSM(rows, method){
   return {priceRange:prices, cumData, points, overlapWarnings:[]};
 }
 
+
 // ─── メイン実行 ───
 function runPSM(){
   clearErr();
   const text=document.getElementById('csv-input').value;
-  if(!text.trim()){showErr('データを入力してください');return;}
+  if(!text.trim()){showErr(t('errNoData'));return;}
   let parsed;
   try{parsed=parseCSV(text);}catch(e){showErr(e.message);return;}
   const {rows,skipped}=parsed;
-  if(rows.length<3){showErr('有効な回答が3件以上必要です');return;}
+  if(rows.length<3){showErr(t('errMin3'));return;}
 
   const method=document.getElementById('interp-method').value;
   const {priceRange,cumData,points}=calcPSM(rows,method);
 
-  G={rows,priceRange,cumData,points};
-
-  const methodLabel={'min':'最小','max':'最大','mean':'平均'};
-  let info=`有効回答数：<b>${rows.length}名</b>　価格軸：<b>回答に現れた価格（${priceRange.length}点）</b>　交点が複数あるとき：<b>${methodLabel[method]}</b>`;
-  if(skipped>0) info+=`　<span style="color:#e05c2a">逆転回答除外：${skipped}件</span>`;
-  document.getElementById('result-info').innerHTML=info;
+  G={rows,priceRange,cumData,points,skipped,method};
+  HAS_RESULT=true;
   document.getElementById('overlap-warn').style.display='none';
-
   document.getElementById('result-card').style.display='block';
   switchTab('graph');
+  renderResultTexts();
+  document.getElementById('result-card').scrollIntoView({behavior:'smooth'});
+}
+function renderResultTexts(){
+  if(!HAS_RESULT) return;
+  const {rows,priceRange,skipped,method}=G;
+  document.getElementById('result-info').innerHTML=t('info',rows.length,priceRange.length,t('mlabel')[method],skipped);
   renderPoints();
   renderTable();
-  document.getElementById('result-card').scrollIntoView({behavior:'smooth'});
 }
 
 // ─── グラフ描画 ───
@@ -401,7 +489,6 @@ function drawChart(){
   const toX=p=>PAD.left+(p-pMin)/(pMax-pMin)*pW;
   const toY=v=>PAD.top+(1-v)*pH;
 
-  // グリッド
   ctx.strokeStyle='#edf0f4'; ctx.lineWidth=1;
   for(let i=0;i<=5;i++){
     const y=toY(i/5);
@@ -411,14 +498,12 @@ function drawChart(){
     ctx.fillText((i*20)+'%',PAD.left-4,y);
   }
 
-  // 許容価格帯の塗りつぶし
   const {PMC,PME}=points;
   if(PMC!=null&&PME!=null&&PMC<PME){
     ctx.fillStyle='rgba(24,95,165,0.08)';
     ctx.fillRect(toX(PMC),PAD.top,toX(PME)-toX(PMC),pH);
   }
 
-  // 曲線描画
   const curves=[
     {key:'tc',color:'#e05c2a',dash:[]},
     {key:'ch',color:'#185FA5',dash:[]},
@@ -438,85 +523,64 @@ function drawChart(){
     ctx.stroke(); ctx.setLineDash([]);
   });
 
-  // 交点の縦線・ラベル
+  // 交点の縦線・ラベル（近い交点のラベルが重ならないよう、段をずらす）
   const ptDefs=[
     {key:'PMC',color:'#e05c2a',label:'PMC'},
     {key:'OPP',color:'#f39c12',label:'OPP'},
     {key:'IPP',color:'#185FA5',label:'IPP'},
     {key:'PME',color:'#8e44ad',label:'PME'},
   ];
-  ptDefs.forEach(({key,color,label})=>{
-    const px=points[key];
-    if(!px) return;
-    const x=toX(px);
+  const act=ptDefs.filter(d=>points[d.key]!=null).map(d=>({...d,x:toX(points[d.key]),px:points[d.key]})).sort((a,b)=>a.x-b.x);
+  let lastX=-1e9, lvl=0;
+  act.forEach(d=>{ if(d.x-lastX<46){ lvl=(lvl+1)%3; } else { lvl=0; } d.lvl=lvl; lastX=d.x; });
+  act.forEach(({color,label,x,px,lvl})=>{
     ctx.strokeStyle=color; ctx.lineWidth=1.5;
     ctx.setLineDash([5,3]);
-    ctx.beginPath(); ctx.moveTo(x,PAD.top); ctx.lineTo(x,PAD.top+pH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x,PAD.top-4-lvl*13); ctx.lineTo(x,PAD.top+pH+14+lvl*13); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle=color; ctx.font='bold 11px sans-serif';
     ctx.textAlign='center'; ctx.textBaseline='bottom';
-    ctx.fillText(`${label}`, x, PAD.top-2);
-    ctx.fillText(`${fmt(px)}円`, x, PAD.top+pH+28);
+    ctx.fillText(label, x, PAD.top-6-lvl*13);
+    ctx.textBaseline='top';
+    ctx.fillText(fmtU(px), x, PAD.top+pH+16+lvl*13);
   });
 
-  // X軸
   ctx.strokeStyle='#ccc'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top+pH); ctx.lineTo(W-PAD.right,PAD.top+pH); ctx.stroke();
 
-  // X軸目盛り（最小〜最大を等分）
   for(let i=0;i<=8;i++){
     const p=pMin+(pMax-pMin)*i/8, x=toX(p);
     ctx.fillStyle='#777'; ctx.font='10px sans-serif';
     ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.fillText(fmt(Math.round(p)), x, PAD.top+pH+6);
+    ctx.fillText(fmt(Math.round(p)), x, PAD.top+pH+3);
   }
 
-  // 軸ラベル
   ctx.fillStyle='#555'; ctx.font='12px sans-serif';
   ctx.textAlign='center'; ctx.textBaseline='bottom';
-  ctx.fillText('価格（円）', PAD.left+pW/2, 420-2);
+  ctx.fillText(t('axisX'), PAD.left+pW/2, 420-2);
   ctx.save(); ctx.translate(14, PAD.top+pH/2); ctx.rotate(-Math.PI/2);
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('回答者の割合（%）',0,0); ctx.restore();
+  ctx.fillText(t('axisY'),0,0); ctx.restore();
 }
 
 // ─── 交点・価格帯表示 ───
 function renderPoints(){
   const {points,rows}=G;
-  const n=rows.length;
   const {PMC,PME,IPP,OPP}=points;
-
   const statHTML=`
-    <div class="stat">
-      <div class="stat-val" style="color:#e05c2a">${fmt(PMC)}円</div>
-      <div class="stat-lbl">PMC（下限価格）</div>
-      <div class="stat-sub">①安すぎる × 安くない</div>
-    </div>
-    <div class="stat">
-      <div class="stat-val" style="color:#f39c12">${fmt(OPP)}円</div>
-      <div class="stat-lbl">OPP（妥協価格点）</div>
-      <div class="stat-sub">①安すぎる × ④高すぎる</div>
-    </div>
-    <div class="stat">
-      <div class="stat-val" style="color:#185FA5">${fmt(IPP)}円</div>
-      <div class="stat-lbl">IPP（無関心価格点）</div>
-      <div class="stat-sub">②安い × ③高い</div>
-    </div>
-    <div class="stat">
-      <div class="stat-val" style="color:#8e44ad">${fmt(PME)}円</div>
-      <div class="stat-lbl">PME（上限価格）</div>
-      <div class="stat-sub">④高すぎる × 高くない</div>
-    </div>`;
+    <div class="stat"><div class="stat-val" style="color:#e05c2a">${fmtU(PMC)}</div><div class="stat-lbl">${t('stPMC')}</div><div class="stat-sub">${t('sPMC')}</div></div>
+    <div class="stat"><div class="stat-val" style="color:#f39c12">${fmtU(OPP)}</div><div class="stat-lbl">${t('stOPP')}</div><div class="stat-sub">${t('sOPP')}</div></div>
+    <div class="stat"><div class="stat-val" style="color:#185FA5">${fmtU(IPP)}</div><div class="stat-lbl">${t('stIPP')}</div><div class="stat-sub">${t('sIPP')}</div></div>
+    <div class="stat"><div class="stat-val" style="color:#8e44ad">${fmtU(PME)}</div><div class="stat-lbl">${t('stPME')}</div><div class="stat-sub">${t('sPME')}</div></div>`;
   document.getElementById('points-stat').innerHTML=statHTML;
 
-  // 許容価格帯の可視化
   const allMin=Math.min(...rows.flatMap(r=>[r.c1,r.c2,r.c3,r.c4]));
   const allMax=Math.max(...rows.flatMap(r=>[r.c1,r.c2,r.c3,r.c4]));
   const range=allMax-allMin;
   const toP=v=>((v-allMin)/range*100).toFixed(1);
 
   const rangeHTML=`
-    <h3 style="font-size:13px;font-weight:700;margin-bottom:8px">許容価格帯（PMC〜PME）</h3>
+    <h3 style="font-size:13px;font-weight:700;margin-bottom:8px">${t('rangeH')}</h3>
     <div style="position:relative;height:40px;background:#f4f6f9;border-radius:8px;margin:8px 0">
       <div style="position:absolute;left:${toP(PMC)}%;width:${toP(PME)-toP(PMC)}%;height:100%;
                   background:rgba(24,95,165,0.2);border:2px solid #185FA5;border-radius:6px"></div>
@@ -526,32 +590,23 @@ function renderPoints(){
                   width:12px;height:12px;background:#185FA5;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px #185FA5"></div>
     </div>
     <div style="display:flex;justify-content:space-between;font-size:10px;color:#777;margin-bottom:12px">
-      <span>${fmt(allMin)}円</span><span>${fmt(allMax)}円</span>
+      <span>${fmtU(allMin)}</span><span>${fmtU(allMax)}</span>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th class="left">指標</th><th>価格</th><th class="left">意味</th></tr></thead>
+      <thead><tr><th class="left">${t('thMeasure')}</th><th>${t('thPrice')}</th><th class="left">${t('thMeaning')}</th></tr></thead>
       <tbody>
-        <tr><td class="left"><span style="color:#e05c2a;font-weight:700">PMC（下限）</span></td>
-            <td><b>${fmt(PMC)}円</b></td>
-            <td class="left">これ以下は「安すぎて品質不安」が増える</td></tr>
-        <tr><td class="left"><span style="color:#f39c12;font-weight:700">OPP（妥協価格点）</span></td>
-            <td><b>${fmt(OPP)}円</b></td>
-            <td class="left">拒絶者（安すぎ＋高すぎ）が最も少ない価格</td></tr>
-        <tr><td class="left"><span style="color:#185FA5;font-weight:700">IPP（無関心価格点）</span></td>
-            <td><b>${fmt(IPP)}円</b></td>
-            <td class="left">「安い」と「高い」が拮抗する、多数派の標準価格感</td></tr>
-        <tr><td class="left"><span style="color:#8e44ad;font-weight:700">PME（上限）</span></td>
-            <td><b>${fmt(PME)}円</b></td>
-            <td class="left">これ以上は「高すぎて買えない」が増える</td></tr>
-        <tr style="background:#e8f0fd"><td class="left"><b>許容価格帯</b></td>
-            <td><b>${fmt(PMC)}〜${fmt(PME)}円</b></td>
-            <td class="left">消費者に受け入れられる価格ゾーン（幅：${fmt(PME-PMC)}円）</td></tr>
+        <tr><td class="left"><span style="color:#e05c2a;font-weight:700">${t('rPMC')}</span></td><td><b>${fmtU(PMC)}</b></td><td class="left">${t('mPMC')}</td></tr>
+        <tr><td class="left"><span style="color:#f39c12;font-weight:700">${t('rOPP')}</span></td><td><b>${fmtU(OPP)}</b></td><td class="left">${t('mOPP')}</td></tr>
+        <tr><td class="left"><span style="color:#185FA5;font-weight:700">${t('rIPP')}</span></td><td><b>${fmtU(IPP)}</b></td><td class="left">${t('mIPP')}</td></tr>
+        <tr><td class="left"><span style="color:#8e44ad;font-weight:700">${t('rPME')}</span></td><td><b>${fmtU(PME)}</b></td><td class="left">${t('mPME')}</td></tr>
+        <tr style="background:#e8f0fd"><td class="left"><b>${t('rRange')}</b></td>
+            <td><b>${fmt(PMC)}〜${fmtU(PME)}</b></td>
+            <td class="left">${t('mRange',fmtU(PME-PMC))}</td></tr>
       </tbody>
     </table></div>`;
   document.getElementById('range-vis').innerHTML=rangeHTML;
 }
 
-// ─── 累積集計表 ───
 function nearestIdx(p){
   if(p==null||isNaN(p)) return -1;
   let bi=0,bd=Infinity;
@@ -561,13 +616,7 @@ function nearestIdx(p){
 function renderTable(){
   const {cumData}=G;
   let html=`<table><thead><tr>
-    <th>価格（円）</th>
-    <th>①安すぎる<br>累積%</th>
-    <th>②安い<br>累積%</th>
-    <th>③高い<br>累積%</th>
-    <th>④高すぎる<br>累積%</th>
-    <th>安くない<br>(1-②)</th>
-    <th>高くない<br>(1-③)</th>
+    <th>${t('thP')}</th><th>${t('th1')}</th><th>${t('th2')}</th><th>${t('th3')}</th><th>${t('th4')}</th><th>${t('thN2')}</th><th>${t('thN3')}</th>
   </tr></thead><tbody>`;
   const {PMC,PME,IPP,OPP}=G.points;
   const marks={};
@@ -577,7 +626,7 @@ function renderTable(){
     const hi=marks[i]||[];
     const bg=hi.length?'background:#fff9e6':'';
     html+=`<tr style="${bg}">
-      <td><b>${fmt(d.p)}</b>${hi.length?` <span style="font-size:10px;color:#e05c2a">付近：${hi.join('/')}</span>`:''}</td>
+      <td><b>${fmt(d.p)}</b>${hi.length?` <span style="font-size:10px;color:#e05c2a">${t('near')}${hi.join('/')}</span>`:''}</td>
       <td>${f(d.tc)}</td><td>${f(d.ch)}</td><td>${f(d.ex)}</td><td>${f(d.te)}</td>
       <td>${f(d.nc)}</td><td>${f(d.ne)}</td>
     </tr>`;
@@ -586,69 +635,90 @@ function renderTable(){
   document.getElementById('table-wrap').innerHTML=html;
 }
 
-// ─── CSVダウンロード ───
+function renderGlossary(){
+  const h=t('glossHead'), g=t('gloss');
+  let html='<table><thead><tr>'+h.map(x=>`<th class="left">${x}</th>`).join('')+'</tr></thead><tbody>';
+  g.forEach(r=>{ html+=`<tr><td class="left"><b>${r[0]}</b></td><td class="left">${r[1]}</td><td class="left">${r[2]}</td></tr>`; });
+  html+='</tbody></table>';
+  document.getElementById('gloss-wrap').innerHTML=html;
+}
+
 function downloadCSV(){
   const {cumData,points}=G;
-  const rows=['価格（円）,①安すぎる累積%,②安い累積%,③高い累積%,④高すぎる累積%,安くない(1-②)%,高くない(1-③)%'];
+  const rows=[t('csvHead')];
   cumData.forEach(d=>{
     const f=v=>(v*100).toFixed(2);
     rows.push([d.p,f(d.tc),f(d.ch),f(d.ex),f(d.te),f(d.nc),f(d.ne)].join(','));
   });
   rows.push('');
-  rows.push(`PMC（下限価格）,${points.PMC}`);
-  rows.push(`OPP（妥協価格点）,${points.OPP}`);
-  rows.push(`IPP（無関心価格点）,${points.IPP}`);
-  rows.push(`PME（上限価格）,${points.PME}`);
-  const b64=btoa(unescape(encodeURIComponent('\uFEFF'+rows.join('\n'))));
+  rows.push(`${t('csvPMC')},${points.PMC}`);
+  rows.push(`${t('csvOPP')},${points.OPP}`);
+  rows.push(`${t('csvIPP')},${points.IPP}`);
+  rows.push(`${t('csvPME')},${points.PME}`);
+  const b64=btoa(unescape(encodeURIComponent('﻿'+rows.join('\n'))));
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8;base64,'+b64;
   a.download='psm_result.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
+// 言語が切り替わったときの再描画
+function onLangChange(){
+  renderGlossary();
+  // 例題がそのまま入っているときは、見出し行だけ言語に合わせる
+  const ta=document.getElementById('csv-input');
+  if(ta.value.indexOf(CSV1_JA)===0) ta.value=(LANG==='ja'?CSV1_JA:CSV1_EN)+ta.value.slice(CSV1_JA.length);
+  else if(ta.value.indexOf(CSV1_EN)===0) ta.value=(LANG==='ja'?CSV1_JA:CSV1_EN)+ta.value.slice(CSV1_EN.length);
+  renderResultTexts();
+  if(HAS_RESULT && document.getElementById('tab-graph').classList.contains('active')) drawChart();
+}
 
-
-
-
-// ───────── Rスクリプト出力（検算用）の共通部品 ─────────
+// ───────── Rスクリプト出力（検算用） ─────────
 function rsRaw(text){
-  // R 4.0以降の raw string: r"---( ... )---"
   let d='---';
   while(text.indexOf(')'+d+'"')>=0) d+='-';
   return 'r"'+d+'(\n'+text.replace(/\r\n?/g,'\n').replace(/\s+$/,'')+'\n)'+d+'"';
 }
+const RS_FAIL={ja:'# スクリプトを作成できませんでした',en:'# Could not create the script'};
 function rsHeader(title, pkgLines){
-  const L=[
+  const L=(LANG==='ja')?[
     '# =====================================================================',
     '# '+title,
     '# このスクリプトは、アプリに入力したデータと設定をそのまま埋め込んであります。',
     '# RStudioに貼り付けて、上から順に実行してください。',
     '# 日本語が文字化けするときは、RStudioの File > Reopen with Encoding > UTF-8 で開き直してください。',
     '# ====================================================================='
+  ]:[
+    '# =====================================================================',
+    '# '+title,
+    '# This script embeds the data and settings you entered in the app.',
+    '# Paste it into RStudio and run it from top to bottom.',
+    '# =====================================================================' 
   ];
-  if(pkgLines&&pkgLines.length){ L.push('','# 初回だけ、必要なパッケージをインストールしてください（先頭の # を外して実行）'); pkgLines.forEach(p=>L.push(p)); }
+  if(pkgLines&&pkgLines.length){ L.push('',(LANG==='ja'?'# 初回だけ、必要なパッケージをインストールしてください（先頭の # を外して実行）':'# Install the required package once (remove the leading # and run)')); pkgLines.forEach(p=>L.push(p)); }
   return L;
 }
 function rsMake(){
   const ta=document.getElementById('rs-text');
   try{ ta.value=buildRScript(); }
-  catch(e){ ta.value='# スクリプトを作成できませんでした: '+e.message; }
+  catch(e){ ta.value=RS_FAIL[LANG]+': '+e.message; }
 }
+function rsFailed(v){ return v.indexOf(RS_FAIL.ja)===0||v.indexOf(RS_FAIL.en)===0; }
 function rsCopy(){
   const ta=document.getElementById('rs-text');
-  rsMake();   // 入力が変わっていてもよいよう、毎回作り直す
-  if(ta.value.indexOf('# スクリプトを作成できませんでした')===0) return;
+  rsMake();
+  if(rsFailed(ta.value)) return;
   ta.focus(); ta.select();
   let ok=false;
   try{ ok=document.execCommand('copy'); }catch(e){}
   if(!ok && navigator.clipboard){ navigator.clipboard.writeText(ta.value).catch(()=>{}); }
   const b=document.getElementById('rs-copy-btn'); const old=b.textContent;
-  b.textContent='コピーしました'; setTimeout(()=>{b.textContent=old;},1500);
+  b.textContent=t('copied'); setTimeout(()=>{b.textContent=t('rsCopy');},1500);
 }
 function rsDownload(){
   const ta=document.getElementById('rs-text');
   rsMake();
-  if(ta.value.indexOf('# スクリプトを作成できませんでした')===0) return;
+  if(rsFailed(ta.value)) return;
   const b64=btoa(unescape(encodeURIComponent('﻿'+ta.value)));
   const a=document.createElement('a');
   a.href='data:text/plain;charset=utf-8;base64,'+b64;
@@ -658,23 +728,27 @@ function rsDownload(){
 const RS_FILENAME='psm_check.R';
 function buildRScript(){
   const text=document.getElementById('csv-input').value.trim();
-  if(!text) throw new Error('先にデータを入力してください');
+  if(!text) throw new Error(t('errNoData'));
   const method=document.getElementById('interp-method').value;
   const lines=text.split(/\r?\n/).filter(l=>l.trim());
   const sepc=lines[0].includes('\t')?'\t':',';
   lines[0]=['id','too_cheap','cheap','expensive','too_expensive'].join(sepc);
-  const L=rsHeader('PSM分析（Van Westendorp）: アプリ(psm.html)と同じ計算をRで行う',
+  const ja=(LANG==='ja');
+  const L=rsHeader(ja?'PSM分析（Van Westendorp）: アプリ(psm.html)と同じ計算をRで行う':'PSM analysis (Van Westendorp): the same calculation as the app (psm.html), in R',
     ['# install.packages("pricesensitivitymeter")']);
   L.push('',
     'library(pricesensitivitymeter)',
     '',
-    '# 1. データ（アプリに入力した内容。列は 回答者ID, ①安すぎる, ②安い, ③高い, ④高すぎる の順）',
+    ja?'# 1. データ（アプリに入力した内容。列は 回答者ID, ①安すぎる, ②安い, ③高い, ④高すぎる の順）'
+      :'# 1. Data (as entered in the app; columns: respondent ID, too cheap, cheap, expensive, too expensive)',
     'dat <- read.csv(text = '+rsRaw(lines.join('\n'))+',',
     '                sep = "'+(sepc==='\t'?'\\t':',')+'", header = TRUE)',
     '',
-    '# 2. 分析',
-    '#    validate = TRUE: ①<②<③<④ が成り立たない回答者を除く（アプリと同じ）',
-    '#    交点は、曲線の差の符号が変わる区間を線形補間して求め、複数あるときは "'+method+'" を採用',
+    ja?'# 2. 分析':'# 2. Analysis',
+    ja?'#    validate = TRUE: ①<②<③<④ が成り立たない回答者を除く（アプリと同じ）'
+      :'#    validate = TRUE: drops respondents who do not satisfy too cheap < cheap < expensive < too expensive (as in the app)',
+    ja?'#    交点は、曲線の差の符号が変わる区間を線形補間して求め、複数あるときは "'+method+'" を採用'
+      :'#    Each intersection is found by linear interpolation where the sign of the curve difference changes; if there are several, "'+method+'" is used',
     'res <- psm_analysis(',
     '  toocheap     = dat$too_cheap,',
     '  cheap        = dat$cheap,',
@@ -685,19 +759,23 @@ function buildRScript(){
     '  intersection_method = "'+method+'"',
     ')',
     '',
-    '# 3. 結果（アプリの「交点・価格帯」タブと比べてください）',
-    'cat("有効回答数                 :", res$total_sample - res$invalid_cases, "\\n")',
-    'cat("PMC（安すぎる x 安くない）  :", res$pricerange_lower, "\\n")',
-    'cat("PME（高すぎる x 高くない）  :", res$pricerange_upper, "\\n")',
-    'cat("IPP（安い x 高い）          :", res$idp, "\\n")',
-    'cat("OPP（安すぎる x 高すぎる）  :", res$opp, "\\n")',
+    ja?'# 3. 結果（アプリの「交点・価格帯」タブと比べてください）':'# 3. Results (compare with the "Intersections & range" tab of the app)',
+    ja?'cat("有効回答数                 :", res$total_sample - res$invalid_cases, "\\n")':'cat("Valid responses               :", res$total_sample - res$invalid_cases, "\\n")',
+    ja?'cat("PMC（安すぎる x 安くない）  :", res$pricerange_lower, "\\n")':'cat("PMC (too cheap x not cheap)     :", res$pricerange_lower, "\\n")',
+    ja?'cat("PME（高すぎる x 高くない）  :", res$pricerange_upper, "\\n")':'cat("PME (too expensive x not exp.)  :", res$pricerange_upper, "\\n")',
+    ja?'cat("IPP（安い x 高い）          :", res$idp, "\\n")':'cat("IPP (cheap x expensive)         :", res$idp, "\\n")',
+    ja?'cat("OPP（安すぎる x 高すぎる）  :", res$opp, "\\n")':'cat("OPP (too cheap x too expensive) :", res$opp, "\\n")',
     '',
-    '# 4. 曲線のデータ（アプリの「累積集計表」に対応）と、グラフ',
+    ja?'# 4. 曲線のデータ（アプリの「累積集計表」に対応）と、グラフ':'# 4. The curve data (corresponds to the "Cumulative table" tab) and the plot',
     'head(res$data_vanwestendorp)',
     'psm_plot(res)');
   return L.join('\n')+'\n';
 }
 
+// ───────── 起動 ─────────
+LANG=detectLang();
+applyI18n();
+loadExample(1);
 </script>
 </body>
 </html>

@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>コンジョイント分析ツール</title>
+<title>Conjoint Analysis Tool</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Meiryo',sans-serif;
      background:#f4f6f9;color:#1a2332;font-size:14px;line-height:1.6}
-header{background:#1a2332;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px}
+header{background:#233A9A;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px}
 header h1{font-size:17px;font-weight:600}
-.badge{background:#e05c2a;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700}
-.disclaimer{background:#fff3cd;border-bottom:1px solid #ffc107;padding:6px 24px;
-            font-size:11px;color:#1a2332;font-weight:700;line-height:1.5}
+.badge{background:#F28018;color:#1a2332;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700}
+.disclaimer{background:#F28018;border-bottom:0;padding:10px 24px;margin-bottom:20px;
+            font-size:12px;color:#1a2332;font-weight:700;line-height:1.6}
 .container{max-width:1200px;margin:0 auto;padding:20px 16px}
 .card{background:#fff;border-radius:8px;border:1px solid #e0e4ea;padding:20px;margin-bottom:16px}
 .card h2{font-size:14px;font-weight:700;color:#1a2332;margin-bottom:14px;
@@ -82,26 +82,30 @@ canvas{max-width:100%}
   .panel{display:block!important}#tab-cards{display:block!important}
   .card-grid{grid-template-columns:repeat(4,1fr)}
 }
+
+.langsw{margin-left:auto;display:flex;gap:4px}
+.langsw button{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45);border-radius:6px;
+  padding:3px 10px;font-size:12px;cursor:pointer}
+.langsw button.on{background:#fff;color:#233A9A;font-weight:700}
+.foot{max-width:1100px;margin:0 auto;padding:0 16px 28px;font-size:11px;color:#777}
 </style>
+<script data-goatcounter="https://yuki-toyoda.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 <header>
-  <h1>コンジョイント分析ツール</h1>
+  <h1 data-i="h1"></h1>
   <span class="badge">Conjoint Analysis</span>
+  <div class="langsw"><button type="button" data-lang="ja" onclick="setLang('ja')">日本語</button><button type="button" data-lang="en" onclick="setLang('en')">English</button></div>
 </header>
-<div class="disclaimer">
-  法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室<br>
-  学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。
-</div>
+<div class="disclaimer"><span data-i="disc1"></span><br><span data-i="disc2"></span></div>
 
 <div class="container">
 
-<!-- Step 1: 直交計画の生成 -->
 <div class="card" id="card-step1">
-  <h2><span class="step-badge">Step 1</span>直交計画の作成</h2>
+  <h2><span class="step-badge">Step 1</span><span data-i="step1T"></span></h2>
   <div class="row" style="margin-bottom:14px">
     <div>
-      <label>属性の数</label>
+      <label data-i="nAttr"></label>
       <select id="n-attr" onchange="buildAttrInputs()">
         <option value="2">2</option><option value="3">3</option>
         <option value="4" selected>4</option><option value="5">5</option>
@@ -109,29 +113,28 @@ canvas{max-width:100%}
       </select>
     </div>
     <div style="display:flex;align-items:flex-end;gap:8px">
-      <button class="btn-secondary" onclick="loadExample(1)">例題：飲み会（2×2×2×2）</button>
-      <button class="btn-secondary" onclick="loadExample(2)">例題：飲み会（3×3×2×2）</button>
-      <button class="btn-secondary" onclick="resetDesign()" style="color:#c0392b;border-color:#c0392b">↺ リセット</button>
+      <button class="btn-secondary" onclick="loadExample(1)" data-i="ex1"></button>
+      <button class="btn-secondary" onclick="loadExample(2)" data-i="ex2"></button>
+      <button class="btn-secondary" onclick="resetDesign()" style="color:#c0392b;border-color:#c0392b" data-i="reset"></button>
     </div>
   </div>
   <div id="attr-inputs"></div>
   <div class="btn-row">
-    <button class="btn-primary" onclick="generateDesign()">▶ 直交計画を生成</button>
+    <button class="btn-primary" onclick="generateDesign()" data-i="gen"></button>
   </div>
   <div id="design-err" class="err"></div>
 
-  <!-- 生成結果 -->
   <div id="design-result" style="display:none;margin-top:16px">
     <div id="design-info" class="info" style="margin-bottom:10px"></div>
     <div class="tabs" id="design-tabs">
-      <div class="tab active" onclick="switchDesignTab('profiles')">プロファイル表</div>
-      <div class="tab" onclick="switchDesignTab('ortho')">直交性チェック</div>
-      <div class="tab" onclick="switchDesignTab('cards')">プロファイルカード</div>
+      <div class="tab active" onclick="switchDesignTab('profiles')" data-i="tabProf"></div>
+      <div class="tab" onclick="switchDesignTab('ortho')" data-i="tabOrtho"></div>
+      <div class="tab" onclick="switchDesignTab('cards')" data-i="tabCards"></div>
     </div>
     <div class="panel active" id="dtab-profiles">
       <div class="btn-row">
-        <button class="btn-dl" onclick="downloadDesignCSV('profiles')">⬇ プロファイル表をCSVでダウンロード</button>
-        <button class="btn-dl" onclick="downloadDesignCSV('dummy')">⬇ ダミー変数表をCSVでダウンロード（Step2で再利用可）</button>
+        <button class="btn-dl" onclick="downloadDesignCSV('profiles')" data-i="dlProf"></button>
+        <button class="btn-dl" onclick="downloadDesignCSV('dummy')" data-i="dlDummy"></button>
       </div>
       <div class="tbl-wrap" id="profile-table-wrap"></div>
     </div>
@@ -140,68 +143,59 @@ canvas{max-width:100%}
     </div>
     <div class="panel" id="dtab-cards">
       <div class="btn-row">
-        <button class="btn-secondary" onclick="window.print()">🖨 印刷</button>
+        <button class="btn-secondary" onclick="window.print()" data-i="print"></button>
       </div>
       <div class="card-grid" id="card-grid"></div>
     </div>
   </div>
 </div>
 
-<!-- Step 2: 調査データの入力 -->
 <div class="card" id="card-step2">
-  <h2><span class="step-badge">Step 2</span>調査データの入力</h2>
+  <h2><span class="step-badge">Step 2</span><span data-i="step2T"></span></h2>
   <div class="row" style="margin-bottom:10px">
     <div>
-      <label>回答形式</label>
+      <label data-i="respType"></label>
       <select id="response-type">
-        <option value="score">得点（数値）</option>
-        <option value="rank">順位（1位・2位・…）</option>
+        <option value="score" data-i="optScore"></option>
+        <option value="rank" data-i="optRank"></option>
       </select>
     </div>
     <div style="display:flex;align-items:flex-end;gap:8px">
       <label class="btn-secondary" style="cursor:pointer;display:inline-flex;align-items:center">
-        📂 CSVを読み込む
+        <span data-i="openCsv"></span>
         <input type="file" accept=".csv,.txt" style="display:none" onchange="loadSurveyCSV(event)">
       </label>
-      <button class="btn-secondary" onclick="loadSurveyExample()">サンプルデータを入力</button>
+      <button class="btn-secondary" onclick="loadSurveyExample()" data-i="sample"></button>
     </div>
   </div>
-  <label>調査データ（行=回答者、列=各プロファイルへの評価）</label>
-  <textarea id="survey-input" placeholder="回答者名,プロファイル1,プロファイル2,...
-田中,8,3,6,7,2,5,4,1
-鈴木,7,4,5,8,1,6,3,2
-..."></textarea>
-  <div class="note">
-    ※ 1行目：ヘッダー（1列目=回答者名、2列目以降=各プロファイルへの評価）<br>
-    ※ 列の順番はStep 1で生成したプロファイル表と対応させてください<br>
-    ※ 順位の場合：1位が最も好む（得点に自動変換します）
-  </div>
+  <label data-i="surveyLbl"></label>
+  <textarea id="survey-input" data-ip="surveyPh"></textarea>
+  <div class="note" data-ih="surveyNote"></div>
   <div id="survey-err" class="err"></div>
   <div class="btn-row">
-    <button class="btn-primary" onclick="runAnalysis()">▶ 分析を実行</button>
+    <button class="btn-primary" onclick="runAnalysis()" data-i="run"></button>
   </div>
 </div>
 
-<!-- Step 3: 結果 -->
 <div class="card" id="card-result" style="display:none">
-  <h2><span class="step-badge">Step 3</span>分析結果</h2>
+  <h2><span class="step-badge">Step 3</span><span data-i="step3T"></span></h2>
   <div id="result-info" class="info" style="margin-bottom:12px"></div>
   <div class="tabs">
-    <div class="tab active" onclick="switchResultTab('utility')">効用値一覧</div>
-    <div class="tab" onclick="switchResultTab('importance')">重要度一覧</div>
-    <div class="tab" onclick="switchResultTab('average')">全体平均</div>
-    <div class="tab" onclick="switchResultTab('individual')">個人別詳細</div>
-    <div class="tab" onclick="switchResultTab('cluster')">cluster.html用CSV</div>
+    <div class="tab active" onclick="switchResultTab('utility')" data-i="tabUtil"></div>
+    <div class="tab" onclick="switchResultTab('importance')" data-i="tabImp"></div>
+    <div class="tab" onclick="switchResultTab('average')" data-i="tabAvg"></div>
+    <div class="tab" onclick="switchResultTab('individual')" data-i="tabInd"></div>
+    <div class="tab" onclick="switchResultTab('cluster')" data-i="tabCl"></div>
   </div>
 
   <div class="panel active" id="rtab-utility">
-    <div class="btn-row"><button class="btn-dl" onclick="downloadResult('utility')">⬇ 効用値CSVをダウンロード</button></div>
+    <div class="btn-row"><button class="btn-dl" onclick="downloadResult('utility')" data-i="dlUtil"></button></div>
     <div class="tbl-wrap" id="utility-wrap"></div>
-    <div class="note" style="margin-top:8px">※ 効用値は、属性ごとに合計が0になるよう表示しています（Rの conjoint パッケージ、SPSSと同じ表示）。重要度は「各属性の効用値の幅 ÷ 全属性の幅の合計」です。</div>
+    <div class="note" style="margin-top:8px" data-i="utilNote"></div>
   </div>
 
   <div class="panel" id="rtab-importance">
-    <div class="btn-row"><button class="btn-dl" onclick="downloadResult('importance')">⬇ 重要度CSVをダウンロード</button></div>
+    <div class="btn-row"><button class="btn-dl" onclick="downloadResult('importance')" data-i="dlImp"></button></div>
     <div class="tbl-wrap" id="importance-wrap"></div>
   </div>
 
@@ -211,51 +205,261 @@ canvas{max-width:100%}
 
   <div class="panel" id="rtab-individual">
     <div class="respondent-select">
-      <label style="text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;margin:0">回答者：</label>
+      <label style="text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;margin:0" data-i="respLbl"></label>
       <select id="respondent-select" onchange="renderIndividual()" style="width:auto;min-width:150px"></select>
     </div>
     <div id="individual-wrap"></div>
   </div>
 
   <div class="panel" id="rtab-cluster">
-    <p style="font-size:13px;margin-bottom:12px">
-      以下の3種類のCSVを cluster.html に貼り付けてクラスター分析を実行できます。
-    </p>
+    <p style="font-size:13px;margin-bottom:12px" data-i="clP"></p>
     <div class="btn-row">
-      <button class="btn-dl" onclick="downloadResult('cluster-utility')">⬇ ①効用値（cluster用）</button>
-      <button class="btn-dl" onclick="downloadResult('cluster-importance')">⬇ ②重要度（cluster用）</button>
-      <button class="btn-dl" onclick="downloadResult('cluster-raw')">⬇ ③生データ（cluster用）</button>
+      <button class="btn-dl" onclick="downloadResult('cluster-utility')" data-i="dlCU"></button>
+      <button class="btn-dl" onclick="downloadResult('cluster-importance')" data-i="dlCI"></button>
+      <button class="btn-dl" onclick="downloadResult('cluster-raw')" data-i="dlCR"></button>
     </div>
-    <div class="note" style="margin-top:10px">
-      ※ ①効用値：各水準の効用値でクラスタリング（「何を重視するか」の絶対的な差を捉える）<br>
-      ※ ②重要度：属性の重要度でクラスタリング（「何を重視するか」の構造を捉える）<br>
-      ※ ③生データ：プロファイルへの得点でクラスタリング（モデルを仮定しない）
-    </div>
+    <div class="note" style="margin-top:10px" data-ih="clNote"></div>
   </div>
 </div>
 
 </div><!-- /container -->
 
-<!-- ===== Rスクリプト（検算用） ===== -->
-<div id="rscript-wrap" style="max-width:1100px;margin:0 auto;padding:0 16px 40px">
+<div id="rscript-wrap" style="max-width:1100px;margin:0 auto;padding:0 16px 24px">
   <div style="background:#fff;border:1px solid #d0d5dd;border-radius:10px;padding:16px 18px">
-    <div style="font-weight:700;font-size:15px;margin-bottom:6px">Rで同じ計算をする（検算用スクリプト）</div>
-    <div style="font-size:12px;color:#555;line-height:1.7;margin-bottom:10px">
-      いま入力しているデータと設定を埋め込んだRスクリプトを作ります。RStudioに貼り付けて実行すると、このアプリと同じ計算をRの標準的な関数で行い、結果を並べて確かめられます。
-    </div>
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px" data-i="rsTitle"></div>
+    <div style="font-size:12px;color:#555;line-height:1.7;margin-bottom:10px" data-i="rsDesc"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-      <button type="button" onclick="rsMake()" style="padding:8px 14px;border:none;border-radius:6px;background:#1a2332;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Rスクリプトを作成</button>
-      <button type="button" id="rs-copy-btn" onclick="rsCopy()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">コピー</button>
-      <button type="button" onclick="rsDownload()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">.Rファイルを保存</button>
+      <button type="button" onclick="rsMake()" data-i="rsMake" style="padding:8px 14px;border:none;border-radius:6px;background:#1a2332;color:#fff;font-size:13px;font-weight:600;cursor:pointer"></button>
+      <button type="button" id="rs-copy-btn" onclick="rsCopy()" data-i="rsCopy" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer"></button>
+      <button type="button" onclick="rsDownload()" data-i="rsSave" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer"></button>
     </div>
-    <textarea id="rs-text" readonly spellcheck="false" placeholder="「Rスクリプトを作成」を押すと、ここに表示されます" style="width:100%;height:300px;box-sizing:border-box;font-family:Consolas,Menlo,monospace;font-size:12px;line-height:1.5;padding:10px;border:1px solid #d0d5dd;border-radius:6px;background:#fafbfc;white-space:pre;overflow:auto"></textarea>
+    <textarea id="rs-text" readonly spellcheck="false" data-ip="rsPh" style="width:100%;height:300px;box-sizing:border-box;font-family:Consolas,Menlo,monospace;font-size:12px;line-height:1.5;padding:10px;border:1px solid #d0d5dd;border-radius:6px;background:#fafbfc;white-space:pre;overflow:auto"></textarea>
   </div>
 </div>
+<div class="foot" data-i="foot"></div>
 
 <script>
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 直交配列ライブラリ
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ===================== i18n core (JA / EN) =====================
+// 使い方: 各要素に data-i="キー"(textContent) / data-ih="キー"(innerHTML) / data-ip="キー"(placeholder) を付ける。
+// 動的な文字列は t('キー', 引数...) を使う。辞書の値は文字列、または関数。
+const I18N={ja:{},en:{}};
+let LANG='ja';
+function detectLang(){
+  try{const q=new URLSearchParams(location.search).get('lang'); if(q==='ja'||q==='en') return q;}catch(e){}
+  try{const s=localStorage.getItem('tool_lang'); if(s==='ja'||s==='en') return s;}catch(e){}
+  return ((navigator.language||'en')+'').toLowerCase().indexOf('ja')===0?'ja':'en';
+}
+function t(key){
+  const a=Array.prototype.slice.call(arguments,1);
+  let s=I18N[LANG]&&I18N[LANG][key];
+  if(s===undefined) s=I18N.en[key];
+  if(s===undefined) return key;
+  return typeof s==='function'?s.apply(null,a):s;
+}
+function applyI18n(){
+  document.documentElement.lang=LANG;
+  document.title=t('title');
+  document.querySelectorAll('[data-i]').forEach(e=>{e.textContent=t(e.getAttribute('data-i'));});
+  document.querySelectorAll('[data-ih]').forEach(e=>{e.innerHTML=t(e.getAttribute('data-ih'));});
+  document.querySelectorAll('[data-ip]').forEach(e=>{e.setAttribute('placeholder',t(e.getAttribute('data-ip')));});
+  document.querySelectorAll('.langsw button').forEach(b=>{b.classList.toggle('on',b.getAttribute('data-lang')===LANG);});
+  if(typeof onLangChange==='function') onLangChange();
+}
+function setLang(l){
+  LANG=l;
+  try{localStorage.setItem('tool_lang',l);}catch(e){}
+  applyI18n();
+}
+// =================================================================
+
+// ───────── 辞書 ─────────
+const EXD_JA=[
+ [{name:'タイプ',levels:['和食','洋食']},{name:'席のタイプ',levels:['テーブル席','座敷席']},{name:'デザート',levels:['なし','あり']},{name:'価格',levels:['3000円','4000円']}],
+ [{name:'タイプ',levels:['和食','洋食','フレンチ']},{name:'席のタイプ',levels:['テーブル席','座敷席','カウンター席']},{name:'デザート',levels:['なし','あり']},{name:'価格',levels:['3000円','4000円']}]
+];
+const EXD_EN=[
+ [{name:'Cuisine',levels:['Japanese','Western']},{name:'Seating',levels:['Table','Tatami']},{name:'Dessert',levels:['No','Yes']},{name:'Price',levels:['3000','4000']}],
+ [{name:'Cuisine',levels:['Japanese','Western','French']},{name:'Seating',levels:['Table','Tatami','Counter']},{name:'Dessert',levels:['No','Yes']},{name:'Price',levels:['3000','4000']}]
+];
+Object.assign(I18N.ja,{
+ title:'コンジョイント分析ツール', h1:'コンジョイント分析ツール',
+ disc1:'法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室',
+ disc2:'学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。',
+ step1T:'直交計画の作成', step2T:'調査データの入力', step3T:'分析結果',
+ nAttr:'属性の数', ex1:'例題：飲み会（2×2×2×2）', ex2:'例題：飲み会（3×3×2×2）', reset:'↺ リセット', gen:'▶ 直交計画を生成',
+ tabProf:'プロファイル表', tabOrtho:'直交性チェック', tabCards:'プロファイルカード',
+ dlProf:'⬇ プロファイル表をCSVでダウンロード', dlDummy:'⬇ ダミー変数表をCSVでダウンロード（Step2で再利用可）',
+ print:'🖨 印刷',
+ respType:'回答形式', optScore:'得点（数値）', optRank:'順位（1位・2位・…）',
+ openCsv:'📂 CSVを読み込む', sample:'サンプルデータを入力',
+ surveyLbl:'調査データ（行=回答者、列=各プロファイルへの評価）',
+ surveyPh:'回答者名,プロファイル1,プロファイル2,...\n田中,8,3,6,7,2,5,4,1\n鈴木,7,4,5,8,1,6,3,2\n...',
+ surveyNote:'※ 1行目：ヘッダー（1列目=回答者名、2列目以降=各プロファイルへの評価）<br>※ 列の順番はStep 1で生成したプロファイル表と対応させてください<br>※ 順位の場合：1位が最も好む（得点に自動変換します）',
+ run:'▶ 分析を実行',
+ tabUtil:'効用値一覧', tabImp:'重要度一覧', tabAvg:'全体平均', tabInd:'個人別詳細', tabCl:'cluster.html用CSV',
+ dlUtil:'⬇ 効用値CSVをダウンロード', dlImp:'⬇ 重要度CSVをダウンロード',
+ utilNote:'※ 効用値は、属性ごとに合計が0になるよう表示しています（Rの conjoint パッケージ、SPSSと同じ表示）。重要度は「各属性の効用値の幅 ÷ 全属性の幅の合計」です。',
+ respLbl:'回答者：',
+ clP:'以下の3種類のCSVを cluster.html に貼り付けてクラスター分析を実行できます。',
+ dlCU:'⬇ ①効用値（cluster用）', dlCI:'⬇ ②重要度（cluster用）', dlCR:'⬇ ③生データ（cluster用）',
+ clNote:'※ ①効用値：各水準の効用値でクラスタリング（「何を重視するか」の絶対的な差を捉える）<br>※ ②重要度：属性の重要度でクラスタリング（「何を重視するか」の構造を捉える）<br>※ ③生データ：プロファイルへの得点でクラスタリング（モデルを仮定しない）',
+ rsTitle:'Rで同じ計算をする（検算用スクリプト）',
+ rsDesc:'いま入力しているデータと設定を埋め込んだRスクリプトを作ります。RStudioに貼り付けて実行すると、このアプリと同じ計算をRの標準的な関数で行い、結果を並べて確かめられます。',
+ rsMake:'Rスクリプトを作成', rsCopy:'コピー', rsSave:'.Rファイルを保存', rsPh:'「Rスクリプトを作成」を押すと、ここに表示されます', copied:'コピーしました',
+ foot:'このツールは、Claude（Anthropic）の支援を受けて開発しました。',
+ attrH:(n)=>`属性 ${n}`, attrName:'属性名', nLvlLbl:'水準数', nLvlOpt:(n)=>`${n}水準`, lvlLbl:(n)=>`水準${n}`,
+ phAttr:'例：タイプ', phLvl:'例：和食',
+ defAttr:(i)=>`属性${String.fromCharCode(65+i)}`, defLvl:(j)=>`水準${j}`,
+ defAttrRe:/^属性([A-G])$/, defLvlRe:/^水準([1-9])$/,
+ exD:EXD_JA,
+ names:['田中','鈴木','佐藤','高橋','伊藤','渡辺','山本','中村','小林','加藤'],
+ respHdr:'回答者', profHdr:(i)=>`プロファイル${i}`, profHdrRe:/^プロファイル(\d+)$/,
+ respN:(i)=>`回答者${i}`, respNRe:/^回答者(\d+)$/,
+ // エラー
+ errNoOA:'この属性・水準の組み合わせには対応する直交配列が見つかりません。',
+ errNeedDesign:'先にStep 1で直交計画を生成してください。', errNoSurvey:'調査データを入力してください。',
+ errNeedDesignR:'先にStep 1で直交計画を生成してください', errNoSurveyR:'調査データを入力してください',
+ errMin2:'2行以上（ヘッダー+1名以上）必要です',
+ errNaN:(row,v)=>`${row}行目の値が数値ではありません（${v}）`,
+ errMismatch:(n,k,np)=>`「${n}」の評価数（${k}件）がプロファイル数（${np}件）と合いません。`,
+ errMismatchR:(n,k,np)=>`「${n}」の評価数（${k}件）がプロファイル数（${np}件）と合いません`,
+ errRows:'行数が不足しています', errNeedDummy:'ダミー変数表CSVを読み込んでください（プロファイル表ではありません）',
+ alertLoadFail:(m)=>'直交表CSVの読み込みに失敗しました：'+m,
+ loadedInfo:(names,np,lv)=>`✓ 直交表を読み込みました：<b>${names}</b>　プロファイル数：<b>${np}件</b>　水準構成：<b>${lv}</b>`,
+ // 設計結果
+ infoOA:(oa,np,na,lv,note)=>`使用配列：<b>${oa}</b>　プロファイル数：<b>${np}件</b>　属性数：<b>${na}</b>　水準構成：<b>${lv}</b>${note}`,
+ nFull:'　<span style="color:#0e7c5a">✓ 完全直交</span>',
+ nMixed:'　<span style="color:#e05c2a">△ 近似直交（直交性チェックで確認してください）</span>',
+ nApprox:'　<span style="color:#e05c2a">△ 近似直交</span>',
+ dummyHdr:(a,l)=>`${a}（${l}）`,
+ thProfNo:'プロファイル番号', profRow:(i)=>`プロファイル${i}`,
+ cardNum:(i)=>`プロファイル ${i}`, cardEval:'評価（得点・順位）：___________',
+ dupWarn:(n)=>`⚠ <b>重複プロファイルが${n}件あります。</b> 属性・水準の組み合わせを見直してください。`,
+ orthoNote:`各属性ペアの組み合わせ出現回数を確認します。すべてのセルが同じ回数であれば完全直交です。<br>
+    <b>【混合水準の制約について】</b> 3水準と2水準が混在する場合（例：3×3×2×2）、
+    完全直交に必要なプロファイル数は数学的にLCM(9,4)=36件となり実用的でありません。
+    L9（9件）が実用上の最善策ですが、<b>2水準同士のペア（デザート×価格など）に非直交が生じるのは避けられません。</b>
+    3水準属性間・3水準と2水準のペアは直交（差0〜1）が保たれており、主要な効用値の推定には支障ありません。`,
+ h1Freq:'① 各属性の水準出現回数', h2Cross:'② 属性ペアのクロス集計',
+ thAttr:'属性', thLevel:'水準', thCount:'出現回数', thExp:'期待値', thJudge:'判定', okMark:'✓ OK', unbal:'△ 不均等',
+ stFull:'✓ 完全直交', stOrth1:'✓ 直交（差1）', stApprox:'△ 近似直交（差2）', stNon:(d)=>`✗ 非直交（差${d}）`,
+ sumOK:'✓ すべての属性ペアで直交性が確認されました。', sumNG:'△ 一部の属性ペアに偏りがあります。設計を見直してください。',
+ // 結果
+ resInfo:(n,np,na,rt)=>`回答者数：<b>${n}名</b>　プロファイル数：<b>${np}件</b>　属性数：<b>${na}</b>　回答形式：<b>${rt==='rank'?'順位（得点に変換）':'得点'}</b>`,
+ thResp:'回答者', impNote:'※ 各行の合計は100%になります',
+ avgImpH:'平均重要度', thAttrName:'属性', thAvgImp:'平均重要度', thBar:'バー',
+ avgUtilH:'属性別・水準別の平均効用値',
+ impH:'重要度', thImp:'重要度',
+ regH:'回帰係数（ダミー変数、基準＝各属性の水準1）', thItem:'項目', thCoef:'係数', intr:'切片（ダミー変数回帰）',
+ utilH:'効用値', thLvl:(j)=>`水準${j}`, gap:'GAP', profEvalH:'プロファイル評価（得点）',
+ colonJ:(a,l)=>`${a}：${l}`, caseH:'ケース',
+ // 例題の見出し(サンプルデータ)
+ // R
+ rsFailMsg:'# スクリプトを作成できませんでした'
+});
+Object.assign(I18N.en,{
+ title:'Conjoint Analysis Tool', h1:'Conjoint Analysis Tool',
+ disc1:'Yuki Toyoda Laboratory, Graduate School of Innovation Management, Hosei University',
+ disc2:'This is a learning tool. It may contain calculation errors, so please verify the results with other software before using them in research or business.',
+ step1T:'Create an orthogonal design', step2T:'Enter survey data', step3T:'Results',
+ nAttr:'Number of attributes', ex1:'Example: group dinner (2×2×2×2)', ex2:'Example: group dinner (3×3×2×2)', reset:'↺ Reset', gen:'▶ Generate orthogonal design',
+ tabProf:'Profile table', tabOrtho:'Orthogonality check', tabCards:'Profile cards',
+ dlProf:'⬇ Download the profile table as CSV', dlDummy:'⬇ Download the dummy variable table as CSV (reusable in Step 2)',
+ print:'🖨 Print',
+ respType:'Response format', optScore:'Score (numeric)', optRank:'Rank (1st, 2nd, ...)',
+ openCsv:'📂 Load CSV', sample:'Insert sample data',
+ surveyLbl:'Survey data (rows = respondents, columns = ratings of each profile)',
+ surveyPh:'Respondent,Profile 1,Profile 2,...\nAlice,8,3,6,7,2,5,4,1\nBob,7,4,5,8,1,6,3,2\n...',
+ surveyNote:'* Row 1: header (column 1 = respondent name, columns 2 onward = ratings of each profile)<br>* Match the column order to the profile table generated in Step 1<br>* For ranks: rank 1 is the most preferred (ranks are converted to scores automatically)',
+ run:'▶ Run analysis',
+ tabUtil:'Part-worth utilities', tabImp:'Relative importance', tabAvg:'Overall averages', tabInd:'Individual details', tabCl:'CSV for cluster.html',
+ dlUtil:'⬇ Download part-worth utilities as CSV', dlImp:'⬇ Download relative importance as CSV',
+ utilNote:'* Part-worth utilities are displayed so that they sum to 0 within each attribute (the same display as the R conjoint package and SPSS). Relative importance is "the range of the utilities of an attribute / the sum of the ranges of all attributes".',
+ respLbl:'Respondent:',
+ clP:'Paste the following three CSV files into cluster.html to run a cluster analysis.',
+ dlCU:'⬇ (1) Part-worth utilities (for cluster)', dlCI:'⬇ (2) Relative importance (for cluster)', dlCR:'⬇ (3) Raw data (for cluster)',
+ clNote:'* (1) Part-worth utilities: cluster on the utility of each level (captures absolute differences in what respondents value)<br>* (2) Relative importance: cluster on the importance of each attribute (captures the structure of what respondents value)<br>* (3) Raw data: cluster on the scores given to the profiles (no model is assumed)',
+ rsTitle:'Run the same calculation in R (check script)',
+ rsDesc:'This creates an R script with your current data and settings embedded. Paste it into RStudio and run it: R performs the same calculation with its standard functions, so you can compare the results side by side.',
+ rsMake:'Create R script', rsCopy:'Copy', rsSave:'Save .R file', rsPh:'Press "Create R script" and the script will appear here', copied:'Copied',
+ foot:'This tool was developed with the assistance of Claude (Anthropic).',
+ attrH:(n)=>`Attribute ${n}`, attrName:'Attribute name', nLvlLbl:'Number of levels', nLvlOpt:(n)=>`${n} levels`, lvlLbl:(n)=>`Level ${n}`,
+ phAttr:'e.g. Cuisine', phLvl:'e.g. Japanese',
+ defAttr:(i)=>`Attribute ${String.fromCharCode(65+i)}`, defLvl:(j)=>`Level ${j}`,
+ defAttrRe:/^Attribute ([A-G])$/, defLvlRe:/^Level ([1-9])$/,
+ exD:EXD_EN,
+ names:['Alice','Bob','Carol','David','Emma','Frank','Grace','Henry','Irene','Jack'],
+ respHdr:'Respondent', profHdr:(i)=>`Profile ${i}`, profHdrRe:/^Profile (\d+)$/,
+ respN:(i)=>`Respondent ${i}`, respNRe:/^Respondent (\d+)$/,
+ errNoOA:'No orthogonal array is available for this combination of attributes and levels.',
+ errNeedDesign:'Generate an orthogonal design in Step 1 first.', errNoSurvey:'Please enter the survey data.',
+ errNeedDesignR:'Generate an orthogonal design in Step 1 first', errNoSurveyR:'Please enter the survey data',
+ errMin2:'At least 2 rows are required (a header and one or more respondents)',
+ errNaN:(row,v)=>`Row ${row}: the value is not a number (${v})`,
+ errMismatch:(n,k,np)=>`The number of ratings for "${n}" (${k}) does not match the number of profiles (${np}).`,
+ errMismatchR:(n,k,np)=>`The number of ratings for "${n}" (${k}) does not match the number of profiles (${np})`,
+ errRows:'Not enough rows', errNeedDummy:'Please load the dummy variable table CSV (not the profile table)',
+ alertLoadFail:(m)=>'Failed to load the orthogonal design CSV: '+m,
+ loadedInfo:(names,np,lv)=>`✓ Orthogonal design loaded: <b>${names}</b>&emsp;Profiles: <b>${np}</b>&emsp;Level structure: <b>${lv}</b>`,
+ infoOA:(oa,np,na,lv,note)=>`Array used: <b>${oa}</b>&emsp;Profiles: <b>${np}</b>&emsp;Attributes: <b>${na}</b>&emsp;Level structure: <b>${lv}</b>${note}`,
+ nFull:'&emsp;<span style="color:#0e7c5a">✓ Fully orthogonal</span>',
+ nMixed:'&emsp;<span style="color:#e05c2a">△ Approximately orthogonal (confirm in the orthogonality check)</span>',
+ nApprox:'&emsp;<span style="color:#e05c2a">△ Approximately orthogonal</span>',
+ dummyHdr:(a,l)=>`${a} (${l})`,
+ thProfNo:'Profile no.', profRow:(i)=>`Profile ${i}`,
+ cardNum:(i)=>`Profile ${i}`, cardEval:'Rating (score or rank): ___________',
+ dupWarn:(n)=>`⚠ <b>There are ${n} duplicated profiles.</b> Reconsider the combination of attributes and levels.`,
+ orthoNote:`This section checks how often each combination of levels appears for each pair of attributes. If all cells have the same count, the pair is fully orthogonal.<br>
+    <b>[Constraint with mixed levels]</b> When 3-level and 2-level attributes are mixed (e.g., 3×3×2×2),
+    a fully orthogonal design would mathematically require LCM(9,4) = 36 profiles, which is impractical.
+    L9 (9 profiles) is the best practical choice, but <b>non-orthogonality between pairs of 2-level attributes (e.g., Dessert × Price) cannot be avoided.</b>
+    Pairs of 3-level attributes and pairs of a 3-level and a 2-level attribute remain orthogonal (difference 0 to 1), so the estimation of the main part-worth utilities is not affected.`,
+ h1Freq:'1. Frequency of each level within each attribute', h2Cross:'2. Cross-tabulation of attribute pairs',
+ thAttr:'Attribute', thLevel:'Level', thCount:'Count', thExp:'Expected', thJudge:'Result', okMark:'✓ OK', unbal:'△ Unbalanced',
+ stFull:'✓ Fully orthogonal', stOrth1:'✓ Orthogonal (difference 1)', stApprox:'△ Approximately orthogonal (difference 2)', stNon:(d)=>`✗ Not orthogonal (difference ${d})`,
+ sumOK:'✓ Orthogonality was confirmed for all attribute pairs.', sumNG:'△ Some attribute pairs are unbalanced. Reconsider the design.',
+ resInfo:(n,np,na,rt)=>`Respondents: <b>${n}</b>&emsp;Profiles: <b>${np}</b>&emsp;Attributes: <b>${na}</b>&emsp;Response format: <b>${rt==='rank'?'Rank (converted to scores)':'Score'}</b>`,
+ thResp:'Respondent', impNote:'* Each row sums to 100%',
+ avgImpH:'Average relative importance', thAttrName:'Attribute', thAvgImp:'Average importance', thBar:'Bar',
+ avgUtilH:'Average part-worth utility by attribute and level',
+ impH:'Relative importance', thImp:'Importance',
+ regH:'Regression coefficients (dummy variables; reference = level 1 of each attribute)', thItem:'Term', thCoef:'Coefficient', intr:'Intercept (dummy-variable regression)',
+ utilH:'Part-worth utilities', thLvl:(j)=>`Level ${j}`, gap:'Range', profEvalH:'Profile ratings (scores)',
+ colonJ:(a,l)=>`${a}: ${l}`, caseH:'Case',
+ rsFailMsg:'# Could not create the script'
+});
+const XJ2E={}, XE2J={};
+EXD_JA.forEach((ex,k)=>ex.forEach((a,i)=>{
+  const b=EXD_EN[k][i]; XJ2E[a.name]=b.name; XE2J[b.name]=a.name;
+  a.levels.forEach((l,j)=>{ XJ2E[l]=b.levels[j]; XE2J[b.levels[j]]=l; });
+}));
+// 言語切替時に、既定の属性名・水準名と例題の値だけを、現在の言語のものに置き換える(利用者が入力した値はそのまま)
+function trVal(v){
+  const from=LANG==='en'?XJ2E:XE2J, re=LANG==='en'?I18N.ja:I18N.en;
+  if(Object.prototype.hasOwnProperty.call(from,v)) return from[v];
+  let m;
+  if((m=re.defAttrRe.exec(v))) return t('defAttr',m[1].charCodeAt(0)-65);
+  if((m=re.defLvlRe.exec(v))) return t('defLvl',+m[1]);
+  return v;
+}
+function trName(v){
+  const re=LANG==='en'?I18N.ja:I18N.en;
+  const k=re.names.indexOf(v);
+  if(k>=0) return t('names')[k];
+  const m=re.respNRe.exec(v);
+  if(m) return t('respN',m[1]);
+  return v;
+}
+function trHdr(c){
+  const re=LANG==='en'?I18N.ja:I18N.en;
+  if(c.trim()===re.respHdr) return t('respHdr');
+  const m=re.profHdrRe.exec(c.trim());
+  if(m) return t('profHdr',m[1]);
+  return c;
+}
+function trSurvey(text){
+  return text.split('\n').map((ln,i)=> i===0 ? ln.replace(/[^,\t]+/g,trHdr) : ln.replace(/^[^,\t]*/,trName)).join('\n');
+}
 const OA = {
   L4: {array:[[0,0,0],[0,1,1],[1,0,1],[1,1,0]],runs:4},
   L8: {array:[[0,0,0,0,0,0,0],[0,0,0,1,1,1,1],[0,1,1,0,0,1,1],[0,1,1,1,1,0,0],[1,0,1,0,1,0,1],[1,0,1,1,0,1,0],[1,1,0,0,1,1,0],[1,1,0,1,0,0,1]],runs:8},
@@ -268,6 +472,7 @@ const OA = {
   OA12_3_2x4:{array:[[0,1,0,1,1],[0,0,0,0,0],[0,1,1,1,0],[0,0,1,0,1],[1,1,1,0,1],[1,0,1,1,1],[1,0,0,1,0],[1,1,0,0,0],[2,0,0,1,1],[2,1,1,1,0],[2,0,1,0,0],[2,1,0,0,1]],runs:12},
 };
 
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // グローバル
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -276,15 +481,18 @@ let G = {
   respondents:[], surveyData:[],
   results:[] // [{name, coefs, utilities, gaps, importances}]
 };
+const ERRS={};
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ユーティリティ
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function showErr(id,m){const e=document.getElementById(id);e.textContent=m;e.style.display='block';}
-function clearErr(id){document.getElementById(id).style.display='none';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showErr(id,m){ERRS[id]=(typeof m==='function')?m:()=>m; const e=document.getElementById(id);e.textContent=ERRS[id]();e.style.display='block';}
+function clearErr(id){ERRS[id]=null; document.getElementById(id).style.display='none';}
+function mkErr(key){ const a=Array.prototype.slice.call(arguments,1); const e=new Error(t.apply(null,[key].concat(a))); e.fn=()=>t.apply(null,[key].concat(a)); return e; }
+function errFn(e){ return e.fn||(()=>e.message); }
 function dl(csv, fname){
-  const b64=btoa(unescape(encodeURIComponent('\uFEFF'+csv)));
+  const b64=btoa(unescape(encodeURIComponent('﻿'+csv)));
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8;base64,'+b64;
   a.download=fname; document.body.appendChild(a); a.click(); document.body.removeChild(a);
@@ -299,8 +507,8 @@ function switchDesignTab(name){
   ['profiles','ortho','cards'].forEach(n=>{
     document.getElementById('dtab-'+n).classList.toggle('active',n===name);
   });
-  document.querySelectorAll('#design-tabs .tab').forEach((t,i)=>{
-    t.classList.toggle('active',['profiles','ortho','cards'][i]===name);
+  document.querySelectorAll('#design-tabs .tab').forEach((tb,i)=>{
+    tb.classList.toggle('active',['profiles','ortho','cards'][i]===name);
   });
   if(name==='ortho') renderOrthoCheck();
 }
@@ -308,8 +516,8 @@ function switchResultTab(name){
   ['utility','importance','average','individual','cluster'].forEach(n=>{
     document.getElementById('rtab-'+n).classList.toggle('active',n===name);
   });
-  document.querySelectorAll('#card-result .tabs .tab').forEach((t,i)=>{
-    t.classList.toggle('active',['utility','importance','average','individual','cluster'][i]===name);
+  document.querySelectorAll('#card-result .tabs .tab').forEach((tb,i)=>{
+    tb.classList.toggle('active',['utility','importance','average','individual','cluster'][i]===name);
   });
   if(name==='individual') renderIndividual();
   if(name==='average') renderAverage();
@@ -326,17 +534,17 @@ function buildAttrInputs(){
   const grid=document.createElement('div');
   grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px';
   for(let i=0;i<n;i++){
-    const prev=(old&&old[i]&&old[i].levels)?old[i]:{name:`属性${String.fromCharCode(65+i)}`,levels:['水準1','水準2']};
+    const prev=(old&&old[i]&&old[i].levels)?old[i]:{name:t('defAttr',i),levels:[t('defLvl',1),t('defLvl',2)]};
     const div=document.createElement('div');
     div.className='attr-block';
-    div.innerHTML=`<h3>属性 ${i+1}</h3>
-      <div style="margin-bottom:8px"><label style="text-transform:none;letter-spacing:0;font-size:11px">属性名</label>
-        <input type="text" id="attr-name-${i}" value="${esc(prev.name)}" placeholder="例：タイプ"></div>
-      <label style="text-transform:none;letter-spacing:0;font-size:11px">水準数</label>
+    div.innerHTML=`<h3 data-t="attrH" data-a="${i+1}">${t('attrH',i+1)}</h3>
+      <div style="margin-bottom:8px"><label style="text-transform:none;letter-spacing:0;font-size:11px" data-t="attrName">${t('attrName')}</label>
+        <input type="text" id="attr-name-${i}" value="${esc(prev.name)}" data-tp="phAttr" placeholder="${t('phAttr')}"></div>
+      <label style="text-transform:none;letter-spacing:0;font-size:11px" data-t="nLvlLbl">${t('nLvlLbl')}</label>
       <select id="attr-nlvl-${i}" onchange="updateLevelInputs(${i})" style="margin-bottom:8px">
-        <option value="2" ${prev.levels.length===2?'selected':''}>2水準</option>
-        <option value="3" ${prev.levels.length===3?'selected':''}>3水準</option>
-        <option value="4" ${prev.levels.length===4?'selected':''}>4水準</option>
+        <option value="2" data-t="nLvlOpt" data-a="2" ${prev.levels.length===2?'selected':''}>${t('nLvlOpt',2)}</option>
+        <option value="3" data-t="nLvlOpt" data-a="3" ${prev.levels.length===3?'selected':''}>${t('nLvlOpt',3)}</option>
+        <option value="4" data-t="nLvlOpt" data-a="4" ${prev.levels.length===4?'selected':''}>${t('nLvlOpt',4)}</option>
       </select>
       <div id="lvl-inputs-${i}"></div>`;
     grid.appendChild(div); G.attrs.push({});
@@ -352,11 +560,11 @@ function getAttrsFromDOM(){
       const nameEl=document.getElementById(`attr-name-${i}`);
       const nlvlEl=document.getElementById(`attr-nlvl-${i}`);
       if(!nameEl||!nlvlEl) return null;
-      const name=nameEl.value.trim()||`属性${String.fromCharCode(65+i)}`;
+      const name=nameEl.value.trim()||t('defAttr',i);
       const nlvl=+nlvlEl.value; const levels=[];
       for(let j=0;j<nlvl;j++){
         const el=document.getElementById(`lvl-${i}-${j}`);
-        levels.push(el?el.value.trim()||`水準${j+1}`:`水準${j+1}`);
+        levels.push(el?el.value.trim()||t('defLvl',j+1):t('defLvl',j+1));
       }
       attrs.push({name,levels});
     }
@@ -369,12 +577,19 @@ function updateLevelInputs(i,prevLevels){
   const wrap=document.getElementById(`lvl-inputs-${i}`);
   wrap.innerHTML='';
   for(let j=0;j<n;j++){
-    const prev=prevLevels?.[j]||`水準${j+1}`;
+    const prev=prevLevels?.[j]||t('defLvl',j+1);
     const div=document.createElement('div'); div.className='level-input';
-    div.innerHTML=`<span class="lbl">水準${j+1}</span>
-      <input type="text" id="lvl-${i}-${j}" value="${esc(prev)}" placeholder="例：和食">`;
+    div.innerHTML=`<span class="lbl" data-t="lvlLbl" data-a="${j+1}">${t('lvlLbl',j+1)}</span>
+      <input type="text" id="lvl-${i}-${j}" value="${esc(prev)}" data-tp="phLvl" placeholder="${t('phLvl')}">`;
     wrap.appendChild(div);
   }
+}
+
+// 動的に作った要素(属性入力欄)のラベルを、現在の言語に更新
+function applyDyn(){
+  document.querySelectorAll('[data-t]').forEach(e=>{e.textContent=t(e.getAttribute('data-t'),e.getAttribute('data-a'));});
+  document.querySelectorAll('[data-tp]').forEach(e=>{e.setAttribute('placeholder',t(e.getAttribute('data-tp')));});
+  document.querySelectorAll('#attr-inputs input[type=text]').forEach(e=>{e.value=trVal(e.value);});
 }
 
 function selectOA(attrs){
@@ -405,11 +620,23 @@ function selectOA(attrs){
   return null;
 }
 
-function generateDesign(){
-  clearErr('design-err');
-  const attrs=getAttrsFromDOM(); G.attrs=attrs;
-  const sel=selectOA(attrs);
-  if(!sel){showErr('design-err','この属性・水準の組み合わせには対応する直交配列が見つかりません。');return;}
+
+function mkDummies(attrs,profiles){
+  const dummyHeaders=[];
+  for(let i=0;i<attrs.length;i++)
+    for(let j=1;j<attrs[i].levels.length;j++)
+      dummyHeaders.push(t('dummyHdr',attrs[i].name,attrs[i].levels[j]));
+  const dummies=profiles.map(p=>{
+    const row=[];
+    for(let i=0;i<attrs.length;i++)
+      for(let j=1;j<attrs[i].levels.length;j++) row.push(p[i]===j?1:0);
+    return row;
+  });
+  return {dummyHeaders,dummies};
+}
+
+// 配列の選び方・列の割り当ては、元のツールと同じ(そのままコピー)
+function computeProfiles(attrs,sel){
   const {oa:oaKey,type:oaType}=sel;
   const baseOA=OA[oaKey];
   let profiles=[];
@@ -473,30 +700,24 @@ function generateDesign(){
     }
   }
 
+  return profiles;
+}
+
+function generateDesign(){
+  clearErr('design-err');
+  const attrs=getAttrsFromDOM(); G.attrs=attrs;
+  const sel=selectOA(attrs);
+  if(!sel){showErr('design-err',()=>t('errNoOA'));return;}
+  const oaKey=sel.oa, oaType=sel.type;
+  const profiles=computeProfiles(attrs,sel);
+
   // ダミー変数
-  const dummyHeaders=[];
-  for(let i=0;i<attrs.length;i++)
-    for(let j=1;j<attrs[i].levels.length;j++)
-      dummyHeaders.push(`${attrs[i].name}（${attrs[i].levels[j]}）`);
-  const dummies=profiles.map(p=>{
-    const row=[];
-    for(let i=0;i<attrs.length;i++)
-      for(let j=1;j<attrs[i].levels.length;j++) row.push(p[i]===j?1:0);
-    return row;
-  });
+  const {dummyHeaders,dummies}=mkDummies(attrs,profiles);
 
   G.profiles=profiles; G.dummies=dummies; G.dummyHeaders=dummyHeaders;
+  G.oa=oaKey; G.oaType=oaType;
 
-  // 重複チェック
-  const pKeys=profiles.map(p=>p.join(','));
-  const dupeCount=pKeys.length-new Set(pKeys).size;
-  const orthoNote=oaType==='prebuilt'||oaType==='pure2'||oaType==='pure3'||oaType==='pseudo4'||oaType==='L18mix'
-    ?'　<span style="color:#0e7c5a">✓ 完全直交</span>'
-    :oaType==='mixed'?'　<span style="color:#e05c2a">△ 近似直交（直交性チェックで確認してください）</span>'
-    :'　<span style="color:#e05c2a">△ 近似直交</span>';
-  document.getElementById('design-info').innerHTML=
-    `使用配列：<b>${oaKey}</b>　プロファイル数：<b>${profiles.length}件</b>　属性数：<b>${attrs.length}</b>　水準構成：<b>${attrs.map(a=>a.levels.length).join('×')}</b>${orthoNote}`;
-
+  renderDesignInfo();
   renderProfileTable(); renderCards();
   document.getElementById('design-result').style.display='block';
   switchDesignTab('profiles');
@@ -505,13 +726,23 @@ function generateDesign(){
   updateSurveySample();
 }
 
+function renderDesignInfo(){
+  const {attrs,profiles,oa,oaType}=G;
+  const orthoNote=oaType==='prebuilt'||oaType==='pure2'||oaType==='pure3'||oaType==='pseudo4'||oaType==='L18mix'
+    ?t('nFull')
+    :oaType==='mixed'?t('nMixed')
+    :t('nApprox');
+  document.getElementById('design-info').innerHTML=
+    t('infoOA',oa,profiles.length,attrs.length,attrs.map(a=>a.levels.length).join('×'),orthoNote);
+}
+
 function renderProfileTable(){
   const {attrs,profiles}=G;
-  let html='<table><thead><tr><th>プロファイル番号</th>';
+  let html=`<table><thead><tr><th>${t('thProfNo')}</th>`;
   attrs.forEach(a=>html+=`<th>${esc(a.name)}</th>`);
   html+='</tr></thead><tbody>';
   profiles.forEach((p,i)=>{
-    html+=`<tr><td>プロファイル${i+1}</td>`;
+    html+=`<tr><td>${t('profRow',i+1)}</td>`;
     p.forEach((vi,ai)=>html+=`<td>${esc(attrs[ai].levels[vi])}</td>`);
     html+='</tr>';
   });
@@ -526,9 +757,9 @@ function renderCards(){
     const div=document.createElement('div'); div.className='profile-card';
     let rows='';
     p.forEach((vi,ai)=>rows+=`<tr><td>${esc(attrs[ai].name)}</td><td>${esc(attrs[ai].levels[vi])}</td></tr>`);
-    div.innerHTML=`<div class="num">プロファイル ${i+1}</div><table>${rows}</table>
+    div.innerHTML=`<div class="num">${t('cardNum',i+1)}</div><table>${rows}</table>
       <div style="margin-top:8px;padding-top:6px;border-top:1px solid #eee;font-size:11px;color:#777">
-        評価（得点・順位）：___________</div>`;
+        ${t('cardEval')}</div>`;
     grid.appendChild(div);
   });
 }
@@ -542,16 +773,12 @@ function renderOrthoCheck(){
   let html='';
   if(dupes.length>0){
     html+=`<div style="padding:10px 14px;background:#fff3e0;border-left:4px solid #e05c2a;border-radius:6px;margin-bottom:12px;font-size:12px">
-      ⚠ <b>重複プロファイルが${dupes.length}件あります。</b> 属性・水準の組み合わせを見直してください。</div>`;
+      ${t('dupWarn',dupes.length)}</div>`;
   }
-  html+=`<div class="note" style="margin-bottom:12px">各属性ペアの組み合わせ出現回数を確認します。すべてのセルが同じ回数であれば完全直交です。<br>
-    <b>【混合水準の制約について】</b> 3水準と2水準が混在する場合（例：3×3×2×2）、
-    完全直交に必要なプロファイル数は数学的にLCM(9,4)=36件となり実用的でありません。
-    L9（9件）が実用上の最善策ですが、<b>2水準同士のペア（デザート×価格など）に非直交が生じるのは避けられません。</b>
-    3水準属性間・3水準と2水準のペアは直交（差0〜1）が保たれており、主要な効用値の推定には支障ありません。</div>`;
+  html+=`<div class="note" style="margin-bottom:12px">${t('orthoNote')}</div>`;
   // 各属性の水準出現回数
-  html+=`<h3 style="font-size:12px;font-weight:700;margin-bottom:8px">① 各属性の水準出現回数</h3>
-    <div class="tbl-wrap"><table><thead><tr><th class="left">属性</th><th class="left">水準</th><th>出現回数</th><th>期待値</th><th>判定</th></tr></thead><tbody>`;
+  html+=`<h3 style="font-size:12px;font-weight:700;margin-bottom:8px">${t('h1Freq')}</h3>
+    <div class="tbl-wrap"><table><thead><tr><th class="left">${t('thAttr')}</th><th class="left">${t('thLevel')}</th><th>${t('thCount')}</th><th>${t('thExp')}</th><th>${t('thJudge')}</th></tr></thead><tbody>`;
   attrs.forEach((attr,i)=>{
     const counts=new Array(attr.levels.length).fill(0);
     profiles.forEach(p=>counts[p[i]]++);
@@ -561,11 +788,11 @@ function renderOrthoCheck(){
       html+=`<tr><td class="left">${j===0?`<b>${esc(attr.name)}</b>`:''}</td>
         <td class="left">${esc(lv)}</td><td>${counts[j]}</td>
         <td>${exp%1===0?exp:exp.toFixed(2)}</td>
-        <td style="color:${ok?'#0e7c5a':'#c0392b'};font-weight:700">${ok?'✓ OK':'△ 不均等'}</td></tr>`;
+        <td style="color:${ok?'#0e7c5a':'#c0392b'};font-weight:700">${ok?t('okMark'):t('unbal')}</td></tr>`;
     });
   });
   html+=`</tbody></table></div>`;
-  html+=`<h3 style="font-size:12px;font-weight:700;margin:16px 0 8px">② 属性ペアのクロス集計</h3>`;
+  html+=`<h3 style="font-size:12px;font-weight:700;margin:16px 0 8px">${t('h2Cross')}</h3>`;
   let allOK=dupes.length===0;
   for(let i=0;i<n;i++) for(let j=i+1;j<n;j++){
     const cross={};
@@ -574,7 +801,7 @@ function renderOrthoCheck(){
     const vals=Object.values(cross); const diff=Math.max(...vals)-Math.min(...vals);
     if(diff>1) allOK=false;
     const sc=diff===0?'#0e7c5a':diff<=1?'#185FA5':diff<=2?'#e05c2a':'#c0392b';
-    const st=diff===0?'✓ 完全直交':diff<=1?'✓ 直交（差1）':diff<=2?'△ 近似直交（差2）':`✗ 非直交（差${diff}）`;
+    const st=diff===0?t('stFull'):diff<=1?t('stOrth1'):diff<=2?t('stApprox'):t('stNon',diff);
     html+=`<div style="margin-bottom:12px">
       <div style="font-size:12px;font-weight:700;margin-bottom:4px;display:flex;gap:8px;align-items:center">
         <span>${esc(attrs[i].name)} × ${esc(attrs[j].name)}</span>
@@ -594,7 +821,7 @@ function renderOrthoCheck(){
   }
   const sc=allOK?'#0e7c5a':'#e05c2a';
   const bg=allOK?'#e8f5f0':'#fff3e0';
-  const msg=allOK?'✓ すべての属性ペアで直交性が確認されました。':'△ 一部の属性ペアに偏りがあります。設計を見直してください。';
+  const msg=allOK?t('sumOK'):t('sumNG');
   document.getElementById('ortho-wrap').innerHTML=
     `<div style="padding:10px 16px;background:${bg};border-radius:6px;border-left:4px solid ${sc};margin-bottom:14px;font-size:13px;font-weight:600;color:${sc}">${msg}</div>`+html;
 }
@@ -606,15 +833,15 @@ function downloadDesignCSV(type){
     // 1行目：メタ情報（属性名・水準名）
     // 2行目：ダミー変数ヘッダー
     const metaRow=['#META',...attrs.map(a=>a.name+':'+a.levels.join('|'))].join(',');
-    const hdrRow=['プロファイル番号',...dummyHeaders].join(',');
+    const hdrRow=[t('thProfNo'),...dummyHeaders].join(',');
     const rows=[metaRow, hdrRow];
     profiles.forEach((p,i)=>{
-      rows.push([`プロファイル${i+1}`,...dummies[i]].join(','));
+      rows.push([t('profRow',i+1),...dummies[i]].join(','));
     });
     dl(rows.join('\n'),'conjoint_dummy.csv');
   } else {
-    const rows=[['プロファイル番号',...attrs.map(a=>a.name)].join(',')];
-    profiles.forEach((p,i)=>rows.push([`プロファイル${i+1}`,...p.map((vi,ai)=>attrs[ai].levels[vi])].join(',')));
+    const rows=[[t('thProfNo'),...attrs.map(a=>a.name)].join(',')];
+    profiles.forEach((p,i)=>rows.push([t('profRow',i+1),...p.map((vi,ai)=>attrs[ai].levels[vi])].join(',')));
     dl(rows.join('\n'),'conjoint_profiles.csv');
   }
 }
@@ -636,10 +863,10 @@ function loadDesignFromCSV(e){
   const tryRead=enc=>{
     const r=new FileReader();
     r.onload=ev=>{
-      let t=ev.target.result.replace(/^﻿/,'');
-      if(enc==='UTF-8'&&(t.match(/�/g)||[]).length>3){tryRead('Shift-JIS');return;}
-      try{ restoreDesignFromCSV(t); }
-      catch(ex){ alert('直交表CSVの読み込みに失敗しました：'+ex.message); }
+      let tx=ev.target.result.replace(/^﻿/,'');
+      if(enc==='UTF-8'&&(tx.match(/�/g)||[]).length>3){tryRead('Shift-JIS');return;}
+      try{ restoreDesignFromCSV(tx); }
+      catch(ex){ alert(t('alertLoadFail',ex.message)); }
     };
     r.readAsText(file,enc);
   };
@@ -650,9 +877,9 @@ function restoreDesignFromCSV(text){
   const sep2=text.indexOf('\t')>-1&&text.indexOf('\t')<text.indexOf(',') ? '\t' : ',';
   const lines=[];
   for(const l of text.split('\n')){const s=l.replace(/\r$/,'');if(s.trim()) lines.push(s);}
-  if(lines.length<3) throw new Error('行数が不足しています');
+  if(lines.length<3) throw new Error(t('errRows'));
   const sep=lines[0].includes('\t')?'\t':',';
-  if(!lines[0].startsWith('#META')) throw new Error('ダミー変数表CSVを読み込んでください（プロファイル表ではありません）');
+  if(!lines[0].startsWith('#META')) throw new Error(t('errNeedDummy'));
   const metaCols=lines[0].split(sep).slice(1);
   const attrs=metaCols.map(m=>{
     const idx=m.indexOf(':');
@@ -678,7 +905,7 @@ function restoreDesignFromCSV(text){
   }
   G.attrs=attrs; G.profiles=profiles; G.dummies=dummies; G.dummyHeaders=dummyHeaders;
   const info=document.getElementById('design-loaded-info');
-  info.innerHTML=`✓ 直交表を読み込みました：<b>${attrs.map(a=>a.name).join(' / ')}</b>　プロファイル数：<b>${profiles.length}件</b>　水準構成：<b>${attrs.map(a=>a.levels.length).join('×')}</b>`;
+  info.innerHTML=t('loadedInfo',attrs.map(a=>a.name).join(' / '),profiles.length,attrs.map(a=>a.levels.length).join('×'));
   info.style.display='block';
 }
 
@@ -687,9 +914,9 @@ function loadSurveyCSV(e){
   const tryRead=enc=>{
     const r=new FileReader();
     r.onload=ev=>{
-      let t=ev.target.result.replace(/^\uFEFF/,'');
-      if(enc==='UTF-8'&&(t.match(/\uFFFD/g)||[]).length>3){tryRead('Shift-JIS');return;}
-      document.getElementById('survey-input').value=t;
+      let tx=ev.target.result.replace(/^﻿/,'');
+      if(enc==='UTF-8'&&(tx.match(/�/g)||[]).length>3){tryRead('Shift-JIS');return;}
+      document.getElementById('survey-input').value=tx;
     };
     r.readAsText(file,enc);
   };
@@ -702,8 +929,8 @@ function updateSurveySample(){
 
 function loadSurveyExample(){
   const np=G.profiles.length||8;
-  const names=['田中','鈴木','佐藤','高橋','伊藤','渡辺','山本','中村','小林','加藤'];
-  const lines=[`回答者,${Array.from({length:np},(_,i)=>`プロファイル${i+1}`).join(',')}`];
+  const names=t('names');
+  const lines=[`${t('respHdr')},${Array.from({length:np},(_,i)=>t('profHdr',i+1)).join(',')}`];
   // ランダムな得点を生成（np点満点からランダム順位を得点化）
   for(let r=0;r<8;r++){
     const scores=Array.from({length:np},(_,i)=>i+1);
@@ -715,16 +942,16 @@ function loadSurveyExample(){
 
 function parseSurvey(text){
   const lines=text.trim().split(/\r?\n/).filter(l=>l.trim());
-  if(lines.length<2) throw new Error('2行以上（ヘッダー+1名以上）必要です');
+  if(lines.length<2) throw mkErr('errMin2');
   const sep=lines[0].includes('\t')?'\t':',';
   const headers=lines[0].split(sep).map(h=>h.trim());
   const respondents=[], data=[];
   for(let i=1;i<lines.length;i++){
     const vals=lines[i].split(sep).map(v=>v.trim());
-    respondents.push(vals[0]||`回答者${i}`);
+    respondents.push(vals[0]||t('respN',i));
     const scores=vals.slice(1).map(v=>{
       const n=+v;
-      if(isNaN(n)) throw new Error(`${i+1}行目の値が数値ではありません（${v}）`);
+      if(isNaN(n)) throw mkErr('errNaN',i+1,v);
       return n;
     });
     data.push(scores);
@@ -796,25 +1023,27 @@ function calcUtilityAndImportance(scores, dummies, attrs){
   return {intercept, interceptZS, dummyCoefs, utilities, gaps, importances};
 }
 
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Step 3: 分析実行
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function runAnalysis(){
   clearErr('survey-err');
   if(!G.profiles||!G.profiles.length){
-    showErr('survey-err','先にStep 1で直交計画を生成してください。');return;
+    showErr('survey-err',()=>t('errNeedDesign'));return;
   }
   const text=document.getElementById('survey-input').value;
-  if(!text.trim()){showErr('survey-err','調査データを入力してください。');return;}
+  if(!text.trim()){showErr('survey-err',()=>t('errNoSurvey'));return;}
   let parsed;
-  try{parsed=parseSurvey(text);}catch(e){showErr('survey-err',e.message);return;}
+  try{parsed=parseSurvey(text);}catch(e){showErr('survey-err',errFn(e));return;}
   const {respondents,data}=parsed;
 
   // プロファイル数チェック
   const np=G.profiles.length;
   for(let i=0;i<data.length;i++){
     if(data[i].length!==np){
-      showErr('survey-err',`「${respondents[i]}」の評価数（${data[i].length}件）がプロファイル数（${np}件）と合いません。`);
+      const nm=respondents[i], k=data[i].length;
+      showErr('survey-err',()=>t('errMismatch',nm,k,np));
       return;
     }
   }
@@ -835,16 +1064,19 @@ function runAnalysis(){
     return {name, rawScores:processedData[i], ...res};
   });
 
-  G.respondents=respondents; G.surveyData=processedData; G.results=results;
+  G.respondents=respondents; G.surveyData=processedData; G.results=results; G.rtype=responseType;
 
-  // result info
-  document.getElementById('result-info').innerHTML=
-    `回答者数：<b>${respondents.length}名</b>　プロファイル数：<b>${np}件</b>　属性数：<b>${G.attrs.length}</b>　回答形式：<b>${responseType==='rank'?'順位（得点に変換）':'得点'}</b>`;
+  renderResultInfo();
 
   document.getElementById('card-result').style.display='block';
   switchResultTab('utility');
   renderUtility(); renderImportanceTable();
   document.getElementById('card-result').scrollIntoView({behavior:'smooth'});
+}
+
+function renderResultInfo(){
+  document.getElementById('result-info').innerHTML=
+    t('resInfo',G.respondents.length,G.profiles.length,G.attrs.length,G.rtype);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -854,8 +1086,8 @@ function renderUtility(){
   const {attrs,results}=G;
   // ヘッダー：属性名・水準名
   const cols=[];
-  attrs.forEach(attr=>attr.levels.forEach(lv=>cols.push(`${attr.name}：${lv}`)));
-  let html=`<div class="tbl-wrap"><table><thead><tr><th class="left">回答者</th>`;
+  attrs.forEach(attr=>attr.levels.forEach(lv=>cols.push(t('colonJ',attr.name,lv))));
+  let html=`<div class="tbl-wrap"><table><thead><tr><th class="left">${t('thResp')}</th>`;
   cols.forEach(c=>html+=`<th>${esc(c)}</th>`);
   html+=`</tr></thead><tbody>`;
   results.forEach(r=>{
@@ -869,7 +1101,7 @@ function renderUtility(){
 
 function renderImportanceTable(){
   const {attrs,results}=G;
-  let html=`<div class="tbl-wrap"><table><thead><tr><th class="left">回答者</th>`;
+  let html=`<div class="tbl-wrap"><table><thead><tr><th class="left">${t('thResp')}</th>`;
   attrs.forEach(a=>html+=`<th>${esc(a.name)}</th>`);
   html+=`</tr></thead><tbody>`;
   results.forEach(r=>{
@@ -878,7 +1110,7 @@ function renderImportanceTable(){
     html+=`</tr>`;
   });
   html+=`</tbody></table></div>
-    <div class="note" style="margin-top:8px">※ 各行の合計は100%になります</div>`;
+    <div class="note" style="margin-top:8px">${t('impNote')}</div>`;
   document.getElementById('importance-wrap').innerHTML=html;
 }
 
@@ -892,9 +1124,8 @@ function renderAverage(){
   // 平均重要度
   const avgImp=attrs.map((_,ai)=>results.reduce((s,r)=>s+r.importances[ai],0)/n);
   const maxImp=Math.max(...avgImp)||1;
-
-  let html=`<h3 style="font-size:13px;font-weight:700;margin-bottom:12px">平均重要度</h3>
-    <div class="tbl-wrap"><table><thead><tr><th class="left">属性</th><th>平均重要度</th><th style="width:40%">バー</th></tr></thead><tbody>`;
+  let html=`<h3 style="font-size:13px;font-weight:700;margin-bottom:12px">${t('avgImpH')}</h3>
+    <div class="tbl-wrap"><table><thead><tr><th class="left">${t('thAttrName')}</th><th>${t('thAvgImp')}</th><th style="width:40%">${t('thBar')}</th></tr></thead><tbody>`;
   const colors=['#185FA5','#e05c2a','#0e7c5a','#8e44ad','#c0392b','#f39c12','#16a085'];
   attrs.forEach((attr,ai)=>{
     const imp=avgImp[ai];
@@ -905,7 +1136,7 @@ function renderAverage(){
   });
   html+=`</tbody></table></div>`;
 
-  html+=`<h3 style="font-size:13px;font-weight:700;margin:20px 0 12px">属性別・水準別の平均効用値</h3>`;
+  html+=`<h3 style="font-size:13px;font-weight:700;margin:20px 0 12px">${t('avgUtilH')}</h3>`;
   attrs.forEach((attr,ai)=>{
     const color=colors[ai%colors.length];
     const utils=avgUtils[ai];
@@ -932,14 +1163,17 @@ function renderAverage(){
 
 function renderIndividual(){
   const {attrs,results}=G;
-  // セレクトボックスを更新
+  // セレクトボックスを更新(人数や名前が変わっていたら作り直し、選択位置は保つ)
   const sel=document.getElementById('respondent-select');
-  if(sel.options.length===0){
+  const keep=sel.value;
+  if(sel.options.length!==results.length || results.some((r,i)=>sel.options[i].textContent!==r.name)){
+    sel.innerHTML='';
     results.forEach((r,i)=>{
       const opt=document.createElement('option');
       opt.value=i; opt.textContent=r.name;
       sel.appendChild(opt);
     });
+    if(keep!==''&&+keep<results.length) sel.value=keep;
   }
   const idx=+sel.value||0;
   const r=results[idx];
@@ -949,8 +1183,8 @@ function renderIndividual(){
 
   let html=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
     <div>
-      <h3 style="font-size:12px;font-weight:700;margin-bottom:8px">重要度</h3>
-      <div class="tbl-wrap"><table><thead><tr><th class="left">属性</th><th>重要度</th><th style="width:40%">バー</th></tr></thead><tbody>`;
+      <h3 style="font-size:12px;font-weight:700;margin-bottom:8px">${t('impH')}</h3>
+      <div class="tbl-wrap"><table><thead><tr><th class="left">${t('thAttrName')}</th><th>${t('thImp')}</th><th style="width:40%">${t('thBar')}</th></tr></thead><tbody>`;
   const maxImp=Math.max(...r.importances)||1;
   attrs.forEach((attr,ai)=>{
     const imp=r.importances[ai];
@@ -960,17 +1194,17 @@ function renderIndividual(){
   });
   html+=`</tbody></table></div></div>
     <div>
-      <h3 style="font-size:12px;font-weight:700;margin-bottom:8px">回帰係数（ダミー変数、基準＝各属性の水準1）</h3>
-      <div class="tbl-wrap"><table><thead><tr><th class="left">項目</th><th>係数</th></tr></thead><tbody>
-      <tr><td class="left">切片（ダミー変数回帰）</td><td>${f3(r.intercept)}</td></tr>`;
+      <h3 style="font-size:12px;font-weight:700;margin-bottom:8px">${t('regH')}</h3>
+      <div class="tbl-wrap"><table><thead><tr><th class="left">${t('thItem')}</th><th>${t('thCoef')}</th></tr></thead><tbody>
+      <tr><td class="left">${t('intr')}</td><td>${f3(r.intercept)}</td></tr>`;
   G.dummyHeaders.forEach((h,i)=>html+=`<tr><td class="left">${esc(h)}</td><td>${f3(r.dummyCoefs[i])}</td></tr>`);
   html+=`</tbody></table></div></div></div>`;
 
-  html+=`<h3 style="font-size:12px;font-weight:700;margin-bottom:8px">効用値</h3>
-    <div class="tbl-wrap"><table><thead><tr><th class="left">属性</th>`;
+  html+=`<h3 style="font-size:12px;font-weight:700;margin-bottom:8px">${t('utilH')}</h3>
+    <div class="tbl-wrap"><table><thead><tr><th class="left">${t('thAttrName')}</th>`;
   const maxLvl=Math.max(...attrs.map(a=>a.levels.length));
-  for(let j=0;j<maxLvl;j++) html+=`<th>水準${j+1}</th>`;
-  html+=`<th>GAP</th></tr></thead><tbody>`;
+  for(let j=0;j<maxLvl;j++) html+=`<th>${t('thLvl',j+1)}</th>`;
+  html+=`<th>${t('gap')}</th></tr></thead><tbody>`;
   attrs.forEach((attr,ai)=>{
     html+=`<tr><td class="left"><b>${esc(attr.name)}</b></td>`;
     for(let j=0;j<maxLvl;j++){
@@ -982,7 +1216,7 @@ function renderIndividual(){
   });
   html+=`</tbody></table></div>`;
 
-  html+=`<h3 style="font-size:12px;font-weight:700;margin:12px 0 8px">プロファイル評価（得点）</h3>
+  html+=`<h3 style="font-size:12px;font-weight:700;margin:12px 0 8px">${t('profEvalH')}</h3>
     <div class="tbl-wrap"><table><thead><tr>`;
   G.profiles.forEach((_,i)=>html+=`<th>P${i+1}</th>`);
   html+=`</tr></thead><tbody><tr>`;
@@ -1001,8 +1235,8 @@ function downloadResult(type){
 
   if(type==='utility'){
     const cols=[];
-    attrs.forEach(attr=>attr.levels.forEach(lv=>cols.push(`${attr.name}：${lv}`)));
-    rows=[['回答者',...cols].join(',')];
+    attrs.forEach(attr=>attr.levels.forEach(lv=>cols.push(t('colonJ',attr.name,lv))));
+    rows=[[t('thResp'),...cols].join(',')];
     results.forEach(r=>{
       const vals=r.utilities.flatMap(u=>u);
       rows.push([r.name,...vals.map(v=>v.toFixed(4))].join(','));
@@ -1010,7 +1244,7 @@ function downloadResult(type){
     fname='conjoint_utility.csv';
 
   } else if(type==='importance'){
-    rows=[['回答者',...attrs.map(a=>a.name)].join(',')];
+    rows=[[t('thResp'),...attrs.map(a=>a.name)].join(',')];
     results.forEach(r=>{
       rows.push([r.name,...r.importances.map(v=>v.toFixed(4))].join(','));
     });
@@ -1019,8 +1253,8 @@ function downloadResult(type){
   } else if(type==='cluster-utility'){
     // 効用値（基準水準を除く）
     const cols=[];
-    attrs.forEach(attr=>attr.levels.slice(1).forEach(lv=>cols.push(`${attr.name}（${lv}）`)));
-    rows=[['ケース',...cols].join(',')];
+    attrs.forEach(attr=>attr.levels.slice(1).forEach(lv=>cols.push(t('dummyHdr',attr.name,lv))));
+    rows=[[t('caseH'),...cols].join(',')];
     results.forEach(r=>{
       const vals=r.utilities.flatMap(u=>u.slice(1));
       rows.push([r.name,...vals.map(v=>v.toFixed(4))].join(','));
@@ -1028,7 +1262,7 @@ function downloadResult(type){
     fname='cluster_utility.csv';
 
   } else if(type==='cluster-importance'){
-    rows=[['ケース',...attrs.map(a=>a.name)].join(',')];
+    rows=[[t('caseH'),...attrs.map(a=>a.name)].join(',')];
     results.forEach(r=>{
       rows.push([r.name,...r.importances.map(v=>v.toFixed(4))].join(','));
     });
@@ -1036,7 +1270,7 @@ function downloadResult(type){
 
   } else if(type==='cluster-raw'){
     const hdrs=G.profiles.map((_,i)=>`P${i+1}`);
-    rows=[['ケース',...hdrs].join(',')];
+    rows=[[t('caseH'),...hdrs].join(',')];
     results.forEach(r=>{
       rows.push([r.name,...r.rawScores].join(','));
     });
@@ -1050,49 +1284,36 @@ function downloadResult(type){
 // 例題
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function loadExample(n){
-  if(n===1){
-    document.getElementById('n-attr').value=4;
-    document.getElementById('attr-inputs').innerHTML='';
-    buildAttrInputs();
-    const data=[
-      {name:'タイプ',levels:['和食','洋食']},
-      {name:'席のタイプ',levels:['テーブル席','座敷席']},
-      {name:'デザート',levels:['なし','あり']},
-      {name:'価格',levels:['3000円','4000円']},
-    ];
-    data.forEach((d,i)=>{
-      document.getElementById(`attr-name-${i}`).value=d.name;
-      document.getElementById(`attr-nlvl-${i}`).value=d.levels.length;
-      updateLevelInputs(i);
-      d.levels.forEach((l,j)=>{document.getElementById(`lvl-${i}-${j}`).value=l;});
-    });
-  } else {
-    document.getElementById('n-attr').value=4;
-    document.getElementById('attr-inputs').innerHTML='';
-    buildAttrInputs();
-    const data=[
-      {name:'タイプ',levels:['和食','洋食','フレンチ']},
-      {name:'席のタイプ',levels:['テーブル席','座敷席','カウンター席']},
-      {name:'デザート',levels:['なし','あり']},
-      {name:'価格',levels:['3000円','4000円']},
-    ];
-    data.forEach((d,i)=>{
-      document.getElementById(`attr-name-${i}`).value=d.name;
-      document.getElementById(`attr-nlvl-${i}`).value=d.levels.length;
-      updateLevelInputs(i);
-      d.levels.forEach((l,j)=>{document.getElementById(`lvl-${i}-${j}`).value=l;});
-    });
-  }
+  document.getElementById('n-attr').value=4;
+  document.getElementById('attr-inputs').innerHTML='';
+  buildAttrInputs();
+  const data=t('exD')[n===1?0:1];
+  data.forEach((d,i)=>{
+    document.getElementById(`attr-name-${i}`).value=d.name;
+    document.getElementById(`attr-nlvl-${i}`).value=d.levels.length;
+    updateLevelInputs(i);
+    d.levels.forEach((l,j)=>{document.getElementById(`lvl-${i}-${j}`).value=l;});
+  });
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 初期化
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-buildAttrInputs();
-
-
-
-
+// 言語が切り替わったときの再描画(保存してある状態から作り直す。乱数は使わない)
+function onLangChange(){
+  applyDyn();
+  const ta=document.getElementById('survey-input');
+  if(ta.value) ta.value=trSurvey(ta.value);
+  const ok=G.profiles&&G.profiles.length&&G.attrs.length&&G.attrs.every(a=>a&&a.levels)&&G.profiles[0].length===G.attrs.length;
+  if(ok){
+    G.attrs=G.attrs.map(a=>({name:trVal(a.name),levels:a.levels.map(trVal)}));
+    const d=mkDummies(G.attrs,G.profiles); G.dummyHeaders=d.dummyHeaders;
+    renderDesignInfo(); renderProfileTable(); renderCards(); renderOrthoCheck();
+    if(G.results&&G.results.length){
+      G.results.forEach(r=>{r.name=trName(r.name);});
+      G.respondents=G.respondents.map(trName);
+      renderResultInfo(); renderUtility(); renderImportanceTable(); renderAverage(); renderIndividual();
+    }
+  }
+  Object.keys(ERRS).forEach(id=>{ if(ERRS[id]) document.getElementById(id).textContent=ERRS[id](); });
+}
 
 // ───────── Rスクリプト出力（検算用）の共通部品 ─────────
 function rsRaw(text){
@@ -1101,38 +1322,46 @@ function rsRaw(text){
   while(text.indexOf(')'+d+'"')>=0) d+='-';
   return 'r"'+d+'(\n'+text.replace(/\r\n?/g,'\n').replace(/\s+$/,'')+'\n)'+d+'"';
 }
+const RS_FAIL={ja:'# スクリプトを作成できませんでした',en:'# Could not create the script'};
 function rsHeader(title, pkgLines){
-  const L=[
+  const L=(LANG==='ja')?[
     '# =====================================================================',
     '# '+title,
     '# このスクリプトは、アプリに入力したデータと設定をそのまま埋め込んであります。',
     '# RStudioに貼り付けて、上から順に実行してください。',
     '# 日本語が文字化けするときは、RStudioの File > Reopen with Encoding > UTF-8 で開き直してください。',
     '# ====================================================================='
+  ]:[
+    '# =====================================================================',
+    '# '+title,
+    '# This script embeds the data and settings you entered in the app.',
+    '# Paste it into RStudio and run it from top to bottom.',
+    '# ====================================================================='
   ];
-  if(pkgLines&&pkgLines.length){ L.push('','# 初回だけ、必要なパッケージをインストールしてください（先頭の # を外して実行）'); pkgLines.forEach(p=>L.push(p)); }
+  if(pkgLines&&pkgLines.length){ L.push('',(LANG==='ja'?'# 初回だけ、必要なパッケージをインストールしてください（先頭の # を外して実行）':'# Install the required package once (remove the leading # and run)')); pkgLines.forEach(p=>L.push(p)); }
   return L;
 }
 function rsMake(){
   const ta=document.getElementById('rs-text');
   try{ ta.value=buildRScript(); }
-  catch(e){ ta.value='# スクリプトを作成できませんでした: '+e.message; }
+  catch(e){ ta.value=RS_FAIL[LANG]+': '+e.message; }
 }
+function rsFailed(v){ return v.indexOf(RS_FAIL.ja)===0||v.indexOf(RS_FAIL.en)===0; }
 function rsCopy(){
   const ta=document.getElementById('rs-text');
   rsMake();   // 入力が変わっていてもよいよう、毎回作り直す
-  if(ta.value.indexOf('# スクリプトを作成できませんでした')===0) return;
+  if(rsFailed(ta.value)) return;
   ta.focus(); ta.select();
   let ok=false;
   try{ ok=document.execCommand('copy'); }catch(e){}
   if(!ok && navigator.clipboard){ navigator.clipboard.writeText(ta.value).catch(()=>{}); }
-  const b=document.getElementById('rs-copy-btn'); const old=b.textContent;
-  b.textContent='コピーしました'; setTimeout(()=>{b.textContent=old;},1500);
+  const b=document.getElementById('rs-copy-btn');
+  b.textContent=t('copied'); setTimeout(()=>{b.textContent=t('rsCopy');},1500);
 }
 function rsDownload(){
   const ta=document.getElementById('rs-text');
   rsMake();
-  if(ta.value.indexOf('# スクリプトを作成できませんでした')===0) return;
+  if(rsFailed(ta.value)) return;
   const b64=btoa(unescape(encodeURIComponent('﻿'+ta.value)));
   const a=document.createElement('a');
   a.href='data:text/plain;charset=utf-8;base64,'+b64;
@@ -1141,56 +1370,70 @@ function rsDownload(){
 }
 const RS_FILENAME='conjoint_analysis_check.R';
 function buildRScript(){
-  if(!G.profiles||!G.profiles.length) throw new Error('先にStep 1で直交計画を生成してください');
+  const ja=(LANG==='ja');
+  if(!G.profiles||!G.profiles.length) throw mkErr('errNeedDesignR');
   const text=document.getElementById('survey-input').value;
-  if(!text.trim()) throw new Error('調査データを入力してください');
+  if(!text.trim()) throw mkErr('errNoSurveyR');
   const parsed=parseSurvey(text);
   const np=G.profiles.length;
-  parsed.data.forEach((d,i)=>{ if(d.length!==np) throw new Error('「'+parsed.respondents[i]+'」の評価数（'+d.length+'件）がプロファイル数（'+np+'件）と合いません'); });
+  parsed.data.forEach((d,i)=>{ if(d.length!==np) throw mkErr('errMismatchR',parsed.respondents[i],d.length,np); });
   const rtype=document.getElementById('response-type').value;
   const attrs=G.attrs, prof=G.profiles;
   const q=s=>'"'+String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';
   const yCsv=parsed.respondents.map((n,i)=>n+','+parsed.data[i].join(',')).join('\n');
-  const L=rsHeader('コンジョイント分析: アプリ(conjoint_analysis.html)と同じ計算をRで行う（conjointパッケージ）',
+  const L=rsHeader(ja?'コンジョイント分析: アプリ(conjoint_analysis.html)と同じ計算をRで行う（conjointパッケージ）'
+                     :'Conjoint analysis: the same calculation as the app (conjoint_analysis.html), in R (conjoint package)',
     ['# install.packages("conjoint")']);
   L.push('',
     'library(conjoint)',
     '',
-    '# 1. 計画（プロファイル x 属性）。水準は 1, 2, 3, ... の番号で表す（アプリの水準の並び順と同じ）',
+    ja?'# 1. 計画（プロファイル x 属性）。水準は 1, 2, 3, ... の番号で表す（アプリの水準の並び順と同じ）'
+      :'# 1. Design (profiles x attributes). Levels are coded as 1, 2, 3, ... (the same order as the levels in the app)',
     'x <- data.frame(');
   attrs.forEach((a,i)=>{
     L.push('  a'+(i+1)+' = c('+prof.map(p=>p[i]+1).join(', ')+')'+(i<attrs.length-1?',':''));
   });
   L.push(')',
-    '# 属性の対応: '+attrs.map((a,i)=>'a'+(i+1)+'='+a.name).join(', '),
-    '# 水準の名前（効用値の表示用。アプリの並び順）',
+    (ja?'# 属性の対応: ':'# Attribute mapping: ')+attrs.map((a,i)=>'a'+(i+1)+'='+a.name).join(', '),
+    ja?'# 水準の名前（効用値の表示用。アプリの並び順）':'# Level names (for labeling the part-worth utilities; same order as in the app)',
     'z <- c('+attrs.flatMap((a,i)=>a.levels.map(l=>q(a.name+":"+l))).join(', ')+')',
     '',
-    '# 2. 調査データ（行=回答者、列=プロファイル1, 2, ...。回答形式: '+(rtype==='rank'?'順位':'得点')+'）',
+    ja?'# 2. 調査データ（行=回答者、列=プロファイル1, 2, ...。回答形式: '+(rtype==='rank'?'順位':'得点')+'）'
+      :'# 2. Survey data (rows = respondents, columns = Profile 1, 2, .... Response format: '+(rtype==='rank'?'rank':'score')+')',
     'y <- as.matrix(read.csv(text = '+rsRaw(yCsv)+',',
     '                        header = FALSE, row.names = 1))');
-  if(rtype==='rank') L.push('y <- caRankToScore(y)   # 順位を得点に変換（順位1 → プロファイル数、順位2 → プロファイル数-1 ...）');
+  if(rtype==='rank') L.push(ja?'y <- caRankToScore(y)   # 順位を得点に変換（順位1 → プロファイル数、順位2 → プロファイル数-1 ...）'
+                              :'y <- caRankToScore(y)   # convert ranks to scores (rank 1 -> number of profiles, rank 2 -> number of profiles - 1, ...)');
   L.push('',
-    '# 3. 回答者ごとの効用値（部分効用）。1列目=切片、続いて各水準。',
-    '#    各属性の水準の合計が0になる効果コーディング（アプリの効用値と同じ）',
+    ja?'# 3. 回答者ごとの効用値（部分効用）。1列目=切片、続いて各水準。'
+      :'# 3. Part-worth utilities for each respondent. Column 1 = intercept, followed by each level.',
+    ja?'#    各属性の水準の合計が0になる効果コーディング（アプリの効用値と同じ）'
+      :'#    Effect coding in which the levels of each attribute sum to 0 (same as the app)',
     'pu <- suppressWarnings(caPartUtilities(y, x, z))',
-    'colnames(pu) <- c("切片", z)',
+    ja?'colnames(pu) <- c("切片", z)':'colnames(pu) <- c("Intercept", z)',
     'rownames(pu) <- rownames(y)',
     'print(round(pu, 3))',
     '',
-    '# 4. 属性の重要度（%）。各回答者の「効用値の幅 / 全属性の幅の合計」を平均したもの（アプリの平均重要度）',
+    ja?'# 4. 属性の重要度（%）。各回答者の「効用値の幅 / 全属性の幅の合計」を平均したもの（アプリの平均重要度）'
+      :'# 4. Importance of the attributes (%). The mean over respondents of "range of the utilities / sum of the ranges of all attributes" (the average importance in the app)',
     'imp <- suppressWarnings(caImportance(y, x))',
     'names(imp) <- c('+attrs.map(a=>q(a.name)).join(', ')+')',
     'print(imp)',
     '',
-    '# 5. 参考: 1人目をlm()で直接計算しても同じ効用値になります（contr.sum = 効果コーディング）',
+    ja?'# 5. 参考: 1人目をlm()で直接計算しても同じ効用値になります（contr.sum = 効果コーディング）'
+      :'# 5. For reference: computing the first respondent directly with lm() gives the same utilities (contr.sum = effect coding)',
     'old <- options(contrasts = c("contr.sum", "contr.poly"))',
     'fit <- lm(y[1, ] ~ ' + attrs.map((a,i)=>'factor(x$a'+(i+1)+')').join(' + ')+')',
-    'print(round(coef(fit), 3))   # 切片と、各属性の（最後の水準を除く）効用値',
+    ja?'print(round(coef(fit), 3))   # 切片と、各属性の（最後の水準を除く）効用値'
+      :'print(round(coef(fit), 3))   # the intercept and the utilities of each attribute (excluding the last level)',
     'options(old)');
   return L.join('\n')+'\n';
 }
 
+// ───────── 起動 ─────────
+LANG=detectLang();
+buildAttrInputs();
+applyI18n();
 </script>
 </body>
 </html>

@@ -2,7 +2,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sweep Builder</title>
-<meta name="description" content="Turn a single-threshold QCA setup into ready-to-run ThSQCA sweep code.">
+<script data-goatcounter="https://yuki-toyoda.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<meta id="metaDesc" name="description" content="Turn a single-threshold QCA setup into ready-to-run ThSQCA sweep code.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -26,58 +27,27 @@
     --shadow: 0 1px 2px rgba(20,30,28,.06), 0 8px 24px -12px rgba(20,30,28,.18);
     color-scheme: light;
   }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --bg:#12181a;
-      --surface:#1b2325;
-      --surface-2:#222c2f;
-      --border:#354140;
-      --text:#e7ece9;
-      --text-muted:#9aa8a4;
-      --accent:#e08a3e;
-      --accent-ink:#1b1206;
-      --accent-2:#4fb3ad;
-      --accent-2-tint:#1c2f2f;
-      --code-bg:#0d1213;
-      --code-text:#e7ece9;
-      --code-key:#f0a05c;
-      --code-str:#8fd0c4;
-      --code-num:#e3d29e;
-      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"]{
-    --bg:#12181a;
-    --surface:#1b2325;
-    --surface-2:#222c2f;
-    --border:#354140;
-    --text:#e7ece9;
-    --text-muted:#9aa8a4;
-    --accent:#e08a3e;
-    --accent-ink:#1b1206;
-    --accent-2:#4fb3ad;
-    --accent-2-tint:#1c2f2f;
-    --code-bg:#0d1213;
-    --code-text:#e7ece9;
-    --code-key:#f0a05c;
-    --code-str:#8fd0c4;
-    --code-num:#e3d29e;
-    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
-    color-scheme: dark;
-  }
+  /* Light theme only, to match the other tools */
 
   *{box-sizing:border-box;}
   body{
     background:var(--bg);
     color:var(--text);
-    font-family:"IBM Plex Sans", system-ui, sans-serif;
+    font-family:"IBM Plex Sans", system-ui, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", Meiryo, "Noto Sans CJK JP", "Noto Sans JP", sans-serif;
     padding-inline:16px;
-    padding-block:28px 64px;
+    padding-block:0 64px;
   }
   .wrap{max-width:1080px; margin:0 auto;}
   code, pre, .mono{font-family:"IBM Plex Mono", ui-monospace, monospace;}
 
+  .hbar{background:#233A9A;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px;margin-inline:-16px;}
+  .hbar-title{font-size:17px;font-weight:600;}
+  .hbar-badge{background:#F28018;color:#1a2332;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700;}
+  .hbar .langsw{position:static;margin-left:auto;}
+  .hbar .langsw button{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45);}
+  .hbar .langsw button.on{background:#fff;color:#233A9A;border-color:#fff;font-weight:700;}
+  .disc{background:#F28018;color:#1a2332;font-weight:700;font-size:12px;line-height:1.6;padding:10px 24px;margin-inline:-16px;}
+  .wrap{margin-top:24px;}
   header.top{margin-bottom:22px;}
   .eyebrow{
     display:inline-flex; align-items:center; gap:8px;
@@ -255,99 +225,99 @@
   footer a{color:var(--accent-2); text-decoration:none; font-weight:600;}
   footer a:hover{text-decoration:underline;}
   .dot{opacity:.5;}
+
+  /* ---- language toggle + footer (i18n) ---- */
+  header.top{position:relative;}
+  .langsw{position:absolute; top:0; right:0; display:flex; gap:4px;}
+  .langsw button{
+    background:transparent; color:var(--text-muted); border:1px solid var(--border);
+    border-radius:6px; padding:3px 10px; font-size:12px; cursor:pointer; font-family:inherit;
+  }
+  .langsw button.on{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:700;}
+  .solhint{font-size:11.5px; color:var(--text-muted);}
+  .foot{margin-top:14px; font-size:11px; color:var(--text-muted);}
 </style>
 
+<header class="hbar"><span class="hbar-title" data-i="barTitle"></span><span class="hbar-badge">ThSQCA</span><div class="langsw"><button type="button" data-lang="ja" onclick="setLang('ja')">日本語</button><button type="button" data-lang="en" onclick="setLang('en')">English</button></div></header>
+<div class="disc"><span data-i="disc1"></span><br><span data-i="disc2"></span></div>
 <div class="wrap">
   <header class="top">
-    <span class="eyebrow">ThSQCA &middot; sweep builder</span>
-    <h1>Turn a fixed-threshold QCA setup into sweep code</h1>
-    <p>Already have a working <code class="mono">QCA::truthTable()</code> / <code class="mono">minimize()</code> analysis? Pick a sweep type, fill in the same variables and thresholds you already use, and copy out the equivalent <code class="mono">ThSQCA</code> call.</p>
+    <span class="eyebrow" data-i="eyebrow"></span>
+    <h1 data-i="h1"></h1>
+    <p data-ih="lead"></p>
   </header>
 
   <div class="layout">
     <div class="left">
       <div class="panel">
-        <p class="section-title"><span class="n">1</span>Sweep type</p>
+        <p class="section-title"><span class="n">1</span><span data-i="sec1"></span></p>
         <div class="tabs" id="tabs">
-          <button class="tab active" data-tab="ot">Outcome<span class="fn">otSweep()</span></button>
-          <button class="tab" data-tab="cts">Single condition<span class="fn">ctSweepS()</span></button>
-          <button class="tab" data-tab="ctm">Multi condition<span class="fn">ctSweepM()</span></button>
-          <button class="tab" data-tab="dt">Dual<span class="fn">dtSweep()</span></button>
+          <button class="tab active" data-tab="ot"><span data-i="tabOt"></span><span class="fn">otSweep()</span></button>
+          <button class="tab" data-tab="cts"><span data-i="tabCts"></span><span class="fn">ctSweepS()</span></button>
+          <button class="tab" data-tab="ctm"><span data-i="tabCtm"></span><span class="fn">ctSweepM()</span></button>
+          <button class="tab" data-tab="dt"><span data-i="tabDt"></span><span class="fn">dtSweep()</span></button>
         </div>
         <p class="tab-desc" id="tabDesc"></p>
 
-        <p class="section-title"><span class="n">2</span>Data &amp; variables</p>
+        <p class="section-title"><span class="n">2</span><span data-i="sec2"></span></p>
         <div class="row3">
           <div class="field">
-            <label>Data object <span class="hint">R variable name</span></label>
+            <label data-ih="lblDat"></label>
             <input type="text" id="dat" value="dat">
           </div>
           <div class="field">
-            <label>Outcome <span class="hint">column name</span></label>
+            <label data-ih="lblOutcome"></label>
             <input type="text" id="outcome" value="Y">
           </div>
           <div class="field" id="thrYField">
-            <label>Outcome threshold <span class="hint">fixed value</span></label>
+            <label data-ih="lblThrY"></label>
             <input type="text" id="thrY" value="7">
           </div>
         </div>
         <div class="field" id="sweepRangeField">
-          <label>Outcome threshold range <span class="hint">e.g. 6:9</span></label>
+          <label data-ih="lblRange"></label>
           <input type="text" id="sweepRange" value="6:9">
         </div>
         <div class="field">
-          <label>Condition variables <span class="hint">comma-separated column names</span></label>
+          <label data-ih="lblConds"></label>
           <input type="text" id="conditions" value="X1, X2, X3">
         </div>
 
         <div id="condSection">
-          <p class="section-title"><span class="n">3</span>Condition thresholds</p>
-          <p class="note-box">
-            Most conditions are on their raw scale and get dichotomized at a
-            threshold. If one is already calibrated to fuzzy-set membership
-            scores in [0, 1], check <b>fuzzy 0&ndash;1</b> for it &mdash; it
-            is then passed straight through (via <code class="mono">pre_calibrated</code>)
-            with no threshold, and won't be offered as a variable to sweep.
-          </p>
+          <p class="section-title"><span class="n">3</span><span data-i="sec3"></span></p>
+          <p class="note-box" data-ih="noteThr"></p>
           <div class="cond-table" id="condTable"></div>
         </div>
 
-        <p class="section-title" style="margin-top:16px;"><span class="n">4</span>Analysis settings</p>
+        <p class="section-title" style="margin-top:16px;"><span class="n">4</span><span data-i="sec4"></span></p>
         <div class="row3">
           <div class="field">
-            <label>incl.cut <span class="hint">consistency</span></label>
+            <label data-ih="lblIncl"></label>
             <input type="text" id="inclCut" value="0.8">
           </div>
           <div class="field">
-            <label>n.cut <span class="hint">frequency</span></label>
+            <label data-ih="lblN"></label>
             <input type="text" id="nCut" value="1">
           </div>
           <div class="field">
-            <label>Solution type</label>
+            <label data-i="lblSol"></label>
             <select id="solutionType">
-              <option value="conservative">Conservative</option>
-              <option value="parsimonious">Parsimonious</option>
-              <option value="intermediate" selected>Intermediate</option>
-              <option value="liberal">Most liberal</option>
+              <option value="conservative" data-i="optConservative"></option>
+              <option value="parsimonious" data-i="optParsimonious"></option>
+              <option value="intermediate" selected data-i="optIntermediate"></option>
+              <option value="liberal" data-i="optLiberal"></option>
             </select>
           </div>
         </div>
         <p class="note-box" id="solutionHelp"></p>
 
         <div id="dirExpSection">
-          <p class="section-title"><span class="n">5</span>Directional expectations <span class="hint">dir.exp, one per condition</span></p>
+          <p class="section-title"><span class="n">5</span><span data-i="sec5"></span><span class="hint" data-i="sec5h"></span></p>
           <div class="cond-table" id="dirTable"></div>
-          <p class="note-box">
-            For each condition: does its presence/high level (<b>Favors
-            outcome</b>) or its absence/low level (<b>Disfavors outcome</b>)
-            help produce the outcome, or is there <b>No expectation</b>
-            either way? This is exactly what turns the parsimonious solution
-            into the intermediate solution &mdash; the type most QCA guides
-            (Ragin 2008; Schneider &amp; Wagemann 2012) recommend reporting.
-          </p>
+          <p class="note-box" data-ih="noteDir"></p>
         </div>
         <details class="adv" id="advBlock">
-          <summary>Advanced (extract_mode, pri.cut)</summary>
+          <summary data-i="adv"></summary>
           <div class="row3">
             <div class="field">
               <label>extract_mode</label>
@@ -369,17 +339,11 @@
     <div class="right">
       <div class="panel" style="position:sticky; top:16px;">
         <div class="code-head">
-          <h2 id="codeTitle">Generated R code</h2>
-          <button class="copy-btn" id="copyBtn">Copy code</button>
+          <h2 id="codeTitle"></h2>
+          <button class="copy-btn" id="copyBtn" data-i="copy"></button>
         </div>
         <pre class="codebox"><code id="codeOut"></code></pre>
-        <p class="trust">
-          <b>Why trust the numbers:</b> every sweep function delegates truth-table
-          construction and Boolean minimization to <code class="mono">QCA::truthTable()</code>
-          and <code class="mono">QCA::minimize()</code> unchanged. ThSQCA only loops,
-          collects, and reports &mdash; it does not reimplement the computation, so
-          results match a direct QCA run at every cell.
-        </p>
+        <p class="trust" data-ih="trust"></p>
       </div>
     </div>
   </div>
@@ -387,31 +351,200 @@
   <footer>
     <span>install.packages("ThSQCA")</span>
     <span class="dot">&middot;</span>
-    <span>Code targets ThSQCA 2.0.8 (CRAN)</span>
+    <span data-i="ftCode"></span>
     <span class="dot">&middot;</span>
     <a href="https://github.com/im-research-yt/ThSQCA" target="_blank" rel="noopener">github.com/im-research-yt/ThSQCA</a>
     <span class="dot">&middot;</span>
-    <a href="qca-quickstart.html">QCA Quickstart</a>
+    <a href="qca-quickstart.html" data-i="ftQs"></a>
     <span class="dot">&middot;</span>
-    <span>Yuki Toyoda, Hosei University</span>
+    <span data-i="ftAuthor"></span>
   </footer>
+  <div class="foot" data-i="foot"></div>
 </div>
 
 <script>
+// ===================== i18n core (JA / EN) =====================
+// 使い方: 各要素に data-i="キー"(textContent) / data-ih="キー"(innerHTML) / data-ip="キー"(placeholder) を付ける。
+// 動的な文字列は t('キー', 引数...) を使う。辞書の値は文字列、または関数。
+const I18N={ja:{},en:{}};
+let LANG='ja';
+function detectLang(){
+  try{const q=new URLSearchParams(location.search).get('lang'); if(q==='ja'||q==='en') return q;}catch(e){}
+  try{const s=localStorage.getItem('tool_lang'); if(s==='ja'||s==='en') return s;}catch(e){}
+  return ((navigator.language||'en')+'').toLowerCase().indexOf('ja')===0?'ja':'en';
+}
+function t(key){
+  const a=Array.prototype.slice.call(arguments,1);
+  let s=I18N[LANG]&&I18N[LANG][key];
+  if(s===undefined) s=I18N.en[key];
+  if(s===undefined) return key;
+  return typeof s==='function'?s.apply(null,a):s;
+}
+function applyI18n(){
+  document.documentElement.lang=LANG;
+  document.title=t('title');
+  document.querySelectorAll('[data-i]').forEach(e=>{e.textContent=t(e.getAttribute('data-i'));});
+  document.querySelectorAll('[data-ih]').forEach(e=>{e.innerHTML=t(e.getAttribute('data-ih'));});
+  document.querySelectorAll('[data-ip]').forEach(e=>{e.setAttribute('placeholder',t(e.getAttribute('data-ip')));});
+  document.querySelectorAll('.langsw button').forEach(b=>{b.classList.toggle('on',b.getAttribute('data-lang')===LANG);});
+  if(typeof onLangChange==='function') onLangChange();
+}
+function setLang(l){
+  LANG=l;
+  try{localStorage.setItem('tool_lang',l);}catch(e){}
+  applyI18n();
+}
+// =================================================================
+
+// ===================== i18n dictionary =====================
+Object.assign(I18N.en,{
+  barTitle:"Sweep Builder", disc1:"Yuki Toyoda Laboratory, Graduate School of Innovation Management, Hosei University", disc2:"This is a learning tool. It may contain calculation errors, so please verify the results with other software before using them in research or business.",
+  title:"Sweep Builder",
+  desc:"Turn a single-threshold QCA setup into ready-to-run ThSQCA sweep code.",
+  eyebrow:"ThSQCA · sweep builder",
+  h1:"Turn a fixed-threshold QCA setup into sweep code",
+  lead:"Already have a working <code class=\"mono\">QCA::truthTable()</code> / <code class=\"mono\">minimize()</code> analysis? Pick a sweep type, fill in the same variables and thresholds you already use, and copy out the equivalent <code class=\"mono\">ThSQCA</code> call.",
+  sec1:"Sweep type",
+  tabOt:"Outcome", tabCts:"Single condition", tabCtm:"Multi condition", tabDt:"Dual",
+  tabDesc_ot:"Fix all condition thresholds, vary only the outcome threshold. Use this to see whether the sufficiency solution changes as the target level of the outcome rises.",
+  tabDesc_cts:"Fix the outcome threshold and all conditions but one; vary that single condition's threshold. Use this to test how sensitive the solution is to one calibration choice.",
+  tabDesc_ctm:"Fix the outcome threshold; vary several condition thresholds at once across a grid. Use this to explore the joint threshold space of multiple conditions.",
+  tabDesc_dt:"Vary the outcome threshold and one or more condition thresholds simultaneously. The most general sweep: a two-dimensional map of target level x judgment criteria.",
+  sec2:"Data & variables",
+  lblDat:"Data object <span class=\"hint\">R variable name</span>",
+  lblOutcome:"Outcome <span class=\"hint\">column name</span>",
+  lblThrY:"Outcome threshold <span class=\"hint\">fixed value</span>",
+  lblRange:"Outcome threshold range <span class=\"hint\">e.g. 6:9</span>",
+  lblConds:"Condition variables <span class=\"hint\">comma-separated column names</span>",
+  sec3:"Condition thresholds",
+  noteThr:"Most conditions are on their raw scale and get dichotomized at a threshold. If one is already calibrated to fuzzy-set membership scores in [0, 1], check <b>fuzzy 0&ndash;1</b> for it; it is then passed straight through (via <code class=\"mono\">pre_calibrated</code>) with no threshold, and won't be offered as a variable to sweep.",
+  fuzzyLabel:"fuzzy 0&ndash;1",
+  fuzzyNoThr:"fuzzy, no threshold",
+  alreadyFuzzy:"already 0&ndash;1 membership",
+  fixedThr:"fixed threshold",
+  usesDefault:"uses thrX_default",
+  modeFixed:"Fixed", modeSweep:"Sweep",
+  phLow:"low", phHigh:"high", phThr:"threshold",
+  emptyConds:"Enter at least one condition variable above.",
+  sec4:"Analysis settings",
+  lblIncl:"incl.cut <span class=\"hint\">consistency</span>",
+  lblN:"n.cut <span class=\"hint\">frequency</span>",
+  lblSol:"Solution type",
+  optConservative:"Complex",
+  optParsimonious:"Parsimonious",
+  optIntermediate:"Intermediate",
+  optLiberal:"Most liberal",
+  solSep:"; ",
+  solLabel_conservative:"Complex solution",
+  solHint_conservative:"(= conservative in some texts)",
+  solText_conservative:"Only observed configurations are used for minimization. Logical remainders (configurations with no or too few cases) are not used to simplify the solution further. This gives the least reduced, and typically the most complex, of the three solution types.",
+  solLabel_parsimonious:"Parsimonious solution", solHint_parsimonious:"",
+  solText_parsimonious:"Remainders are treated as “don't care” and freely used to simplify the solution, with no restriction on which simplifying assumptions are allowed.",
+  solLabel_intermediate:"Intermediate solution", solHint_intermediate:"",
+  solText_intermediate:"Remainders are treated as “don't care,” but only used when they match the directional expectations set below. This is the type most QCA guides (Ragin 2008; Schneider &amp; Wagemann 2012) recommend reporting.",
+  solLabel_liberal:"Most liberal solution", solHint_liberal:"",
+  solText_liberal:"All remainders are treated as if the outcome were present. The strongest, most permissive assumption: use only with a clear theoretical justification for expecting the outcome in every unobserved configuration.",
+  sec5:"Directional expectations",
+  sec5h:"dir.exp, one per condition",
+  dirNone:"No expectation",
+  dirFavors:"Favors outcome (presence/high)",
+  dirDisfavors:"Disfavors outcome (absence/low)",
+  noteDir:"For each condition: does its presence/high level (<b>Favors outcome</b>) or its absence/low level (<b>Disfavors outcome</b>) help produce the outcome, or is there <b>No expectation</b> either way? This is exactly what turns the parsimonious solution into the intermediate solution; the type most QCA guides (Ragin 2008; Schneider &amp; Wagemann 2012) recommend reporting.",
+  adv:"Advanced (extract_mode, pri.cut)",
+  lblSweepVar:"Condition to sweep",
+  lblCtsRange:"Its threshold range <span class=\"hint\">e.g. 6:9</span>",
+  lblThrDefault:"thrX_default <span class=\"hint\">threshold for all other conditions</span>",
+  noSweepable:"(no sweepable conditions — all marked fuzzy)",
+  codeTitle:function(fn){return "Generated R code — "+fn;},
+  copy:"Copy code",
+  copied:"Copied",
+  codeEmpty:"# add at least one condition variable to generate code",
+  trust:"<b>Why trust the numbers:</b> every sweep function delegates truth-table construction and Boolean minimization to <code class=\"mono\">QCA::truthTable()</code> and <code class=\"mono\">QCA::minimize()</code> unchanged. ThSQCA only loops, collects, and reports; it does not reimplement the computation, so results match a direct QCA run at every cell.",
+  ftCode:"Code targets ThSQCA 2.0.8 (CRAN)",
+  ftQs:"QCA Quickstart",
+  ftAuthor:"Yuki Toyoda, Hosei University",
+  foot:"This tool was developed with the assistance of Claude (Anthropic)."
+});
+Object.assign(I18N.ja,{
+  barTitle:"スイープビルダー", disc1:"法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室", disc2:"学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。",
+  title:"スイープビルダー",
+  desc:"固定閾値のQCA設定を、そのまま実行できるThSQCAのスイープコードに変換します。",
+  eyebrow:"ThSQCA · スイープビルダー",
+  h1:"固定閾値のQCA設定を、スイープのコードに変換する",
+  lead:"すでに <code class=\"mono\">QCA::truthTable()</code> / <code class=\"mono\">minimize()</code> による分析が動いていますか。スイープの種類を選び、いま使っている変数と閾値をそのまま入力すると、対応する <code class=\"mono\">ThSQCA</code> の呼び出しコードをコピーできます。",
+  sec1:"スイープの種類",
+  tabOt:"アウトカム", tabCts:"単一条件", tabCtm:"複数条件", tabDt:"二重",
+  tabDesc_ot:"すべての条件閾値を固定し、アウトカム閾値だけを変化させます。アウトカムの目標水準が上がるにつれて、十分性解が変わるかどうかを確かめるために使います。",
+  tabDesc_cts:"アウトカム閾値と、一つを除くすべての条件の閾値を固定し、その一つの条件の閾値だけを変化させます。解が一つのキャリブレーションの選択にどれだけ敏感かを調べるために使います。",
+  tabDesc_ctm:"アウトカム閾値を固定し、複数の条件閾値を格子状に同時に変化させます。複数の条件にわたる閾値空間を探索するために使います。",
+  tabDesc_dt:"アウトカム閾値と、一つ以上の条件閾値を同時に変化させます。最も一般的なスイープで、目標水準 × 判定基準の二次元マップが得られます。",
+  sec2:"データと変数",
+  lblDat:"データ <span class=\"hint\">Rの変数名</span>",
+  lblOutcome:"アウトカム <span class=\"hint\">列名</span>",
+  lblThrY:"アウトカム閾値 <span class=\"hint\">固定値</span>",
+  lblRange:"アウトカム閾値の範囲 <span class=\"hint\">例: 6:9</span>",
+  lblConds:"条件変数 <span class=\"hint\">列名をコンマ区切りで</span>",
+  sec3:"条件閾値",
+  noteThr:"ほとんどの条件は元の尺度のままで、閾値で二値化されます。すでにファジィ集合のメンバーシップスコア（[0, 1]）にキャリブレーション済みの条件には、<b>ファジィ 0&ndash;1</b> にチェックを入れてください。その条件は閾値なしでそのまま渡され（<code class=\"mono\">pre_calibrated</code> 経由）、スイープ対象の変数としては選べなくなります。",
+  fuzzyLabel:"ファジィ 0&ndash;1",
+  fuzzyNoThr:"ファジィ、閾値なし",
+  alreadyFuzzy:"すでに0&ndash;1のスコア",
+  fixedThr:"固定閾値",
+  usesDefault:"thrX_default を使用",
+  modeFixed:"固定", modeSweep:"スイープ",
+  phLow:"下限", phHigh:"上限", phThr:"閾値",
+  emptyConds:"上の欄に条件変数を一つ以上入力してください。",
+  sec4:"分析の設定",
+  lblIncl:"incl.cut <span class=\"hint\">一貫性閾値</span>",
+  lblN:"n.cut <span class=\"hint\">頻度閾値</span>",
+  lblSol:"解の種類",
+  optConservative:"複雑解",
+  optParsimonious:"倹約解",
+  optIntermediate:"中間解",
+  optLiberal:"最も緩やかな解",
+  solSep:"：",
+  solLabel_conservative:"複雑解",
+  solHint_conservative:"（= 文献によっては「保守的解」）",
+  solText_conservative:"観察されたconfigurationのみを用いて最小化します。論理残余（ケースがない、またはケース数が少なすぎるconfiguration）は、解をさらに簡約するためには使いません。三つの解の種類のなかで最も簡約度が低く、通常は最も複雑な解になります。",
+  solLabel_parsimonious:"倹約解", solHint_parsimonious:"",
+  solText_parsimonious:"論理残余を「don't care」として扱い、解の簡約に自由に使います。どの単純化仮定を認めるかについて、制限は設けません。",
+  solLabel_intermediate:"中間解", solHint_intermediate:"",
+  solText_intermediate:"論理残余を「don't care」として扱いますが、下で設定する方向性の期待に合致するものだけを使います。QCAの多くの解説書（Ragin 2008; Schneider &amp; Wagemann 2012）が報告を推奨している種類の解です。",
+  solLabel_liberal:"最も緩やかな解", solHint_liberal:"",
+  solText_liberal:"すべての論理残余を、アウトカムが存在するものとして扱います。最も強く、最も許容的な仮定です。観察されていないすべてのconfigurationでアウトカムが生じると期待する明確な理論的根拠がある場合にのみ使ってください。",
+  sec5:"方向性の期待",
+  sec5h:"dir.exp、条件ごとに一つ",
+  dirNone:"期待なし",
+  dirFavors:"存在・高水準がアウトカムに寄与",
+  dirDisfavors:"不在・低水準がアウトカムに寄与",
+  noteDir:"条件ごとに、その存在・高水準がアウトカムの成立に寄与するのか（<b>存在・高水準がアウトカムに寄与</b>）、不在・低水準が寄与するのか（<b>不在・低水準がアウトカムに寄与</b>）、あるいはどちらとも言えないのか（<b>期待なし</b>）を選びます。この設定こそが、倹約解を中間解に変えるものです。中間解は、QCAの多くの解説書（Ragin 2008; Schneider &amp; Wagemann 2012）が報告を推奨している種類の解です。",
+  adv:"詳細設定（extract_mode, pri.cut）",
+  lblSweepVar:"スイープする条件",
+  lblCtsRange:"その条件の閾値の範囲 <span class=\"hint\">例: 6:9</span>",
+  lblThrDefault:"thrX_default <span class=\"hint\">他のすべての条件の閾値</span>",
+  noSweepable:"（スイープできる条件がありません。すべてファジィに指定されています）",
+  codeTitle:function(fn){return "生成されたRコード："+fn;},
+  copy:"コードをコピー",
+  copied:"コピーしました",
+  codeEmpty:"# 条件変数を一つ以上入力すると、コードが生成されます",
+  trust:"<b>結果を信頼できる理由:</b> どのスイープ関数も、真理表の構築とBoolean最小化を <code class=\"mono\">QCA::truthTable()</code> と <code class=\"mono\">QCA::minimize()</code> にそのまま任せています。ThSQCA は、繰り返し実行して結果を集め、報告するだけで、計算を再実装してはいません。そのため、すべてのセルで、QCAを直接実行した結果と一致します。",
+  ftCode:"コードの対象バージョン: ThSQCA 2.0.8（CRAN）",
+  ftQs:"QCAクイックスタート",
+  ftAuthor:"Yuki Toyoda（法政大学）",
+  foot:"このツールは、Claude（Anthropic）の支援を受けて開発しました。"
+});
+// ===========================================================
+
 (function(){
   "use strict";
 
   var state = { tab: "ot", conds: [] };
 
   var TAB_META = {
-    ot:  { label:"Outcome Threshold Sweep", fn:"otSweep()",
-           desc:"Fix all condition thresholds, vary only the outcome threshold. Use this to see whether the sufficiency solution changes as the target level of the outcome rises." },
-    cts: { label:"Single-Condition Threshold Sweep", fn:"ctSweepS()",
-           desc:"Fix the outcome threshold and all conditions but one; vary that single condition's threshold. Use this to test how sensitive the solution is to one calibration choice." },
-    ctm: { label:"Multi-Condition Threshold Sweep", fn:"ctSweepM()",
-           desc:"Fix the outcome threshold; vary several condition thresholds at once across a grid. Use this to explore the joint threshold space of multiple conditions." },
-    dt:  { label:"Dual Threshold Sweep", fn:"dtSweep()",
-           desc:"Vary the outcome threshold and one or more condition thresholds simultaneously. The most general sweep: a two-dimensional map of target level x judgment criteria." }
+    ot:  { fn:"otSweep()"  },
+    cts: { fn:"ctSweepS()" },
+    ctm: { fn:"ctSweepM()" },
+    dt:  { fn:"dtSweep()"  }
   };
 
   function $(id){ return document.getElementById(id); }
@@ -443,7 +576,7 @@
     rebuildDirTable();
 
     if (names.length === 0){
-      table.innerHTML = '<div class="empty-note">Enter at least one condition variable above.</div>';
+      table.innerHTML = '<div class="empty-note">'+t('emptyConds')+'</div>';
       renderCode();
       return;
     }
@@ -454,41 +587,41 @@
     var html = state.conds.map(function(c, i){
       var modeHtml = "";
       if (c.precal){
-        modeHtml = '<div class="cond-mode"><span class="precal-note">fuzzy, no threshold</span></div>';
+        modeHtml = '<div class="cond-mode"><span class="precal-note">'+t('fuzzyNoThr')+'</span></div>';
       } else if (isCts){
         modeHtml = '<div class="cond-mode"><span style="font-size:11px;color:var(--text-muted);">&mdash;</span></div>';
       } else if (showModeToggle){
         modeHtml =
           '<div class="cond-mode">'+
-            '<button type="button" class="mode-btn '+(c.mode==="fixed"?"on":"")+'" data-i="'+i+'" data-mode="fixed">Fixed</button>'+
-            '<button type="button" class="mode-btn '+(c.mode==="range"?"on":"")+'" data-i="'+i+'" data-mode="range">Sweep</button>'+
+            '<button type="button" class="mode-btn '+(c.mode==="fixed"?"on":"")+'" data-ci="'+i+'" data-mode="fixed">'+t('modeFixed')+'</button>'+
+            '<button type="button" class="mode-btn '+(c.mode==="range"?"on":"")+'" data-ci="'+i+'" data-mode="range">'+t('modeSweep')+'</button>'+
           '</div>';
       } else {
-        modeHtml = '<div class="cond-mode"><span style="font-size:11px;color:var(--text-muted);">fixed threshold</span></div>';
+        modeHtml = '<div class="cond-mode"><span style="font-size:11px;color:var(--text-muted);">'+t('fixedThr')+'</span></div>';
       }
 
       var valsHtml;
       if (c.precal){
-        valsHtml = '<div class="cond-vals"><span class="precal-note">already 0&ndash;1 membership</span></div>';
+        valsHtml = '<div class="cond-vals"><span class="precal-note">'+t('alreadyFuzzy')+'</span></div>';
       } else if (isCts){
-        valsHtml = '<div class="cond-vals"><span class="precal-note">uses thrX_default</span></div>';
+        valsHtml = '<div class="cond-vals"><span class="precal-note">'+t('usesDefault')+'</span></div>';
       } else if (showModeToggle && c.mode === "range"){
         valsHtml =
           '<div class="cond-vals">'+
-            '<input type="text" data-i="'+i+'" data-field="lo" value="'+escapeHtml(c.lo)+'" placeholder="low">'+
-            '<input type="text" data-i="'+i+'" data-field="hi" value="'+escapeHtml(c.hi)+'" placeholder="high">'+
+            '<input type="text" data-ci="'+i+'" data-field="lo" value="'+escapeHtml(c.lo)+'" placeholder="'+t('phLow')+'">'+
+            '<input type="text" data-ci="'+i+'" data-field="hi" value="'+escapeHtml(c.hi)+'" placeholder="'+t('phHigh')+'">'+
           '</div>';
       } else {
         valsHtml =
           '<div class="cond-vals">'+
-            '<input type="text" data-i="'+i+'" data-field="value" value="'+escapeHtml(c.value)+'" placeholder="threshold">'+
+            '<input type="text" data-ci="'+i+'" data-field="value" value="'+escapeHtml(c.value)+'" placeholder="'+t('phThr')+'">'+
           '</div>';
       }
 
       var precalHtml =
         '<label class="precal-toggle">'+
-          '<input type="checkbox" data-i="'+i+'" data-field="precal" '+(c.precal?"checked":"")+'>'+
-          'fuzzy 0&ndash;1'+
+          '<input type="checkbox" data-ci="'+i+'" data-field="precal" '+(c.precal?"checked":"")+'>'+
+          t('fuzzyLabel')+
         '</label>';
 
       return '<div class="cond-row">'+
@@ -503,14 +636,14 @@
 
     table.querySelectorAll(".mode-btn").forEach(function(btn){
       btn.addEventListener("click", function(){
-        var i = +btn.getAttribute("data-i");
+        var i = +btn.getAttribute("data-ci");
         state.conds[i].mode = btn.getAttribute("data-mode");
         rebuildCondTable();
       });
     });
     table.querySelectorAll('input[data-field="precal"]').forEach(function(cb){
       cb.addEventListener("change", function(){
-        var i = +cb.getAttribute("data-i");
+        var i = +cb.getAttribute("data-ci");
         state.conds[i].precal = cb.checked;
         if (cb.checked) state.conds[i].mode = "fixed";
         rebuildCondTable();
@@ -518,7 +651,7 @@
     });
     table.querySelectorAll('input:not([data-field="precal"])').forEach(function(inp){
       inp.addEventListener("input", function(){
-        var i = +inp.getAttribute("data-i");
+        var i = +inp.getAttribute("data-ci");
         var field = inp.getAttribute("data-field");
         state.conds[i][field] = inp.value;
         renderCode();
@@ -531,30 +664,30 @@
   // ---- directional-expectation table ------------------------------------
 
   var DIR_OPTIONS = [
-    { value:"-", label:"No expectation" },
-    { value:"1", label:"Favors outcome (presence/high)" },
-    { value:"0", label:"Disfavors outcome (absence/low)" }
+    { value:"-", key:"dirNone" },
+    { value:"1", key:"dirFavors" },
+    { value:"0", key:"dirDisfavors" }
   ];
 
   function rebuildDirTable(){
     var table = $("dirTable");
     if (!table) return;
     if (state.conds.length === 0){
-      table.innerHTML = '<div class="empty-note">Enter at least one condition variable above.</div>';
+      table.innerHTML = '<div class="empty-note">'+t('emptyConds')+'</div>';
       return;
     }
     table.innerHTML = state.conds.map(function(c, i){
       var opts = DIR_OPTIONS.map(function(o){
-        return '<option value="'+o.value+'"'+(c.dir===o.value?" selected":"")+'>'+o.label+'</option>';
+        return '<option value="'+o.value+'"'+(c.dir===o.value?" selected":"")+'>'+t(o.key)+'</option>';
       }).join("");
       return '<div class="dir-row">'+
                '<span class="cname">'+escapeHtml(c.name)+'</span>'+
-               '<select data-i="'+i+'">'+opts+'</select>'+
+               '<select data-ci="'+i+'">'+opts+'</select>'+
              '</div>';
     }).join("");
     table.querySelectorAll("select").forEach(function(sel){
       sel.addEventListener("change", function(){
-        var i = +sel.getAttribute("data-i");
+        var i = +sel.getAttribute("data-ci");
         state.conds[i].dir = sel.value;
         renderCode();
       });
@@ -572,33 +705,32 @@
   // ---- UI: field visibility per tab ------------------------------------
 
   var SOLUTION_META = {
-    conservative: { include:"",  useDir:false, label:"Conservative solution",
-      text:"Logical remainders (threshold combinations with no or too few cases) are excluded entirely. No assumption is made about unobserved configurations — the safest choice, and typically the most complex solution." },
-    parsimonious: { include:"?", useDir:false, label:"Parsimonious solution",
-      text:"Remainders are treated as “don't care” and freely used to simplify the solution, with no restriction on which simplifying assumptions are allowed." },
-    intermediate: { include:"?", useDir:true, label:"Intermediate solution",
-      text:"Remainders are treated as “don't care,” but only used when they match the directional expectations set below. This is the type most QCA guides (Ragin 2008; Schneider &amp; Wagemann 2012) recommend reporting." },
-    liberal: { include:"1", useDir:false, label:"Most liberal solution",
-      text:"All remainders are treated as if the outcome were present. The strongest, least conservative assumption — use only with a clear theoretical justification for expecting the outcome in every unobserved configuration." }
+    conservative: { include:"",  useDir:false },
+    parsimonious: { include:"?", useDir:false },
+    intermediate: { include:"?", useDir:true  },
+    liberal:      { include:"1", useDir:false }
   };
 
   function updateSolutionHelp(){
     var v = $("solutionType").value;
-    var m = SOLUTION_META[v] || SOLUTION_META.intermediate;
-    $("solutionHelp").innerHTML = '<span class="soltype">'+m.label+'</span> &mdash; ' + m.text;
+    if (!SOLUTION_META[v]) v = "intermediate";
+    var m = SOLUTION_META[v];
+    var hint = t("solHint_"+v);
+    $("solutionHelp").innerHTML = '<span class="soltype">'+t("solLabel_"+v)+'</span>' +
+      (hint ? ' <span class="solhint">'+hint+'</span>' : '') + t("solSep") + t("solText_"+v);
     $("dirExpSection").style.display = m.useDir ? "" : "none";
   }
 
   function updateFieldVisibility(){
-    var t = state.tab;
-    $("thrYField").style.display  = (t === "cts" || t === "ctm") ? "" : "none";
-    $("sweepRangeField").style.display = (t === "ot" || t === "dt") ? "" : "none";
+    var tabKey = state.tab;
+    $("thrYField").style.display  = (tabKey === "cts" || tabKey === "ctm") ? "" : "none";
+    $("sweepRangeField").style.display = (tabKey === "ot" || tabKey === "dt") ? "" : "none";
     document.querySelectorAll(".tab").forEach(function(b){
-      b.classList.toggle("active", b.getAttribute("data-tab") === t);
+      b.classList.toggle("active", b.getAttribute("data-tab") === tabKey);
     });
-    var meta = TAB_META[t];
-    $("tabDesc").textContent = meta.desc;
-    $("codeTitle").textContent = "Generated R code — " + meta.fn;
+    var meta = TAB_META[tabKey];
+    $("tabDesc").textContent = t("tabDesc_"+tabKey);
+    $("codeTitle").textContent = t("codeTitle", meta.fn);
   }
 
   // ---- R vector / list helpers ------------------------------------------
@@ -660,7 +792,7 @@
 
     if (condNames.length === 0){
       $("codeOut").innerHTML = '<span style="color:var(--text-muted)">' +
-        "# add at least one condition variable to generate code" + "</span>";
+        t("codeEmpty") + "</span>";
       return;
     }
 
@@ -775,18 +907,18 @@
       div.style.marginTop = "10px";
       div.innerHTML =
         '<div class="field">'+
-          '<label>Condition to sweep</label>'+
+          '<label data-i="lblSweepVar">'+t('lblSweepVar')+'</label>'+
           '<select id="sweepVarSelect"></select>'+
         '</div>'+
         '<div class="field">'+
-          '<label>Its threshold range <span class="hint">e.g. 6:9</span></label>'+
+          '<label data-ih="lblCtsRange">'+t('lblCtsRange')+'</label>'+
           '<div style="display:flex;gap:6px;">'+
             '<input type="text" id="sweepVarLo" value="6">'+
             '<input type="text" id="sweepVarHi" value="9">'+
           '</div>'+
         '</div>'+
         '<div class="field">'+
-          '<label>thrX_default <span class="hint">threshold for all other conditions</span></label>'+
+          '<label data-ih="lblThrDefault">'+t('lblThrDefault')+'</label>'+
           '<input type="text" id="thrXDefault" value="7">'+
         '</div>';
       section.parentNode.insertBefore(div, section);
@@ -815,7 +947,7 @@
     var prevVal = sel.value;   // remember the current choice before rebuilding options
     var names = state.conds.filter(function(c){ return !c.precal; }).map(function(c){ return c.name; });
     if (names.length === 0){
-      sel.innerHTML = '<option value="">(no sweepable conditions — all marked fuzzy)</option>';
+      sel.innerHTML = '<option value="">'+t('noSweepable')+'</option>';
     } else {
       sel.innerHTML = names.map(function(n){ return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'; }).join("");
       if (names.indexOf(prevVal) >= 0) sel.value = prevVal;   // restore the choice
@@ -863,9 +995,9 @@
     var text = $("codeOut").textContent;
     var btn = $("copyBtn");
     function done(){
-      btn.textContent = "Copied";
+      btn.textContent = t("copied");
       btn.classList.add("copied");
-      setTimeout(function(){ btn.textContent = "Copy code"; btn.classList.remove("copied"); }, 1400);
+      setTimeout(function(){ btn.textContent = t("copy"); btn.classList.remove("copied"); }, 1400);
     }
     if (navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(text).then(done, function(){ fallbackCopy(text, done); });
@@ -882,8 +1014,13 @@
     cb();
   }
 
-  updateFieldVisibility();
-  updateSolutionHelp();
-  rebuildCondTable();
+  window.onLangChange = function(){
+    $("metaDesc").setAttribute("content", t("desc"));
+    updateFieldVisibility();
+    updateSolutionHelp();
+    rebuildCondTable();
+  };
+  LANG = detectLang();
+  applyI18n();
 })();
 </script>

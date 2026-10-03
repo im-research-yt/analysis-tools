@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>コンジョイント分析 直交計画生成ツール</title>
+<title>Conjoint Analysis Orthogonal Design Generator</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Meiryo',sans-serif;
      background:#f4f6f9;color:#1a2332;font-size:14px;line-height:1.6}
-header{background:#1a2332;color:#fff;padding:14px 24px;
+header{background:#233A9A;color:#fff;padding:14px 24px;
        display:flex;align-items:center;gap:12px}
 header h1{font-size:17px;font-weight:600}
-header .badge{background:#e05c2a;color:#fff;font-size:11px;
+header .badge{background:#F28018;color:#1a2332;font-size:11px;
               padding:2px 8px;border-radius:10px;font-weight:700}
 .container{max-width:1100px;margin:0 auto;padding:20px 16px}
 .card{background:#fff;border-radius:8px;border:1px solid #e0e4ea;
@@ -81,25 +81,32 @@ tr:nth-child(even) td{background:#f8fafc}
   #tab-cards{display:block!important}
   .card-grid{grid-template-columns:repeat(4,1fr)}
 }
+
+.langsw{margin-left:auto;display:flex;gap:4px}
+.langsw button{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45);border-radius:6px;
+  padding:3px 10px;font-size:12px;cursor:pointer}
+.langsw button.on{background:#fff;color:#233A9A;font-weight:700}
+.foot{max-width:1100px;margin:0 auto;padding:0 16px 28px;font-size:11px;color:#777}
 </style>
+<script data-goatcounter="https://yuki-toyoda.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 <header>
-  <h1>コンジョイント分析 直交計画生成ツール</h1>
+  <h1 data-i="h1"></h1>
   <span class="badge">Conjoint Design</span>
+  <div class="langsw"><button type="button" data-lang="ja" onclick="setLang('ja')">日本語</button><button type="button" data-lang="en" onclick="setLang('en')">English</button></div>
 </header>
-<div style="background:#fff3cd;border-bottom:1px solid #ffc107;padding:6px 24px;font-size:11px;color:#1a2332;font-weight:700;line-height:1.5">
-  法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室<br>学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。
+<div style="background:#F28018;border-bottom:0;padding:10px 24px;margin-bottom:20px;font-size:12px;color:#1a2332;font-weight:700;line-height:1.6">
+  <span data-i="disc1"></span><br><span data-i="disc2"></span>
 </div>
 
 <div class="container">
 
-<!-- Step 1: 属性・水準の設定 -->
 <div class="card">
-  <h2>Step 1：属性と水準の設定</h2>
+  <h2 data-i="step1"></h2>
   <div class="row" style="margin-bottom:14px">
     <div>
-      <label>属性の数</label>
+      <label data-i="nAttr"></label>
       <select id="n-attr" onchange="buildAttrInputs()">
         <option value="2">2</option>
         <option value="3">3</option>
@@ -110,48 +117,44 @@ tr:nth-child(even) td{background:#f8fafc}
       </select>
     </div>
     <div style="display:flex;align-items:flex-end">
-      <button class="btn-secondary" onclick="loadExample(1)">例題：飲み会（2×2×2×2）</button>
+      <button class="btn-secondary" onclick="loadExample(1)" data-i="ex1"></button>
     </div>
     <div style="display:flex;align-items:flex-end">
-      <button class="btn-secondary" onclick="loadExample(2)">例題：飲み会（3×3×2×2）</button>
+      <button class="btn-secondary" onclick="loadExample(2)" data-i="ex2"></button>
     </div>
     <div style="display:flex;align-items:flex-end">
-      <button class="btn-secondary" onclick="resetAll()" style="color:#c0392b;border-color:#c0392b">↺ リセット</button>
+      <button class="btn-secondary" onclick="resetAll()" style="color:#c0392b;border-color:#c0392b" data-i="reset"></button>
     </div>
   </div>
   <div id="attr-inputs"></div>
   <div class="btn-row">
-    <button class="btn-primary" onclick="generateDesign()">▶ 直交計画を生成</button>
+    <button class="btn-primary" onclick="generateDesign()" data-i="gen"></button>
   </div>
   <div id="err-msg" class="err"></div>
 </div>
 
-<!-- Step 2: 結果 -->
 <div class="card" id="result-card" style="display:none">
-  <h2>Step 2：生成された直交計画</h2>
+  <h2 data-i="step2"></h2>
   <div id="design-info" class="info" style="margin-bottom:12px"></div>
 
   <div class="tabs">
-    <div class="tab active" onclick="switchTab('profiles')">プロファイル表</div>
-    <div class="tab" onclick="switchTab('dummy')">ダミー変数表</div>
-    <div class="tab" onclick="switchTab('ortho')">直交性チェック</div>
-    <div class="tab" onclick="switchTab('cards')">プロファイルカード</div>
+    <div class="tab active" onclick="switchTab('profiles')" data-i="tabProf"></div>
+    <div class="tab" onclick="switchTab('dummy')" data-i="tabDummy"></div>
+    <div class="tab" onclick="switchTab('ortho')" data-i="tabOrtho"></div>
+    <div class="tab" onclick="switchTab('cards')" data-i="tabCards"></div>
   </div>
 
   <div class="panel active" id="tab-profiles">
     <div class="btn-row">
-      <button class="btn-dl" onclick="downloadCSV('profiles')">⬇ プロファイル表をCSVでダウンロード</button>
+      <button class="btn-dl" onclick="downloadCSV('profiles')" data-i="dlProf"></button>
     </div>
     <div class="tbl-wrap" id="profile-table-wrap"></div>
   </div>
 
   <div class="panel" id="tab-dummy">
-    <div class="note" style="margin-bottom:8px">
-      ※ 各属性について「最初の水準」を基準（参照カテゴリ）とし、残りの水準をダミー変数化しています。<br>
-      　 回帰分析のX（説明変数）として使用してください。Y（被説明変数）に順位または得点を追加して使います。
-    </div>
+    <div class="note" style="margin-bottom:8px" data-ih="dummyNote"></div>
     <div class="btn-row">
-      <button class="btn-dl" onclick="downloadCSV('dummy')">⬇ ダミー変数表をCSVでダウンロード</button>
+      <button class="btn-dl" onclick="downloadCSV('dummy')" data-i="dlDummy"></button>
     </div>
     <div class="tbl-wrap" id="dummy-table-wrap"></div>
   </div>
@@ -161,55 +164,210 @@ tr:nth-child(even) td{background:#f8fafc}
   </div>
 
   <div class="panel" id="tab-cards">
-    <div class="note" style="margin-bottom:8px">
-      ※ 印刷する場合はCtrl+P（Cmd+P）でプリント画面を開いてください。カードのみ印刷されます。
-    </div>
+    <div class="note" style="margin-bottom:8px" data-i="cardsNote"></div>
     <div class="btn-row">
-      <button class="btn-secondary" onclick="window.print()">🖨 印刷</button>
+      <button class="btn-secondary" onclick="window.print()" data-i="print"></button>
     </div>
     <div class="card-grid" id="card-grid"></div>
   </div>
 </div>
 
-<!-- 使い方ガイド -->
 <div class="card">
-  <h2>使い方ガイド</h2>
+  <h2 data-i="guideH"></h2>
   <table>
-    <thead><tr><th class="left">手順</th><th class="left">内容</th></tr></thead>
+    <thead><tr><th class="left" data-i="guideTh1"></th><th class="left" data-i="guideTh2"></th></tr></thead>
     <tbody>
-      <tr><td class="left">① 属性と水準を入力</td>
-          <td>属性の数を選択し、各属性の名前と水準名を入力する。水準は2〜4個まで設定できる。</td></tr>
-      <tr><td class="left">② 直交計画を生成</td>
-          <td>「直交計画を生成」ボタンを押すと、最適な直交配列（L8・L9・L12・L18など）を自動選択してプロファイルを生成する。</td></tr>
-      <tr><td class="left">③ プロファイル表をダウンロード</td>
-          <td>CSVをダウンロードしてExcelで開く。「順位」または「得点」列を追加して回答者に記入してもらう。</td></tr>
-      <tr><td class="left">④ ダミー変数表をダウンロード</td>
-          <td>回帰分析用のXデータ。配布データ_2のシートと同じ形式。回答者の順位/得点をY列として追加する。</td></tr>
-      <tr><td class="left">⑤ プロファイルカードを印刷</td>
-          <td>カードタブを開いて印刷。各カードを切り取って回答者に渡す。</td></tr>
+      <tr><td class="left" data-i="g1a"></td><td data-i="g1b"></td></tr>
+      <tr><td class="left" data-i="g2a"></td><td data-i="g2b"></td></tr>
+      <tr><td class="left" data-i="g3a"></td><td data-i="g3b"></td></tr>
+      <tr><td class="left" data-i="g4a"></td><td data-i="g4b"></td></tr>
+      <tr><td class="left" data-i="g5a"></td><td data-i="g5b"></td></tr>
     </tbody>
   </table>
 </div>
 
 </div><!-- /container -->
 
-<!-- ===== Rスクリプト（検算用） ===== -->
-<div id="rscript-wrap" style="max-width:1100px;margin:0 auto;padding:0 16px 40px">
+<div id="rscript-wrap" style="max-width:1100px;margin:0 auto;padding:0 16px 24px">
   <div style="background:#fff;border:1px solid #d0d5dd;border-radius:10px;padding:16px 18px">
-    <div style="font-weight:700;font-size:15px;margin-bottom:6px">Rで同じ計算をする（検算用スクリプト）</div>
-    <div style="font-size:12px;color:#555;line-height:1.7;margin-bottom:10px">
-      いま入力しているデータと設定を埋め込んだRスクリプトを作ります。RStudioに貼り付けて実行すると、このアプリと同じ計算をRの標準的な関数で行い、結果を並べて確かめられます。
-    </div>
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px" data-i="rsTitle"></div>
+    <div style="font-size:12px;color:#555;line-height:1.7;margin-bottom:10px" data-i="rsDesc"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-      <button type="button" onclick="rsMake()" style="padding:8px 14px;border:none;border-radius:6px;background:#1a2332;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Rスクリプトを作成</button>
-      <button type="button" id="rs-copy-btn" onclick="rsCopy()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">コピー</button>
-      <button type="button" onclick="rsDownload()" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer">.Rファイルを保存</button>
+      <button type="button" onclick="rsMake()" data-i="rsMake" style="padding:8px 14px;border:none;border-radius:6px;background:#1a2332;color:#fff;font-size:13px;font-weight:600;cursor:pointer"></button>
+      <button type="button" id="rs-copy-btn" onclick="rsCopy()" data-i="rsCopy" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer"></button>
+      <button type="button" onclick="rsDownload()" data-i="rsSave" style="padding:8px 14px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#1a2332;font-size:13px;cursor:pointer"></button>
     </div>
-    <textarea id="rs-text" readonly spellcheck="false" placeholder="「Rスクリプトを作成」を押すと、ここに表示されます" style="width:100%;height:300px;box-sizing:border-box;font-family:Consolas,Menlo,monospace;font-size:12px;line-height:1.5;padding:10px;border:1px solid #d0d5dd;border-radius:6px;background:#fafbfc;white-space:pre;overflow:auto"></textarea>
+    <textarea id="rs-text" readonly spellcheck="false" data-ip="rsPh" style="width:100%;height:300px;box-sizing:border-box;font-family:Consolas,Menlo,monospace;font-size:12px;line-height:1.5;padding:10px;border:1px solid #d0d5dd;border-radius:6px;background:#fafbfc;white-space:pre;overflow:auto"></textarea>
   </div>
 </div>
+<div class="foot" data-i="foot"></div>
 
 <script>
+// ===================== i18n core (JA / EN) =====================
+// 使い方: 各要素に data-i="キー"(textContent) / data-ih="キー"(innerHTML) / data-ip="キー"(placeholder) を付ける。
+// 動的な文字列は t('キー', 引数...) を使う。辞書の値は文字列、または関数。
+const I18N={ja:{},en:{}};
+let LANG='ja';
+function detectLang(){
+  try{const q=new URLSearchParams(location.search).get('lang'); if(q==='ja'||q==='en') return q;}catch(e){}
+  try{const s=localStorage.getItem('tool_lang'); if(s==='ja'||s==='en') return s;}catch(e){}
+  return ((navigator.language||'en')+'').toLowerCase().indexOf('ja')===0?'ja':'en';
+}
+function t(key){
+  const a=Array.prototype.slice.call(arguments,1);
+  let s=I18N[LANG]&&I18N[LANG][key];
+  if(s===undefined) s=I18N.en[key];
+  if(s===undefined) return key;
+  return typeof s==='function'?s.apply(null,a):s;
+}
+function applyI18n(){
+  document.documentElement.lang=LANG;
+  document.title=t('title');
+  document.querySelectorAll('[data-i]').forEach(e=>{e.textContent=t(e.getAttribute('data-i'));});
+  document.querySelectorAll('[data-ih]').forEach(e=>{e.innerHTML=t(e.getAttribute('data-ih'));});
+  document.querySelectorAll('[data-ip]').forEach(e=>{e.setAttribute('placeholder',t(e.getAttribute('data-ip')));});
+  document.querySelectorAll('.langsw button').forEach(b=>{b.classList.toggle('on',b.getAttribute('data-lang')===LANG);});
+  if(typeof onLangChange==='function') onLangChange();
+}
+function setLang(l){
+  LANG=l;
+  try{localStorage.setItem('tool_lang',l);}catch(e){}
+  applyI18n();
+}
+// =================================================================
+
+// ───────── 辞書 ─────────
+const EXD_JA=[
+ [{name:'タイプ',levels:['和食','洋食']},{name:'席のタイプ',levels:['テーブル席','座敷席']},{name:'デザート',levels:['なし','あり']},{name:'価格',levels:['3000円','4000円']}],
+ [{name:'タイプ',levels:['和食','洋食','フレンチ']},{name:'席のタイプ',levels:['テーブル席','座敷席','カウンター席']},{name:'デザート',levels:['なし','あり']},{name:'価格',levels:['3000円','4000円']}]
+];
+const EXD_EN=[
+ [{name:'Cuisine',levels:['Japanese','Western']},{name:'Seating',levels:['Table','Tatami']},{name:'Dessert',levels:['No','Yes']},{name:'Price',levels:['3000','4000']}],
+ [{name:'Cuisine',levels:['Japanese','Western','French']},{name:'Seating',levels:['Table','Tatami','Counter']},{name:'Dessert',levels:['No','Yes']},{name:'Price',levels:['3000','4000']}]
+];
+Object.assign(I18N.ja,{
+ title:'コンジョイント分析 直交計画生成ツール', h1:'コンジョイント分析 直交計画生成ツール',
+ disc1:'法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室',
+ disc2:'学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。',
+ step1:'Step 1：属性と水準の設定', nAttr:'属性の数',
+ ex1:'例題：飲み会（2×2×2×2）', ex2:'例題：飲み会（3×3×2×2）', reset:'↺ リセット', gen:'▶ 直交計画を生成',
+ step2:'Step 2：生成された直交計画',
+ tabProf:'プロファイル表', tabDummy:'ダミー変数表', tabOrtho:'直交性チェック', tabCards:'プロファイルカード',
+ dlProf:'⬇ プロファイル表をCSVでダウンロード', dlDummy:'⬇ ダミー変数表をCSVでダウンロード',
+ dummyNote:'※ 各属性について「最初の水準」を基準（参照カテゴリ）とし、残りの水準をダミー変数化しています。<br>　 回帰分析のX（説明変数）として使用してください。Y（被説明変数）に順位または得点を追加して使います。',
+ cardsNote:'※ 印刷する場合はCtrl+P（Cmd+P）でプリント画面を開いてください。カードのみ印刷されます。',
+ print:'🖨 印刷',
+ guideH:'使い方ガイド', guideTh1:'手順', guideTh2:'内容',
+ g1a:'① 属性と水準を入力', g1b:'属性の数を選択し、各属性の名前と水準名を入力する。水準は2〜4個まで設定できる。',
+ g2a:'② 直交計画を生成', g2b:'「直交計画を生成」ボタンを押すと、最適な直交配列（L8・L9・L12・L18など）を自動選択してプロファイルを生成する。',
+ g3a:'③ プロファイル表をダウンロード', g3b:'CSVをダウンロードしてExcelで開く。「順位」または「得点」列を追加して回答者に記入してもらう。',
+ g4a:'④ ダミー変数表をダウンロード', g4b:'回帰分析用のXデータ。配布データ_2のシートと同じ形式。回答者の順位/得点をY列として追加する。',
+ g5a:'⑤ プロファイルカードを印刷', g5b:'カードタブを開いて印刷。各カードを切り取って回答者に渡す。',
+ rsTitle:'Rで同じ計算をする（検算用スクリプト）',
+ rsDesc:'いま入力しているデータと設定を埋め込んだRスクリプトを作ります。RStudioに貼り付けて実行すると、このアプリと同じ計算をRの標準的な関数で行い、結果を並べて確かめられます。',
+ rsMake:'Rスクリプトを作成', rsCopy:'コピー', rsSave:'.Rファイルを保存', rsPh:'「Rスクリプトを作成」を押すと、ここに表示されます', copied:'コピーしました',
+ foot:'このツールは、Claude（Anthropic）の支援を受けて開発しました。',
+ // 属性入力
+ attrH:(n)=>`属性 ${n}`, attrName:'属性名', nLvlLbl:'水準数', nLvlOpt:(n)=>`${n}水準`, lvlLbl:(n)=>`水準${n}`,
+ phAttr:'例：タイプ', phLvl:'例：和食',
+ defAttr:(i)=>`属性${String.fromCharCode(65+i)}`, defLvl:(j)=>`水準${j}`,
+ defAttrRe:/^属性([A-G])$/, defLvlRe:/^水準([1-9])$/,
+ exD:EXD_JA,
+ errNoOA:'この属性・水準の組み合わせには対応する直交配列が見つかりません。属性数または水準数を変更してください。',
+ errNoDesign:'先に直交計画を生成してください',
+ // 結果
+ infoOA:(oa,np,na,lv,note)=>`使用直交配列：<b>${oa}</b>　プロファイル数：<b>${np}件</b>　属性数：<b>${na}</b>　水準構成：<b>${lv}</b>${note}`,
+ nFull:'　<span style="color:#0e7c5a">✓ 完全直交</span>',
+ nMixed:'　<span style="color:#e05c2a">△ 近似直交（直交性チェックで確認してください）</span>',
+ nL18mod:'　<span style="color:#e05c2a">△ 近似直交（2水準属性が多い場合は属性数を見直してください）</span>',
+ dummyHdr:(a,l)=>`${a}（${l}）`,
+ thProfNo:'プロファイル番号', profRow:(i)=>`プロファイル${i}`, thRank:'順位', thScore:'得点',
+ cardNum:(i)=>`プロファイル ${i}`, cardEval:'評価（順位・得点）：___________',
+ // 直交性チェック
+ dupWarn:(n)=>`⚠ <b>重複プロファイルが${n}件あります。</b><br>
+      2水準属性が多い混合水準の場合、一部のプロファイルが重複することがあります。<br>
+      属性数を減らすか、水準の組み合わせを見直してください。`,
+ orthoNote:`各属性ペアの組み合わせ出現回数を確認します。すべてのセルが同じ回数であれば完全直交です。<br>
+    <b>【混合水準の制約について】</b> 3水準と2水準が混在する場合（例：3×3×2×2）、
+    完全直交に必要なプロファイル数は数学的にLCM(9,4)=36件となり実用的でありません。
+    L9（9件）が実用上の最善策ですが、<b>2水準同士のペア（デザート×価格など）に非直交が生じるのは避けられません。</b>
+    3水準属性間・3水準と2水準のペアは直交（差0〜1）が保たれており、主要な効用値の推定には支障ありません。<br>
+    ※ 混合水準（3×3×2×2など）では完全均等にならない場合がありますが、
+    各水準が偏りなく出現していれば実用上問題ありません。`,
+ h1Freq:'① 各属性の水準出現回数', h2Cross:'② 属性ペアのクロス集計（直交性の確認）',
+ thAttr:'属性', thLevel:'水準', thCount:'出現回数', thExp:'期待値', thJudge:'判定', okMark:'✓ OK', unbal:'△ 不均等',
+ stFull:'✓ 完全直交', stOrth1:'✓ 直交（差1）', stApprox:'△ 近似直交（差2）', stNon:(d)=>`✗ 非直交（差${d}）`,
+ total:'合計',
+ sumOK:'✓ すべての属性ペアで直交性が確認されました。この直交計画は分析に使用できます。',
+ sumNG:'△ 一部の属性ペアで出現回数に偏りがあります。属性・水準の組み合わせを見直してください。'
+});
+Object.assign(I18N.en,{
+ title:'Conjoint Analysis Orthogonal Design Generator', h1:'Conjoint Analysis Orthogonal Design Generator',
+ disc1:'Yuki Toyoda Laboratory, Graduate School of Innovation Management, Hosei University',
+ disc2:'This is a learning tool. It may contain calculation errors, so please verify the results with other software before using them in research or business.',
+ step1:'Step 1: Set attributes and levels', nAttr:'Number of attributes',
+ ex1:'Example: group dinner (2×2×2×2)', ex2:'Example: group dinner (3×3×2×2)', reset:'↺ Reset', gen:'▶ Generate orthogonal design',
+ step2:'Step 2: Generated orthogonal design',
+ tabProf:'Profile table', tabDummy:'Dummy variable table', tabOrtho:'Orthogonality check', tabCards:'Profile cards',
+ dlProf:'⬇ Download the profile table as CSV', dlDummy:'⬇ Download the dummy variable table as CSV',
+ dummyNote:'* For each attribute, the first level is the reference category, and the remaining levels are coded as dummy variables.<br>Use them as the X (explanatory) variables in a regression, and add the rank or score as Y (the dependent variable).',
+ cardsNote:'* To print, open the print dialog with Ctrl+P (Cmd+P). Only the cards are printed.',
+ print:'🖨 Print',
+ guideH:'User guide', guideTh1:'Step', guideTh2:'Description',
+ g1a:'1. Enter attributes and levels', g1b:'Select the number of attributes, then enter the name and the level names of each attribute. Each attribute can have 2 to 4 levels.',
+ g2a:'2. Generate the orthogonal design', g2b:'Press "Generate orthogonal design" to select the most suitable orthogonal array automatically (L8, L9, L12, L18, etc.) and generate the profiles.',
+ g3a:'3. Download the profile table', g3b:'Download the CSV and open it in Excel. Add a "Rank" or "Score" column for respondents to fill in.',
+ g4a:'4. Download the dummy variable table', g4b:'The X data for the regression analysis, in the same format as the sheet in the course handout (Data 2). Add each respondent\'s rank or score as the Y column.',
+ g5a:'5. Print the profile cards', g5b:'Open the Profile cards tab and print. Cut out each card and hand it to a respondent.',
+ rsTitle:'Run the same calculation in R (check script)',
+ rsDesc:'This creates an R script with your current data and settings embedded. Paste it into RStudio and run it: R performs the same calculation with its standard functions, so you can compare the results side by side.',
+ rsMake:'Create R script', rsCopy:'Copy', rsSave:'Save .R file', rsPh:'Press "Create R script" and the script will appear here', copied:'Copied',
+ foot:'This tool was developed with the assistance of Claude (Anthropic).',
+ attrH:(n)=>`Attribute ${n}`, attrName:'Attribute name', nLvlLbl:'Number of levels', nLvlOpt:(n)=>`${n} levels`, lvlLbl:(n)=>`Level ${n}`,
+ phAttr:'e.g. Cuisine', phLvl:'e.g. Japanese',
+ defAttr:(i)=>`Attribute ${String.fromCharCode(65+i)}`, defLvl:(j)=>`Level ${j}`,
+ defAttrRe:/^Attribute ([A-G])$/, defLvlRe:/^Level ([1-9])$/,
+ exD:EXD_EN,
+ errNoOA:'No orthogonal array is available for this combination of attributes and levels. Change the number of attributes or levels.',
+ errNoDesign:'Generate the orthogonal design first',
+ infoOA:(oa,np,na,lv,note)=>`Orthogonal array used: <b>${oa}</b>&emsp;Profiles: <b>${np}</b>&emsp;Attributes: <b>${na}</b>&emsp;Level structure: <b>${lv}</b>${note}`,
+ nFull:'&emsp;<span style="color:#0e7c5a">✓ Fully orthogonal</span>',
+ nMixed:'&emsp;<span style="color:#e05c2a">△ Approximately orthogonal (confirm in the orthogonality check)</span>',
+ nL18mod:'&emsp;<span style="color:#e05c2a">△ Approximately orthogonal (if there are many 2-level attributes, reconsider the number of attributes)</span>',
+ dummyHdr:(a,l)=>`${a} (${l})`,
+ thProfNo:'Profile no.', profRow:(i)=>`Profile ${i}`, thRank:'Rank', thScore:'Score',
+ cardNum:(i)=>`Profile ${i}`, cardEval:'Rating (rank or score): ___________',
+ dupWarn:(n)=>`⚠ <b>There are ${n} duplicated profiles.</b><br>
+      With mixed-level designs that have many 2-level attributes, some profiles may be duplicated.<br>
+      Reduce the number of attributes or reconsider the combination of levels.`,
+ orthoNote:`This section checks how often each combination of levels appears for each pair of attributes. If all cells have the same count, the pair is fully orthogonal.<br>
+    <b>[Constraint with mixed levels]</b> When 3-level and 2-level attributes are mixed (e.g., 3×3×2×2),
+    a fully orthogonal design would mathematically require LCM(9,4) = 36 profiles, which is impractical.
+    L9 (9 profiles) is the best practical choice, but <b>non-orthogonality between pairs of 2-level attributes (e.g., Dessert × Price) cannot be avoided.</b>
+    Pairs of 3-level attributes and pairs of a 3-level and a 2-level attribute remain orthogonal (difference 0 to 1), so the estimation of the main part-worth utilities is not affected.<br>
+    * With mixed levels (e.g., 3×3×2×2), the counts may not be perfectly equal, but this is practically acceptable
+    as long as each level appears without bias.`,
+ h1Freq:'1. Frequency of each level within each attribute', h2Cross:'2. Cross-tabulation of attribute pairs (orthogonality check)',
+ thAttr:'Attribute', thLevel:'Level', thCount:'Count', thExp:'Expected', thJudge:'Result', okMark:'✓ OK', unbal:'△ Unbalanced',
+ stFull:'✓ Fully orthogonal', stOrth1:'✓ Orthogonal (difference 1)', stApprox:'△ Approximately orthogonal (difference 2)', stNon:(d)=>`✗ Not orthogonal (difference ${d})`,
+ total:'Total',
+ sumOK:'✓ Orthogonality was confirmed for all attribute pairs. This orthogonal design can be used for analysis.',
+ sumNG:'△ The counts are unbalanced for some attribute pairs. Reconsider the combination of attributes and levels.'
+});
+// 既定値・例題の値を、言語切替時に対応する言語へ置き換えるための対応表
+const XJ2E={}, XE2J={};
+EXD_JA.forEach((ex,k)=>ex.forEach((a,i)=>{
+  const b=EXD_EN[k][i]; XJ2E[a.name]=b.name; XE2J[b.name]=a.name;
+  a.levels.forEach((l,j)=>{ XJ2E[l]=b.levels[j]; XE2J[b.levels[j]]=l; });
+}));
+function trVal(v){
+  const from=LANG==='en'?XJ2E:XE2J, re=LANG==='en'?I18N.ja:I18N.en;
+  if(Object.prototype.hasOwnProperty.call(from,v)) return from[v];
+  let m;
+  if((m=re.defAttrRe.exec(v))) return t('defAttr',m[1].charCodeAt(0)-65);
+  if((m=re.defLvlRe.exec(v))) return t('defLvl',+m[1]);
+  return v;
+}
 // ─── 直交配列ライブラリ ───────────────────────────────────
 // 各配列は [run × col] の形式（0-indexed）
 const OA = {
@@ -283,20 +441,22 @@ const OA = {
   }
 };
 
+
 // ─── グローバル ───
 let G = { attrs: [], profiles: [], dummies: [], oa: null };
+let ERRFN=null;
 
 // ─── UI ───
 function switchTab(name){
   const names=['profiles','dummy','ortho','cards'];
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===name));
+  document.querySelectorAll('.tab').forEach((tb,i)=>tb.classList.toggle('active',names[i]===name));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='ortho') renderOrthoCheck();
 }
 
-function showErr(m){const e=document.getElementById('err-msg');e.textContent=m;e.style.display='block';}
-function clearErr(){document.getElementById('err-msg').style.display='none';}
+function showErr(m){ERRFN=(typeof m==='function')?m:()=>m; const e=document.getElementById('err-msg');e.textContent=ERRFN();e.style.display='block';}
+function clearErr(){ERRFN=null; document.getElementById('err-msg').style.display='none';}
 
 function buildAttrInputs(){
   const n=+document.getElementById('n-attr').value;
@@ -308,19 +468,19 @@ function buildAttrInputs(){
   const grid=document.createElement('div');
   grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px';
   for(let i=0;i<n;i++){
-    const prev=(old&&old[i]&&old[i].levels)?old[i]:{name:`属性${String.fromCharCode(65+i)}`,levels:['水準1','水準2']};
+    const prev=(old&&old[i]&&old[i].levels)?old[i]:{name:t('defAttr',i),levels:[t('defLvl',1),t('defLvl',2)]};
     const div=document.createElement('div');
     div.className='attr-block';
-    div.innerHTML=`<h3>属性 ${i+1}</h3>
+    div.innerHTML=`<h3 data-t="attrH" data-a="${i+1}">${t('attrH',i+1)}</h3>
       <div style="margin-bottom:8px">
-        <label style="text-transform:none;letter-spacing:0;font-size:11px">属性名</label>
-        <input type="text" id="attr-name-${i}" value="${prev.name}" placeholder="例：タイプ">
+        <label style="text-transform:none;letter-spacing:0;font-size:11px" data-t="attrName">${t('attrName')}</label>
+        <input type="text" id="attr-name-${i}" value="${prev.name}" data-tp="phAttr" placeholder="${t('phAttr')}">
       </div>
-      <label style="text-transform:none;letter-spacing:0;font-size:11px">水準数</label>
+      <label style="text-transform:none;letter-spacing:0;font-size:11px" data-t="nLvlLbl">${t('nLvlLbl')}</label>
       <select id="attr-nlvl-${i}" onchange="updateLevelInputs(${i})" style="margin-bottom:8px">
-        <option value="2" ${prev.levels.length===2?'selected':''}>2水準</option>
-        <option value="3" ${prev.levels.length===3?'selected':''}>3水準</option>
-        <option value="4" ${prev.levels.length===4?'selected':''}>4水準</option>
+        <option value="2" data-t="nLvlOpt" data-a="2" ${prev.levels.length===2?'selected':''}>${t('nLvlOpt',2)}</option>
+        <option value="3" data-t="nLvlOpt" data-a="3" ${prev.levels.length===3?'selected':''}>${t('nLvlOpt',3)}</option>
+        <option value="4" data-t="nLvlOpt" data-a="4" ${prev.levels.length===4?'selected':''}>${t('nLvlOpt',4)}</option>
       </select>
       <div id="lvl-inputs-${i}"></div>`;
     grid.appendChild(div);
@@ -335,11 +495,11 @@ function updateLevelInputs(i, prevLevels){
   const wrap=document.getElementById(`lvl-inputs-${i}`);
   wrap.innerHTML='';
   for(let j=0;j<n;j++){
-    const prev=prevLevels?.[j]||`水準${j+1}`;
+    const prev=prevLevels?.[j]||t('defLvl',j+1);
     const div=document.createElement('div');
     div.className='level-input';
-    div.innerHTML=`<span class="lbl">水準${j+1}</span>
-      <input type="text" id="lvl-${i}-${j}" value="${prev}" placeholder="例：和食">`;
+    div.innerHTML=`<span class="lbl" data-t="lvlLbl" data-a="${j+1}">${t('lvlLbl',j+1)}</span>
+      <input type="text" id="lvl-${i}-${j}" value="${prev}" data-tp="phLvl" placeholder="${t('phLvl')}">`;
     wrap.appendChild(div);
   }
 }
@@ -352,12 +512,12 @@ function getAttrsFromDOM(){
       const nameEl=document.getElementById(`attr-name-${i}`);
       const nlvlEl=document.getElementById(`attr-nlvl-${i}`);
       if(!nameEl||!nlvlEl) return null;
-      const name=nameEl.value.trim()||`属性${String.fromCharCode(65+i)}`;
+      const name=nameEl.value.trim()||t('defAttr',i);
       const nlvl=+nlvlEl.value;
       const levels=[];
       for(let j=0;j<nlvl;j++){
         const el=document.getElementById(`lvl-${i}-${j}`);
-        levels.push(el?el.value.trim()||`水準${j+1}`:`水準${j+1}`);
+        levels.push(el?el.value.trim()||t('defLvl',j+1):t('defLvl',j+1));
       }
       attrs.push({name, levels});
     }
@@ -369,16 +529,25 @@ function getAttrs(){
   const n=+document.getElementById('n-attr').value;
   const attrs=[];
   for(let i=0;i<n;i++){
-    const name=document.getElementById(`attr-name-${i}`).value.trim()||`属性${String.fromCharCode(65+i)}`;
+    const name=document.getElementById(`attr-name-${i}`).value.trim()||t('defAttr',i);
     const nlvl=+document.getElementById(`attr-nlvl-${i}`).value;
     const levels=[];
     for(let j=0;j<nlvl;j++){
-      levels.push(document.getElementById(`lvl-${i}-${j}`).value.trim()||`水準${j+1}`);
+      levels.push(document.getElementById(`lvl-${i}-${j}`).value.trim()||t('defLvl',j+1));
     }
     attrs.push({name, levels});
   }
   return attrs;
 }
+
+// 動的に作った要素(属性入力欄)のラベルを、現在の言語に更新
+function applyDyn(){
+  document.querySelectorAll('[data-t]').forEach(e=>{e.textContent=t(e.getAttribute('data-t'),e.getAttribute('data-a'));});
+  document.querySelectorAll('[data-tp]').forEach(e=>{e.setAttribute('placeholder',t(e.getAttribute('data-tp')));});
+  // 既定の属性名・水準名と例題の値は、現在の言語のものに置き換える(利用者が入力した値はそのまま)
+  document.querySelectorAll('#attr-inputs input[type=text]').forEach(e=>{e.value=trVal(e.value);});
+}
+
 
 // ─── 直交配列の選択 ───
 function selectOA(attrs){
@@ -424,18 +593,10 @@ function selectOA(attrs){
   return null;
 }
 
+
 // ─── 直交計画の生成 ───
-function generateDesign(){
-  clearErr();
-  const attrs=getAttrs();
-  G.attrs=attrs;
-
-  const sel=selectOA(attrs);
-  if(!sel){
-    showErr('この属性・水準の組み合わせには対応する直交配列が見つかりません。属性数または水準数を変更してください。');
-    return;
-  }
-
+// 配列の選び方・列の割り当ては、元のツールと同じ(そのままコピー)
+function computeProfiles(attrs,sel){
   let profiles=[];
   const {oa:oaKey, type:oaType}=sel;
   const baseOA=OA[oaKey];
@@ -519,19 +680,41 @@ function generateDesign(){
     }
   }
 
-  G.profiles=profiles;
-  G.oa=sel.oa;
+  return profiles;
+}
 
-  // ダミー変数の計算
-  const dummies=[];
-  const dummyHeaders=[];
+function mkDummyHeaders(attrs){
+  const h=[];
   for(let i=0;i<attrs.length;i++){
     // 最初の水準を基準として残りをダミー化
     for(let j=1;j<attrs[i].levels.length;j++){
-      dummyHeaders.push(`${attrs[i].name}（${attrs[i].levels[j]}）`);
+      h.push(t('dummyHdr',attrs[i].name,attrs[i].levels[j]));
     }
   }
-  G.dummyHeaders=dummyHeaders;
+  return h;
+}
+
+function generateDesign(){
+  clearErr();
+  const attrs=getAttrs();
+  G.attrs=attrs;
+
+  const sel=selectOA(attrs);
+  if(!sel){
+    showErr(()=>t('errNoOA'));
+    return;
+  }
+
+  const oaType=sel.type;
+  const profiles=computeProfiles(attrs,sel);
+
+  G.profiles=profiles;
+  G.oa=sel.oa;
+  G.oaType=oaType;
+
+  // ダミー変数の計算
+  const dummies=[];
+  G.dummyHeaders=mkDummyHeaders(attrs);
 
   for(const p of profiles){
     const row=[];
@@ -548,31 +731,33 @@ function generateDesign(){
   renderProfileTable();
   renderDummyTable();
   renderCards();
-
-  const oaLabel=sel.oa;
-  // 直交性タイプに応じた注記
-  const orthoNote=
-    oaType==='prebuilt'?'　<span style="color:#0e7c5a">✓ 完全直交</span>':
-    oaType==='pure2'||oaType==='pure3'||oaType==='pseudo4'?'　<span style="color:#0e7c5a">✓ 完全直交</span>':
-    oaType==='L18mix'?'　<span style="color:#0e7c5a">✓ 完全直交</span>':
-    oaType==='mixed'?'　<span style="color:#e05c2a">△ 近似直交（直交性チェックで確認してください）</span>':
-    oaType==='L18mod'?'　<span style="color:#e05c2a">△ 近似直交（2水準属性が多い場合は属性数を見直してください）</span>':'';
-  document.getElementById('design-info').innerHTML=
-    `使用直交配列：<b>${oaLabel}</b>　プロファイル数：<b>${profiles.length}件</b>　属性数：<b>${attrs.length}</b>　
-    水準構成：<b>${attrs.map(a=>a.levels.length).join('×')}</b>${orthoNote}`;
+  renderDesignInfo();
   document.getElementById('result-card').style.display='block';
   switchTab('profiles');
   document.getElementById('result-card').scrollIntoView({behavior:'smooth'});
 }
 
+function renderDesignInfo(){
+  const {attrs,profiles,oa,oaType}=G;
+  // 直交性タイプに応じた注記
+  const orthoNote=
+    oaType==='prebuilt'?t('nFull'):
+    oaType==='pure2'||oaType==='pure3'||oaType==='pseudo4'?t('nFull'):
+    oaType==='L18mix'?t('nFull'):
+    oaType==='mixed'?t('nMixed'):
+    oaType==='L18mod'?t('nL18mod'):'';
+  document.getElementById('design-info').innerHTML=
+    t('infoOA',oa,profiles.length,attrs.length,attrs.map(a=>a.levels.length).join('×'),orthoNote);
+}
+
 // ─── プロファイル表描画 ───
 function renderProfileTable(){
   const {attrs,profiles}=G;
-  let html='<table><thead><tr><th>プロファイル番号</th>';
+  let html=`<table><thead><tr><th>${t('thProfNo')}</th>`;
   attrs.forEach(a=>html+=`<th>${a.name}</th>`);
-  html+='<th style="background:#555">順位</th><th style="background:#555">得点</th></tr></thead><tbody>';
+  html+=`<th style="background:#555">${t('thRank')}</th><th style="background:#555">${t('thScore')}</th></tr></thead><tbody>`;
   profiles.forEach((p,i)=>{
-    html+=`<tr><td>プロファイル${i+1}</td>`;
+    html+=`<tr><td>${t('profRow',i+1)}</td>`;
     p.forEach((vi,ai)=>html+=`<td>${attrs[ai].levels[vi]}</td>`);
     html+='<td style="background:#f8f8f8"></td><td style="background:#f8f8f8"></td></tr>';
   });
@@ -583,12 +768,12 @@ function renderProfileTable(){
 // ─── ダミー変数表描画 ───
 function renderDummyTable(){
   const {attrs,profiles,dummies,dummyHeaders}=G;
-  let html='<table><thead><tr><th>プロファイル番号</th>';
+  let html=`<table><thead><tr><th>${t('thProfNo')}</th>`;
   attrs.forEach(a=>html+=`<th>${a.name}</th>`);
   dummyHeaders.forEach(h=>html+=`<th style="background:#185FA5">${h}</th>`);
-  html+='<th style="background:#555">順位</th><th style="background:#555">得点</th></tr></thead><tbody>';
+  html+=`<th style="background:#555">${t('thRank')}</th><th style="background:#555">${t('thScore')}</th></tr></thead><tbody>`;
   profiles.forEach((p,i)=>{
-    html+=`<tr><td>プロファイル${i+1}</td>`;
+    html+=`<tr><td>${t('profRow',i+1)}</td>`;
     p.forEach((vi,ai)=>html+=`<td>${attrs[ai].levels[vi]}</td>`);
     dummies[i].forEach(d=>html+=`<td style="background:#e8f0fd">${d}</td>`);
     html+='<td style="background:#f8f8f8"></td><td style="background:#f8f8f8"></td></tr>';
@@ -607,10 +792,10 @@ function renderCards(){
     div.className='profile-card';
     let rows='';
     p.forEach((vi,ai)=>rows+=`<tr><td>${attrs[ai].name}</td><td>${attrs[ai].levels[vi]}</td></tr>`);
-    div.innerHTML=`<div class="num">プロファイル ${i+1}</div>
+    div.innerHTML=`<div class="num">${t('cardNum',i+1)}</div>
       <table>${rows}</table>
       <div style="margin-top:8px;padding-top:6px;border-top:1px solid #eee;font-size:11px;color:#777">
-        評価（順位・得点）：___________
+        ${t('cardEval')}
       </div>`;
     grid.appendChild(div);
   });
@@ -621,19 +806,19 @@ function downloadCSV(type){
   const {attrs,profiles,dummies,dummyHeaders}=G;
   const rows=[];
   if(type==='profiles'){
-    rows.push(['プロファイル番号',...attrs.map(a=>a.name),'順位','得点'].join(','));
+    rows.push([t('thProfNo'),...attrs.map(a=>a.name),t('thRank'),t('thScore')].join(','));
     profiles.forEach((p,i)=>{
-      rows.push([`プロファイル${i+1}`,...p.map((vi,ai)=>attrs[ai].levels[vi]),'',''].join(','));
+      rows.push([t('profRow',i+1),...p.map((vi,ai)=>attrs[ai].levels[vi]),'',''].join(','));
     });
   } else {
-    rows.push(['プロファイル番号',...attrs.map(a=>a.name),...dummyHeaders,'順位','得点'].join(','));
+    rows.push([t('thProfNo'),...attrs.map(a=>a.name),...dummyHeaders,t('thRank'),t('thScore')].join(','));
     profiles.forEach((p,i)=>{
-      rows.push([`プロファイル${i+1}`,
+      rows.push([t('profRow',i+1),
         ...p.map((vi,ai)=>attrs[ai].levels[vi]),
         ...dummies[i],'',''].join(','));
     });
   }
-  const bom='\uFEFF';
+  const bom='﻿';
   const b64=btoa(unescape(encodeURIComponent(bom+rows.join('\n'))));
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8;base64,'+b64;
@@ -643,37 +828,15 @@ function downloadCSV(type){
 
 // ─── 例題 ───
 function loadExample(n){
-  if(n===1){
-    document.getElementById('n-attr').value=4;
-    buildAttrInputs();
-    const data=[
-      {name:'タイプ',levels:['和食','洋食']},
-      {name:'席のタイプ',levels:['テーブル席','座敷席']},
-      {name:'デザート',levels:['なし','あり']},
-      {name:'価格',levels:['3000円','4000円']},
-    ];
-    data.forEach((d,i)=>{
-      document.getElementById(`attr-name-${i}`).value=d.name;
-      document.getElementById(`attr-nlvl-${i}`).value=d.levels.length;
-      updateLevelInputs(i);
-      d.levels.forEach((l,j)=>{ document.getElementById(`lvl-${i}-${j}`).value=l; });
-    });
-  } else {
-    document.getElementById('n-attr').value=4;
-    buildAttrInputs();
-    const data=[
-      {name:'タイプ',levels:['和食','洋食','フレンチ']},
-      {name:'席のタイプ',levels:['テーブル席','座敷席','カウンター席']},
-      {name:'デザート',levels:['なし','あり']},
-      {name:'価格',levels:['3000円','4000円']},
-    ];
-    data.forEach((d,i)=>{
-      document.getElementById(`attr-name-${i}`).value=d.name;
-      document.getElementById(`attr-nlvl-${i}`).value=d.levels.length;
-      updateLevelInputs(i);
-      d.levels.forEach((l,j)=>{ document.getElementById(`lvl-${i}-${j}`).value=l; });
-    });
-  }
+  document.getElementById('n-attr').value=4;
+  buildAttrInputs();
+  const data=t('exD')[n===1?0:1];
+  data.forEach((d,i)=>{
+    document.getElementById(`attr-name-${i}`).value=d.name;
+    document.getElementById(`attr-nlvl-${i}`).value=d.levels.length;
+    updateLevelInputs(i);
+    d.levels.forEach((l,j)=>{ document.getElementById(`lvl-${i}-${j}`).value=l; });
+  });
 }
 
 // ─── 直交性チェック ───
@@ -693,27 +856,19 @@ function renderOrthoCheck(){
     allOK=false;
     html+=`<div style="padding:10px 14px;background:#fff3e0;border-left:4px solid #e05c2a;
            border-radius:6px;margin-bottom:12px;font-size:12px">
-      ⚠ <b>重複プロファイルが${dupes.length}件あります。</b><br>
-      2水準属性が多い混合水準の場合、一部のプロファイルが重複することがあります。<br>
-      属性数を減らすか、水準の組み合わせを見直してください。
+      ${t('dupWarn',dupes.length)}
     </div>`;
   }
 
   // 各属性ペアのクロス集計
   html+=`<div class="note" style="margin-bottom:12px">
-    各属性ペアの組み合わせ出現回数を確認します。すべてのセルが同じ回数であれば完全直交です。<br>
-    <b>【混合水準の制約について】</b> 3水準と2水準が混在する場合（例：3×3×2×2）、
-    完全直交に必要なプロファイル数は数学的にLCM(9,4)=36件となり実用的でありません。
-    L9（9件）が実用上の最善策ですが、<b>2水準同士のペア（デザート×価格など）に非直交が生じるのは避けられません。</b>
-    3水準属性間・3水準と2水準のペアは直交（差0〜1）が保たれており、主要な効用値の推定には支障ありません。<br>
-    ※ 混合水準（3×3×2×2など）では完全均等にならない場合がありますが、
-    各水準が偏りなく出現していれば実用上問題ありません。
+    ${t('orthoNote')}
   </div>`;
 
   // 各属性の水準出現回数（周辺度数）
-  html+=`<h3 style="font-size:13px;font-weight:700;margin-bottom:8px">① 各属性の水準出現回数</h3>`;
+  html+=`<h3 style="font-size:13px;font-weight:700;margin-bottom:8px">${t('h1Freq')}</h3>`;
   html+=`<div class="tbl-wrap"><table><thead><tr>
-    <th class="left">属性</th><th class="left">水準</th><th>出現回数</th><th>期待値</th><th>判定</th>
+    <th class="left">${t('thAttr')}</th><th class="left">${t('thLevel')}</th><th>${t('thCount')}</th><th>${t('thExp')}</th><th>${t('thJudge')}</th>
   </tr></thead><tbody>`;
 
   const expected=profiles.length;
@@ -729,14 +884,14 @@ function renderOrthoCheck(){
         <td class="left">${lv}</td>
         <td>${counts[j]}</td>
         <td>${exp%1===0?exp:exp.toFixed(2)}</td>
-        <td style="color:${ok?'#0e7c5a':'#c0392b'};font-weight:700">${ok?'✓ OK':'△ 不均等'}</td>
+        <td style="color:${ok?'#0e7c5a':'#c0392b'};font-weight:700">${ok?t('okMark'):t('unbal')}</td>
       </tr>`;
     });
   });
   html+=`</tbody></table></div>`;
 
   // 属性ペアのクロス集計
-  html+=`<h3 style="font-size:13px;font-weight:700;margin:16px 0 8px">② 属性ペアのクロス集計（直交性の確認）</h3>`;
+  html+=`<h3 style="font-size:13px;font-weight:700;margin:16px 0 8px">${t('h2Cross')}</h3>`;
 
   for(let i=0;i<n;i++){
     for(let j=i+1;j<n;j++){
@@ -756,7 +911,7 @@ function renderOrthoCheck(){
       if(!isOK) allOK=false;
 
       const statusColor=diff===0?'#0e7c5a':diff<=1?'#185FA5':diff<=2?'#e05c2a':'#c0392b';
-      const statusText=diff===0?'✓ 完全直交':diff<=1?'✓ 直交（差1）':diff<=2?'△ 近似直交（差2）':'✗ 非直交（差'+diff+'）';
+      const statusText=diff===0?t('stFull'):diff<=1?t('stOrth1'):diff<=2?t('stApprox'):t('stNon',diff);
 
       html+=`<div style="margin-bottom:14px">
         <div style="font-size:12px;font-weight:700;margin-bottom:6px;
@@ -767,7 +922,7 @@ function renderOrthoCheck(){
         <div class="tbl-wrap"><table>
           <thead><tr><th></th>`;
       attrs[j].levels.forEach(lv=>html+=`<th>${lv}</th>`);
-      html+=`<th style="background:#555">合計</th></tr></thead><tbody>`;
+      html+=`<th style="background:#555">${t('total')}</th></tr></thead><tbody>`;
 
       attrs[i].levels.forEach((lvi,li)=>{
         const rowTotal=attrs[j].levels.reduce((s,_,lj)=>s+cross[`${li}-${lj}`],0);
@@ -781,7 +936,7 @@ function renderOrthoCheck(){
       });
 
       // 列合計
-      html+=`<tr><td class="left" style="font-weight:700">合計</td>`;
+      html+=`<tr><td class="left" style="font-weight:700">${t('total')}</td>`;
       attrs[j].levels.forEach((_,lj)=>{
         const colTotal=attrs[i].levels.reduce((s,_,li)=>s+cross[`${li}-${lj}`],0);
         html+=`<td style="background:#f4f6f9;font-weight:700">${colTotal}</td>`;
@@ -794,9 +949,7 @@ function renderOrthoCheck(){
   // 総合判定
   const summaryColor=allOK?'#0e7c5a':'#e05c2a';
   const summaryBg=allOK?'#e8f5f0':'#fff3e0';
-  const summaryText=allOK
-    ?'✓ すべての属性ペアで直交性が確認されました。この直交計画は分析に使用できます。'
-    :'△ 一部の属性ペアで出現回数に偏りがあります。属性・水準の組み合わせを見直してください。';
+  const summaryText=allOK?t('sumOK'):t('sumNG');
 
   html=`<div style="padding:12px 16px;background:${summaryBg};border-radius:6px;
          border-left:4px solid ${summaryColor};margin-bottom:16px;
@@ -816,12 +969,17 @@ function resetAll(){
   document.getElementById('err-msg').style.display='none';
 }
 
-// ─── 初期化 ───
-buildAttrInputs();
-
-
-
-
+// 言語が切り替わったときの再描画(保存してある状態から作り直す。乱数は使わない)
+function onLangChange(){
+  applyDyn();
+  const ok=G.profiles&&G.profiles.length&&G.attrs.length&&G.attrs.every(a=>a&&a.levels)&&G.profiles[0].length===G.attrs.length;
+  if(ok){
+    G.attrs=G.attrs.map(a=>({name:trVal(a.name),levels:a.levels.map(trVal)}));
+    G.dummyHeaders=mkDummyHeaders(G.attrs);
+    renderProfileTable(); renderDummyTable(); renderCards(); renderOrthoCheck(); renderDesignInfo();
+  }
+  if(ERRFN){ document.getElementById('err-msg').textContent=ERRFN(); }
+}
 
 // ───────── Rスクリプト出力（検算用）の共通部品 ─────────
 function rsRaw(text){
@@ -830,38 +988,46 @@ function rsRaw(text){
   while(text.indexOf(')'+d+'"')>=0) d+='-';
   return 'r"'+d+'(\n'+text.replace(/\r\n?/g,'\n').replace(/\s+$/,'')+'\n)'+d+'"';
 }
+const RS_FAIL={ja:'# スクリプトを作成できませんでした',en:'# Could not create the script'};
 function rsHeader(title, pkgLines){
-  const L=[
+  const L=(LANG==='ja')?[
     '# =====================================================================',
     '# '+title,
     '# このスクリプトは、アプリに入力したデータと設定をそのまま埋め込んであります。',
     '# RStudioに貼り付けて、上から順に実行してください。',
     '# 日本語が文字化けするときは、RStudioの File > Reopen with Encoding > UTF-8 で開き直してください。',
     '# ====================================================================='
+  ]:[
+    '# =====================================================================',
+    '# '+title,
+    '# This script embeds the data and settings you entered in the app.',
+    '# Paste it into RStudio and run it from top to bottom.',
+    '# ====================================================================='
   ];
-  if(pkgLines&&pkgLines.length){ L.push('','# 初回だけ、必要なパッケージをインストールしてください（先頭の # を外して実行）'); pkgLines.forEach(p=>L.push(p)); }
+  if(pkgLines&&pkgLines.length){ L.push('',(LANG==='ja'?'# 初回だけ、必要なパッケージをインストールしてください（先頭の # を外して実行）':'# Install the required package once (remove the leading # and run)')); pkgLines.forEach(p=>L.push(p)); }
   return L;
 }
 function rsMake(){
   const ta=document.getElementById('rs-text');
   try{ ta.value=buildRScript(); }
-  catch(e){ ta.value='# スクリプトを作成できませんでした: '+e.message; }
+  catch(e){ ta.value=RS_FAIL[LANG]+': '+e.message; }
 }
+function rsFailed(v){ return v.indexOf(RS_FAIL.ja)===0||v.indexOf(RS_FAIL.en)===0; }
 function rsCopy(){
   const ta=document.getElementById('rs-text');
   rsMake();   // 入力が変わっていてもよいよう、毎回作り直す
-  if(ta.value.indexOf('# スクリプトを作成できませんでした')===0) return;
+  if(rsFailed(ta.value)) return;
   ta.focus(); ta.select();
   let ok=false;
   try{ ok=document.execCommand('copy'); }catch(e){}
   if(!ok && navigator.clipboard){ navigator.clipboard.writeText(ta.value).catch(()=>{}); }
-  const b=document.getElementById('rs-copy-btn'); const old=b.textContent;
-  b.textContent='コピーしました'; setTimeout(()=>{b.textContent=old;},1500);
+  const b=document.getElementById('rs-copy-btn');
+  b.textContent=t('copied'); setTimeout(()=>{b.textContent=t('rsCopy');},1500);
 }
 function rsDownload(){
   const ta=document.getElementById('rs-text');
   rsMake();
-  if(ta.value.indexOf('# スクリプトを作成できませんでした')===0) return;
+  if(rsFailed(ta.value)) return;
   const b64=btoa(unescape(encodeURIComponent('﻿'+ta.value)));
   const a=document.createElement('a');
   a.href='data:text/plain;charset=utf-8;base64,'+b64;
@@ -870,12 +1036,14 @@ function rsDownload(){
 }
 const RS_FILENAME='conjoint_design_check.R';
 function buildRScript(){
-  if(!G.profiles||!G.profiles.length) throw new Error('先に直交計画を生成してください');
+  if(!G.profiles||!G.profiles.length) throw new Error(t('errNoDesign'));
+  const ja=(LANG==='ja');
   const attrs=G.attrs, prof=G.profiles;
   const q=s=>'"'+String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';
-  const L=rsHeader('コンジョイント分析の直交計画: アプリ(conjoint_design.html)が作った計画をRで検査する（標準関数のみ）');
+  const L=rsHeader(ja?'コンジョイント分析の直交計画: アプリ(conjoint_design.html)が作った計画をRで検査する（標準関数のみ）'
+                     :'Orthogonal design for conjoint analysis: check the design created by the app (conjoint_design.html) in R (base functions only)');
   L.push('',
-    '# 1. アプリが生成した計画（プロファイル x 属性）。使用した直交配列: '+(G.oa||'-')+'、プロファイル数: '+prof.length,
+    (ja?'# 1. アプリが生成した計画（プロファイル x 属性）。使用した直交配列: ':'# 1. The design generated by the app (profiles x attributes). Orthogonal array used: ')+(G.oa||'-')+(ja?'、プロファイル数: ':', number of profiles: ')+prof.length,
     'design <- data.frame(');
   attrs.forEach((a,i)=>{
     const col=prof.map(p=>q(a.levels[p[i]])).join(', ');
@@ -884,34 +1052,44 @@ function buildRScript(){
   L.push('  , check.names = FALSE)',
     'print(design)',
     '',
-    '# 2. 各水準が何回ずつ現れるか',
+    ja?'# 2. 各水準が何回ずつ現れるか':'# 2. How many times each level appears',
     'for (nm in names(design)) { cat("\\n", nm, "\\n"); print(table(design[[nm]])) }',
     '',
-    '# 3. 属性のペアごとの直交性（度数が「周辺度数の積 / 全体」に比例していれば直交）',
+    ja?'# 3. 属性のペアごとの直交性（度数が「周辺度数の積 / 全体」に比例していれば直交）'
+      :'# 3. Orthogonality for each pair of attributes (orthogonal if the counts are proportional to "product of the marginal counts / total")',
     'is_orth <- function(a, b) {',
     '  t <- table(a, b); e <- outer(rowSums(t), colSums(t)) / sum(t)',
-    '  max(abs(t - e))      # 0なら完全直交。1以下ならほぼ直交',
+    ja?'  max(abs(t - e))      # 0なら完全直交。1以下ならほぼ直交':'  max(abs(t - e))      # 0 means fully orthogonal; 1 or less means nearly orthogonal',
     '}',
     'nms <- names(design)',
     'if (length(nms) >= 2) {',
     '  pr <- combn(nms, 2)',
     '  dev <- apply(pr, 2, function(p) is_orth(design[[p[1]]], design[[p[2]]]))',
-    '  print(data.frame(属性1 = pr[1, ], 属性2 = pr[2, ], 最大のずれ = round(dev, 4)))',
+    ja?'  print(data.frame(属性1 = pr[1, ], 属性2 = pr[2, ], 最大のずれ = round(dev, 4)))'
+      :'  print(data.frame(attribute1 = pr[1, ], attribute2 = pr[2, ], max_deviation = round(dev, 4)))',
     '}',
     '',
-    '# 4. 主効果が推定できるか（ダミー変数の計画行列のランクが、パラメータ数と同じならOK）',
+    ja?'# 4. 主効果が推定できるか（ダミー変数の計画行列のランクが、パラメータ数と同じならOK）'
+      :'# 4. Can the main effects be estimated? (OK if the rank of the dummy-coded design matrix equals the number of parameters)',
     'X <- model.matrix(~ ., data = design)',
-    'cat("ランク:", qr(X)$rank, " / パラメータ数:", ncol(X), "\\n")',
+    ja?'cat("ランク:", qr(X)$rank, " / パラメータ数:", ncol(X), "\\n")':'cat("Rank:", qr(X)$rank, " / Number of parameters:", ncol(X), "\\n")',
     '',
-    '# 5. 効果コーディング（各属性で合計0）にしたときの、「異なる属性どうし」の列の相関。',
-    '#    すべて0なら、属性ごとの効用値は互いに独立に推定できます（同じ属性内の列は、3水準以上だと相関が出ますが問題ありません）',
+    ja?'# 5. 効果コーディング（各属性で合計0）にしたときの、「異なる属性どうし」の列の相関。'
+      :'# 5. Correlations between columns of different attributes under effect coding (sum to zero within each attribute).',
+    ja?'#    すべて0なら、属性ごとの効用値は互いに独立に推定できます（同じ属性内の列は、3水準以上だと相関が出ますが問題ありません）'
+      :'#    If all are 0, the part-worth utilities of the attributes can be estimated independently of one another (columns within the same attribute may correlate when there are 3 or more levels, which is not a problem)',
     'Xe <- model.matrix(~ ., data = design, contrasts.arg = lapply(design, function(x) "contr.sum"))',
     'grp <- attr(Xe, "assign")[-1]; Ce <- cor(Xe[, -1, drop = FALSE])',
     'cross <- outer(grp, grp, "!=")',
-    'cat("異なる属性間の相関の最大値（絶対値）:", round(max(abs(Ce[cross])), 4), "\\n")');
+    ja?'cat("異なる属性間の相関の最大値（絶対値）:", round(max(abs(Ce[cross])), 4), "\\n")'
+      :'cat("Maximum absolute correlation between different attributes:", round(max(abs(Ce[cross])), 4), "\\n")');
   return L.join('\n')+'\n';
 }
 
+// ───────── 起動 ─────────
+LANG=detectLang();
+buildAttrInputs();
+applyI18n();
 </script>
 </body>
 </html>
