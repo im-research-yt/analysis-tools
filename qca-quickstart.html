@@ -203,9 +203,21 @@
   .langsw button.on{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:700;}
   .solhint{font-size:11.5px; color:var(--text-muted);}
   .foot{margin-top:14px; font-size:11px; color:var(--text-muted);}
+/* back link to the blog's tools page */
+.backlink{color:#fff;text-decoration:none;font-size:12px;font-weight:600;white-space:nowrap;padding:3px 10px;border:1px solid rgba(255,255,255,.45);border-radius:6px;flex-shrink:0}
+.backlink:hover{background:rgba(255,255,255,.15)}
+.backlink.bl-en{display:none}
+html[lang="en"] .backlink.bl-ja{display:none}
+html[lang="en"] .backlink.bl-en{display:inline-block}
+.backlink-home{color:#fff;text-decoration:none;font-size:12px;opacity:.92;white-space:nowrap;flex-shrink:0}
+.backlink-home:hover{text-decoration:underline;opacity:1}
+.backlink-home.bl-en{display:none}
+html[lang="en"] .backlink-home.bl-ja{display:none}
+html[lang="en"] .backlink-home.bl-en{display:inline}
+@media (max-width:600px){header,.hbar{flex-wrap:wrap}}
 </style>
 
-<header class="hbar"><span class="hbar-title" data-i="barTitle"></span><span class="hbar-badge">QCA</span><div class="langsw"><button type="button" data-lang="ja" onclick="setLang('ja')">日本語</button><button type="button" data-lang="en" onclick="setLang('en')">English</button></div></header>
+<header class="hbar"><a class="backlink bl-ja" href="https://im-research-yt.github.io/ja/tools.html">← 分析ツール</a><a class="backlink bl-en" href="https://im-research-yt.github.io/tools.html">← Analysis tools</a><a class="backlink-home bl-ja" href="https://im-research-yt.github.io/ja/">ブログのトップ</a><a class="backlink-home bl-en" href="https://im-research-yt.github.io/">Blog home</a><span class="hbar-title" data-i="barTitle"></span><span class="hbar-badge">QCA</span><div class="langsw"><button type="button" data-lang="ja" onclick="setLang('ja')">日本語</button><button type="button" data-lang="en" onclick="setLang('en')">English</button></div></header>
 <div class="disc"><span data-i="disc1"></span><br><span data-i="disc2"></span></div>
 <div class="wrap">
   <header class="top">

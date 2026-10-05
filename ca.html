@@ -61,11 +61,23 @@ select:focus,input:focus{border-color:#0e7c5a}
 .langsw button{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45);border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer;font-family:inherit}
 .langsw button.on{background:#fff;color:#233A9A;font-weight:700}
 .foot{max-width:960px;margin:0 auto;padding:12px 0 20px;font-size:11px;color:#777}
+/* back link to the blog's tools page */
+.backlink{color:#fff;text-decoration:none;font-size:12px;font-weight:600;white-space:nowrap;padding:3px 10px;border:1px solid rgba(255,255,255,.45);border-radius:6px;flex-shrink:0}
+.backlink:hover{background:rgba(255,255,255,.15)}
+.backlink.bl-en{display:none}
+html[lang="en"] .backlink.bl-ja{display:none}
+html[lang="en"] .backlink.bl-en{display:inline-block}
+.backlink-home{color:#fff;text-decoration:none;font-size:12px;opacity:.92;white-space:nowrap;flex-shrink:0}
+.backlink-home:hover{text-decoration:underline;opacity:1}
+.backlink-home.bl-en{display:none}
+html[lang="en"] .backlink-home.bl-ja{display:none}
+html[lang="en"] .backlink-home.bl-en{display:inline}
+@media (max-width:600px){header,.hbar{flex-wrap:wrap}}
 </style>
 <script data-goatcounter="https://yuki-toyoda.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
-<header>
+<header><a class="backlink bl-ja" href="https://im-research-yt.github.io/ja/tools.html">← 分析ツール</a><a class="backlink bl-en" href="https://im-research-yt.github.io/tools.html">← Analysis tools</a><a class="backlink-home bl-ja" href="https://im-research-yt.github.io/ja/">ブログのトップ</a><a class="backlink-home bl-en" href="https://im-research-yt.github.io/">Blog home</a>
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
     <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
     <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
