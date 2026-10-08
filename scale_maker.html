@@ -1,0 +1,2499 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scale Maker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--blue:#233A9A;--orange:#F28018;--ink:#1a2332;--mute:#5b6577;--line:#d9dee8;--bg:#f4f6fa;--ok:#0F6E56;--warn:#8a5a00;--err:#a1262b}
+body{font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;font-size:14px;color:var(--ink);background:var(--bg);line-height:1.6;padding-bottom:24px}
+header{background:var(--blue);color:#fff;padding:12px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:18px;font-weight:700;margin:0;color:#fff}
+.badge{background:var(--orange);color:var(--ink);font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700}
+.backlink{color:#fff;text-decoration:none;font-size:12px;font-weight:600;white-space:nowrap;padding:3px 10px;border:1px solid rgba(255,255,255,.45);border-radius:6px}
+.backlink:hover{background:rgba(255,255,255,.15)}
+.backlink-home{color:#fff;text-decoration:none;font-size:12px;opacity:.92;white-space:nowrap}
+.backlink-home:hover{text-decoration:underline}
+.bl-en{display:none}
+html[lang="en"] .bl-ja{display:none}
+html[lang="en"] .bl-en{display:inline-block}
+.langsw{margin-left:auto;display:flex;gap:4px}
+.langsw button{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45);border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer;font-family:inherit}
+.langsw button.on{background:#fff;color:var(--blue);font-weight:700}
+.disc{background:var(--orange);padding:9px 24px;font-size:12px;color:var(--ink);font-weight:700;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding:16px}
+details.pre{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 16px;margin-bottom:14px}
+details.pre summary{cursor:pointer;font-weight:700;color:var(--blue)}
+details.pre ol{margin:8px 0 2px 20px}
+.progress{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.progress a{flex:1 1 110px;text-decoration:none;color:var(--mute);background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12px;text-align:center;line-height:1.3}
+.progress a b{display:block;font-size:14px;color:var(--ink)}
+.progress a.done{border-color:var(--ok);color:var(--ok)}
+.progress a.done b{color:var(--ok)}
+.progress a.check{border-color:var(--orange);color:var(--warn)}
+.progress a.check b{color:var(--warn)}
+section.step{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden}
+section.step>h2{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;padding:11px 16px;background:#eef2fb;border-bottom:1px solid var(--line)}
+.num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:13px;flex-shrink:0}
+.st{margin-left:auto;font-size:11px;font-weight:700;padding:2px 9px;border-radius:10px;background:#e8ebf1;color:var(--mute)}
+.st.done{background:#d4edda;color:#155724}
+.st.check{background:#fff3cd;color:var(--warn)}
+.body{padding:14px 16px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px}
+label.f{font-size:12px;color:var(--mute);display:block;margin-bottom:3px}
+input[type=number],input[type=text],select,textarea{border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font-size:13px;font-family:inherit;padding:5px 8px}
+textarea{width:100%;height:130px;font-family:Consolas,Menlo,monospace;font-size:12px;background:#fafbfc;resize:vertical}
+input[type=number]{width:90px}
+.btn{background:#fff;color:var(--ink);border:1px solid var(--line);padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit}
+.btn:hover{background:#f1f4f9}
+.btn.pri{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.pri:hover{background:#1b2d78}
+.btn.dl{background:var(--ok);color:#fff;border-color:var(--ok)}
+.msg{font-size:12.5px;padding:7px 11px;border-radius:6px;margin:8px 0;white-space:pre-line}
+.msg.err{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
+.msg.warn{background:#fff3cd;color:#6b4a00;border:1px solid #ffe69c}
+.msg.info{background:#e3f1f6;color:#0c5460;border:1px solid #bee5eb}
+.note{font-size:12px;color:var(--mute);margin:6px 0}
+.chk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px;padding:8px;border:1px solid var(--line);border-radius:6px;background:#fafbfc;max-height:170px;overflow:auto;margin-bottom:8px}
+.chk-grid label{font-size:13px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.ov{overflow-x:auto}
+table.t{border-collapse:collapse;width:100%;font-size:12.5px;margin:6px 0}
+table.t th{background:#f0f4fa;border:1px solid var(--line);padding:4px 8px;text-align:right;font-weight:600;white-space:nowrap}
+table.t td{border:1px solid #e6e9f0;padding:4px 8px;text-align:right}
+table.t th:first-child,table.t td:first-child{text-align:left}
+table.t td.l{text-align:left}
+td.hi{background:#fff3cd;font-weight:700;color:#7d5a00}
+td.hig{background:#d4edda;font-weight:700;color:#155724}
+td.neg{color:var(--err);font-weight:700}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:9px;margin-left:4px}
+.tag.w{background:#fff3cd;color:var(--warn)}
+.tag.e{background:#f8d7da;color:var(--err)}
+.tag.i{background:#e3f1f6;color:#0c5460}
+h3{font-size:14px;margin:12px 0 4px;color:var(--blue)}
+.fac-block{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:10px 0}
+.nm-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.nm-row div{min-width:130px}
+.nm-row input{width:150px}
+.scree{width:100%;max-width:560px;height:auto}
+.scr-wrap{margin:6px 0}
+.foot{max-width:980px;margin:0 auto;padding:6px 16px 16px;font-size:11px;color:#777}
+.rs{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.rs textarea{height:300px;white-space:pre;overflow:auto}
+.blocked{color:var(--mute);font-size:13px}
+@media (max-width:600px){header{padding:10px 14px}.wrap{padding:10px}.disc{padding:8px 14px}input[type=number]{width:72px}}
+</style>
+<script data-goatcounter="https://yuki-toyoda.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</head>
+<body>
+<header>
+  <a class="backlink bl-ja" href="https://im-research-yt.github.io/ja/tools.html">← 分析ツール</a><a class="backlink bl-en" href="https://im-research-yt.github.io/tools.html">← Analysis tools</a>
+  <a class="backlink-home bl-ja" href="https://im-research-yt.github.io/ja/">ブログのトップ</a><a class="backlink-home bl-en" href="https://im-research-yt.github.io/">Blog home</a>
+  <h1 data-i="h1"></h1><span class="badge">FA + α</span>
+  <div class="langsw"><button type="button" data-lang="ja" onclick="setLang('ja')">日本語</button><button type="button" data-lang="en" onclick="setLang('en')">English</button></div>
+</header>
+<div class="disc"><span data-i="disc1"></span><br><span data-i="disc2"></span></div>
+<div class="wrap">
+  <details class="pre"><summary data-i="preTitle"></summary><ol id="pre-list"></ol></details>
+  <nav class="progress" id="progress"></nav>
+
+  <section class="step" id="s1"><h2><span class="num">1</span><span data-i="s1t"></span><span class="st" id="st1"></span></h2><div class="body">
+    <div class="row">
+      <button class="btn" type="button" onclick="loadExample(1)" data-i="exBtn"></button>
+      <button class="btn" type="button" onclick="loadExample(2)" data-i="exBtn2"></button>
+      <button class="btn" type="button" onclick="loadExample(3)" data-i="exBtn3"></button>
+      <label class="btn" style="margin:0"><span data-i="openCsv"></span><input type="file" id="csvfile" accept=".csv,.txt" style="display:none" onchange="loadCSVFile(event)"></label>
+    </div>
+    <label class="f" data-i="csvLabel"></label>
+    <textarea id="csv" spellcheck="false" data-ip="csvPh"></textarea>
+    <div id="s1info"></div>
+    <div id="s1vars" style="display:none">
+      <h3 data-i="varsTitle"></h3>
+      <div class="row" style="margin-bottom:4px"><button class="btn" type="button" onclick="selAll(true)" data-i="selAll"></button><button class="btn" type="button" onclick="selAll(false)" data-i="selNone"></button></div>
+      <div class="chk-grid" id="varchecks"></div>
+      <div class="ov" id="s1sum"></div>
+    </div>
+    <div id="s1msg"></div>
+  </div></section>
+
+  <section class="step" id="s2"><h2><span class="num">2</span><span data-i="s2t"></span><span class="st" id="st2"></span></h2><div class="body" id="b2"></div></section>
+  <section class="step" id="s3"><h2><span class="num">3</span><span data-i="s3t"></span><span class="st" id="st3"></span></h2><div class="body" id="b3"></div></section>
+  <section class="step" id="s4"><h2><span class="num">4</span><span data-i="s4t"></span><span class="st" id="st4"></span></h2><div class="body" id="b4"></div></section>
+  <section class="step" id="s5"><h2><span class="num">5</span><span data-i="s5t"></span><span class="st" id="st5"></span></h2><div class="body" id="b5"></div></section>
+  <section class="step" id="s6"><h2><span class="num">6</span><span data-i="s6t"></span><span class="st" id="st6"></span></h2><div class="body" id="b6"></div></section>
+  <section class="step" id="s7"><h2><span class="num">7</span><span data-i="s7t"></span><span class="st" id="st7"></span></h2><div class="body" id="b7"></div></section>
+
+  <div class="rs">
+    <div style="font-weight:700;font-size:15px;margin-bottom:4px" data-i="rsTitle"></div>
+    <div class="note" data-i="rsDesc"></div>
+    <div class="row">
+      <button class="btn pri" type="button" onclick="rsMake()" data-i="rsMake"></button>
+      <button class="btn" type="button" id="rs-copy-btn" onclick="rsCopy()" data-i="rsCopy"></button>
+      <button class="btn" type="button" onclick="rsDownload()" data-i="rsSave"></button>
+    </div>
+    <textarea id="rs-text" readonly spellcheck="false" data-ip="rsPh"></textarea>
+  </div>
+</div>
+<div class="foot" data-i="foot"></div>
+
+<script>
+// ===== scale builder: numerical core (no DOM). Used by scale_builder.html and by the tests. =====
+// 主因子法(psych::fa の fm="pa" と同じ手順。収束条件のみ厳しくしてある)、varimax / promax(stats と同じ手順)、クロンバックのα。
+'use strict';
+
+// ---------- small matrix helpers (arrays of arrays, row-major) ----------
+function matMul(A,B){
+  const r=A.length, mid=B.length, c=B[0].length;
+  const out=Array.from({length:r},()=>new Array(c).fill(0));
+  for(let i=0;i<r;i++) for(let k=0;k<mid;k++){ const a=A[i][k]; if(a===0) continue; for(let j=0;j<c;j++) out[i][j]+=a*B[k][j]; }
+  return out;
+}
+function matT(A){ return A[0].map((_,j)=>A.map(r=>r[j])); }
+function matInv(A){
+  const n=A.length;
+  const M=A.map((r,i)=>[...r,...Array.from({length:n},(_,j)=>i===j?1:0)]);
+  for(let col=0;col<n;col++){
+    let p=col; for(let r=col+1;r<n;r++) if(Math.abs(M[r][col])>Math.abs(M[p][col])) p=r;
+    [M[col],M[p]]=[M[p],M[col]];
+    const piv=M[col][col];
+    if(Math.abs(piv)<1e-300) throw new Error('singular');
+    for(let j=0;j<2*n;j++) M[col][j]/=piv;
+    for(let r=0;r<n;r++){ if(r===col) continue; const f=M[r][col]; if(f===0) continue; for(let j=0;j<2*n;j++) M[r][j]-=f*M[col][j]; }
+  }
+  return M.map(r=>r.slice(n));
+}
+
+// ---------- symmetric eigen decomposition (cyclic Jacobi) ----------
+// returns {values (descending, not clipped), vectors (vectors[k] = k-th eigenvector), converged}
+function eigenSym(A){
+  const n=A.length;
+  if(n===1) return {values:[A[0][0]],vectors:[[1]],converged:true};
+  const a=A.map(r=>r.slice());
+  const V=Array.from({length:n},(_,i)=>{const r=new Array(n).fill(0); r[i]=1; return r;});
+  let converged=false;
+  for(let sweep=0;sweep<100;sweep++){
+    let off=0, dg=0;
+    for(let i=0;i<n;i++){ dg+=a[i][i]*a[i][i]; for(let j=i+1;j<n;j++) off+=a[i][j]*a[i][j]; }
+    if(Math.sqrt(off)<=1e-15*Math.sqrt(dg)+1e-300){ converged=true; break; }
+    for(let p=0;p<n-1;p++) for(let q=p+1;q<n;q++){
+      const apq=a[p][q];
+      if(apq===0) continue;
+      const theta=(a[q][q]-a[p][p])/(2*apq);
+      const t=(theta>=0?1:-1)/(Math.abs(theta)+Math.sqrt(theta*theta+1));
+      const c=1/Math.sqrt(t*t+1), s=t*c;
+      a[p][p]-=t*apq; a[q][q]+=t*apq; a[p][q]=0; a[q][p]=0;
+      for(let r=0;r<n;r++){
+        if(r===p||r===q) continue;
+        const arp=a[r][p], arq=a[r][q];
+        a[r][p]=c*arp-s*arq; a[p][r]=a[r][p];
+        a[r][q]=s*arp+c*arq; a[q][r]=a[r][q];
+      }
+      for(let r=0;r<n;r++){
+        const vp=V[r][p], vq=V[r][q];
+        V[r][p]=c*vp-s*vq; V[r][q]=s*vp+c*vq;
+      }
+    }
+  }
+  const idx=Array.from({length:n},(_,i)=>i).sort((x,y)=>a[y][y]-a[x][x]);
+  return {values:idx.map(i=>a[i][i]), vectors:idx.map(i=>V.map(r=>r[i])), converged};
+}
+
+// ---------- data summaries ----------
+function colMeans(X){ const n=X.length,m=X[0].length; const mu=new Array(m).fill(0); for(const r of X) for(let j=0;j<m;j++) mu[j]+=r[j]; return mu.map(v=>v/n); }
+function covMat(X){
+  const n=X.length,m=X[0].length,mu=colMeans(X);
+  const S=Array.from({length:m},()=>new Array(m).fill(0));
+  for(const r of X) for(let i=0;i<m;i++){ const di=r[i]-mu[i]; for(let j=i;j<m;j++) S[i][j]+=di*(r[j]-mu[j]); }
+  for(let i=0;i<m;i++) for(let j=i;j<m;j++){ S[i][j]/=(n-1); S[j][i]=S[i][j]; }
+  return S;
+}
+function corMat(X){
+  const S=covMat(X), m=S.length, sd=S.map((r,i)=>Math.sqrt(r[i]));
+  return S.map((r,i)=>r.map((v,j)=>i===j?1:v/(sd[i]*sd[j])));
+}
+
+// ---------- principal axis factoring (psych::fa fm = "pa") ----------
+// psych: 初期共通性 = SMC。縮約相関行列の固有値分解 → 上位k個から負荷量 → 共通性を更新、を、共通性の合計の変化が min.err 未満になるまで繰り返す。
+// psych の既定は min.err = 0.001, max.iter = 50。このツールは min.err = 1e-8, max.iter = 1000 で収束させる。
+function paFit(R,k,opt){
+  opt=opt||{}; const tol=opt.tol!==undefined?opt.tol:1e-8, maxIter=opt.maxIter||1000;
+  const m=R.length;
+  const eg=eigenSym(R);
+  if(!eg.converged) throw {code:'eigen'};
+  const minEig=eg.values[m-1];
+  if(!(minEig>1e-10)) throw {code:'singular',minEig};
+  // SMC = 1 - 1/diag(R^-1);  diag(R^-1)_i = sum_k v_k[i]^2 / lambda_k
+  let h=Array.from({length:m},(_,i)=>{let s=0; for(let q=0;q<m;q++) s+=eg.vectors[q][i]*eg.vectors[q][i]/eg.values[q]; return 1-1/s;});
+  const smc=h.slice();
+  let comm=h.reduce((x,y)=>x+y,0), err=comm, it=1, converged=true, negEig=false, L=null;
+  while(err>tol){
+    const rr=R.map((r,i)=>r.map((v,j)=>i===j?h[i]:v));
+    const e=eigenSym(rr);
+    if(!e.converged) throw {code:'eigen'};
+    negEig=false;
+    L=Array.from({length:m},()=>new Array(k).fill(0));
+    for(let j=0;j<k;j++){
+      const lam=e.values[j]; if(!(lam>0)) negEig=true;
+      const sq=Math.sqrt(Math.max(lam,0));
+      for(let i=0;i<m;i++) L[i][j]=e.vectors[j][i]*sq;
+    }
+    const nh=L.map(r=>r.reduce((s,v)=>s+v*v,0));
+    const comm1=nh.reduce((x,y)=>x+y,0);
+    err=Math.abs(comm-comm1); comm=comm1; h=nh; it++;
+    if(it>maxIter){ converged=false; break; }
+  }
+  return {L,h2:h,smc,iter:it-1,converged,negEig,heywood:h.some(v=>v>=1),eigR:eg.values};
+}
+
+// ---------- rotations (same procedure as stats::varimax and stats::promax) ----------
+function varimax(L){
+  const m=L.length, nf=L[0].length;
+  if(nf<2) return L.map(r=>r.slice());
+  const eps=1e-5;
+  const sc=L.map(r=>Math.sqrt(r.reduce((s,v)=>s+v*v,0)));
+  const x=L.map((r,i)=>r.map(v=>sc[i]>0?v/sc[i]:v));       // Kaiser normalization
+  let T=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>i===j?1:0));
+  let d=0;
+  for(let it=0;it<1000;it++){
+    const z=matMul(x,T);
+    const colSS=Array.from({length:nf},(_,j)=>z.reduce((s,r)=>s+r[j]*r[j],0));
+    const Zm=z.map(r=>r.map((v,j)=>v*v*v-v*colSS[j]/m));
+    const B=matMul(matT(x),Zm);
+    const BtB=matMul(matT(B),B);
+    const e=eigenSym(BtB);
+    const lam=e.values.map(v=>Math.max(v,1e-300));
+    const W=Array.from({length:nf},(_,i)=>Array.from({length:nf},(_,j)=>e.vectors.reduce((s,vec,q)=>s+vec[i]*vec[j]/Math.sqrt(lam[q]),0)));
+    T=matMul(B,W);
+    const dpast=d; d=lam.reduce((s,v)=>s+Math.sqrt(v),0);
+    if(d<dpast*(1+eps)) break;
+  }
+  return matMul(x,T).map((r,i)=>r.map(v=>v*sc[i]));
+}
+function promaxFromVarimax(V,power){
+  power=power||4;
+  const m=V.length, nf=V[0].length;
+  const Q=V.map(r=>r.map(v=>Math.sign(v)*Math.pow(Math.abs(v),power)));
+  const Vt=matT(V);
+  let U=matMul(matInv(matMul(Vt,V)),matMul(Vt,Q));
+  const inv0=matInv(matMul(matT(U),U));
+  U=U.map(r=>r.map((v,j)=>v*Math.sqrt(inv0[j][j])));
+  const phi=matInv(matMul(matT(U),U));
+  return {pattern:matMul(V,U),phi};
+}
+
+// ---------- unrotated -> final solution (orientation and ordering as in psych::fa) ----------
+function colSignFlip(L){
+  const k=L[0].length, sg=Array.from({length:k},(_,j)=>{const s=L.reduce((a,r)=>a+r[j],0); return s<0?-1:1;});
+  return {M:L.map(r=>r.map((v,j)=>v*sg[j])),sg};
+}
+function solveFactors(L0,rotation){
+  const m=L0.length, k=L0[0].length;
+  const f0=colSignFlip(L0);            // 回転前の向き(psych: 合計が正)
+  const L=f0.M;
+  if(k<2) return {pattern:L,structure:L,phi:[[1]],rotation:'none',order:[0],ev:[L.reduce((a,r)=>a+r[0]*r[0],0)]};
+  let P, phi=null;
+  if(rotation==='varimax') P=varimax(L);
+  else { const pr=promaxFromVarimax(varimax(L),4); P=pr.pattern; phi=pr.phi; }
+  const f1=colSignFlip(P);             // 回転後の向き
+  P=f1.M;
+  if(phi) phi=phi.map((r,i)=>r.map((v,j)=>v*f1.sg[i]*f1.sg[j]));
+  let ev;
+  if(phi){ const PtP=matMul(matT(P),P); ev=Array.from({length:k},(_,j)=>phi[j].reduce((s,v,l)=>s+v*PtP[l][j],0)); }
+  else ev=Array.from({length:k},(_,j)=>P.reduce((s,r)=>s+r[j]*r[j],0));
+  const order=Array.from({length:k},(_,j)=>j).sort((a,b)=>ev[b]-ev[a]);
+  P=P.map(r=>order.map(j=>r[j]));
+  if(phi) phi=order.map(i=>order.map(j=>phi[i][j]));
+  const structure=phi?matMul(P,phi):P.map(r=>r.slice());
+  return {pattern:P,structure,phi:phi||Array.from({length:k},(_,i)=>Array.from({length:k},(_,j)=>i===j?1:0)),rotation,order,ev:order.map(j=>ev[j])};
+}
+
+// ---------- full factor analysis from a data matrix ----------
+function factorAnalysis(X,k,rotation){
+  const R=corMat(X);
+  const fit=paFit(R,k);
+  const sol=solveFactors(fit.L,rotation);
+  return Object.assign({R,fit},sol,{h2:fit.h2});
+}
+
+// ---------- reliability ----------
+function alphaStats(X){
+  const n=X.length,k=X[0].length;
+  const C=covMat(X), mu=colMeans(X);
+  const sdv=C.map((r,i)=>Math.sqrt(r[i]));
+  let sumDiag=0,sumAll=0,sumR=0;
+  for(let i=0;i<k;i++){ sumDiag+=C[i][i]; for(let j=0;j<k;j++){ sumAll+=C[i][j]; if(i!==j) sumR+=C[i][j]/(sdv[i]*sdv[j]); } }
+  const a=(kk,sd,sa)=>kk/(kk-1)*(1-sd/sa);
+  const rbar=sumR/(k*(k-1));
+  const items=[];
+  for(let i=0;i<k;i++){
+    let cov_it=0, var_rest=0;
+    for(let j=0;j<k;j++){ if(j===i) continue; cov_it+=C[i][j]; for(let l=0;l<k;l++) if(l!==i) var_rest+=C[j][l]; }
+    const rDrop=cov_it/Math.sqrt(C[i][i]*var_rest);
+    let aDrop=NaN;
+    if(k>2){ aDrop=a(k-1,sumDiag-C[i][i],sumAll-2*cov_it-C[i][i]); }
+    items.push({mean:mu[i],sd:sdv[i],rDrop,alphaDrop:aDrop});
+  }
+  return {k,n,alpha:k>1?a(k,sumDiag,sumAll):NaN,alphaStd:k>1?k*rbar/(1+(k-1)*rbar):NaN,rbar,items};
+}
+
+// ---------- subscale scores (item means; reverse-coded items flipped with min+max-x) ----------
+function subscaleScores(X,cols,reverse,min,max){
+  return X.map(r=>{ let s=0; for(const j of cols) s+=reverse[j]?(min+max-r[j]):r[j]; return s/cols.length; });
+}
+
+if(typeof module!=='undefined') module.exports={matMul,matT,matInv,eigenSym,covMat,corMat,paFit,varimax,promaxFromVarimax,solveFactors,factorAnalysis,alphaStats,subscaleScores};
+
+</script>
+<script>
+// ===================== i18n =====================
+const I18N={ja:{},en:{}}; let LANG='ja';
+function detectLang(){
+  try{const q=new URLSearchParams(location.search).get('lang'); if(q==='ja'||q==='en') return q;}catch(e){}
+  try{const s=localStorage.getItem('tool_lang'); if(s==='ja'||s==='en') return s;}catch(e){}
+  return ((navigator.language||'en')+'').toLowerCase().indexOf('ja')===0?'ja':'en';
+}
+function t(key){ const a=Array.prototype.slice.call(arguments,1); let s=I18N[LANG][key]; if(s===undefined) s=I18N.en[key]; if(s===undefined) return key; return typeof s==='function'?s.apply(null,a):s; }
+function applyI18n(){
+  document.documentElement.lang=LANG; document.title=t('title');
+  document.querySelectorAll('[data-i]').forEach(e=>{e.textContent=t(e.getAttribute('data-i'));});
+  document.querySelectorAll('[data-ip]').forEach(e=>{e.setAttribute('placeholder',t(e.getAttribute('data-ip')));});
+  document.querySelectorAll('.langsw button').forEach(b=>{b.classList.toggle('on',b.getAttribute('data-lang')===LANG);});
+  onLangChange();
+}
+function setLang(l){ LANG=l; try{localStorage.setItem('tool_lang',l);}catch(e){} applyI18n(); }
+
+Object.assign(I18N.ja,{
+ title:'Scale Maker', h1:'Scale Maker',
+ disc1:'法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室',
+ disc2:'学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。',
+ preTitle:'使う前の3つの問い',
+ pre:['背後に潜在因子(測りたい概念)を想定する理由がありますか。','項目は、理論から設計したものですか。(出てきた因子に、あとから名前を付けるのではありません。)','標本数は足りていますか。'],
+ s1t:'データを入れる', s2t:'因子数を決める', s3t:'因子分析を実行する', s4t:'項目の割り当てを確認する', s5t:'逆転項目を確認する', s6t:'信頼性(クロンバックのα)を確認する', s7t:'下位尺度得点を出す',
+ stDone:'完了', stCheck:'要確認', stWait:'未実施',
+ exBtn:'例題1(顧客満足度、5件法、n=200、15項目)', exBtn2:'例題2(ブランド愛着、7件法、n=300、10項目)', exBtn3:'例題3(ブランド信頼・品質・価格感度、7件法、n=300、9項目。手順記事と同じデータ)', openCsv:'📂 CSVファイルを開く',
+ csvLabel:'CSV形式で貼り付け(1行目=項目名、1列目=回答者ID)またはファイルを選択', csvPh:'ID,項目1,項目2,項目3,...\nR001,4,5,3,...\nR002,3,4,4,...',
+ parsed:(n,m,k)=>`読み込み完了:${n} ケース × ${m} 項目`+(k?`(欠損値などのため ${k} 行を除外しました)`:''),
+ s1note:'欠損値のある行は、分析から除きます(完全なケースだけを使います)。5件法などの順序尺度でも、ピアソンの相関係数を使います。',
+ varsTitle:'使う項目', selAll:'全選択', selNone:'全解除',
+ thItem:'項目', thMean:'平均', thSD:'標準偏差', thMin:'最小', thMax:'最大',
+ errLoad:'先にデータを読み込んでください。', errVar3:'項目を3つ以上選んでください。',
+ errZeroSd:l=>`次の項目は分散がゼロ(定数)です。除外してください:${l}`,
+ errPerfect:p=>'完全相関(r≒±1)の項目の組があります。一方を除外してください:\n'+p.map(x=>`${x[0]} と ${x[1]}(r=${x[2]})`).join('\n'),
+ errN:(n,m)=>`ケース数(${n})が項目数(${m})以下です。項目を減らすか、データを増やしてください。`,
+ errEigen:'固有値の計算が収束しませんでした。項目を減らして、もう一度お試しください。',
+ errSingular:e=>`相関行列がほぼ特異です(最小固有値=${e})。主因子法の初期値(重相関の2乗)が計算できません。\n完全相関や、線形従属な項目が含まれている可能性があります。項目を見直してください。`,
+ warnSmall:(n,m)=>`標本が小さい可能性があります(ケース数 ${n}、項目数 ${m})。ケース数が100未満、または項目数の5倍未満のため、結果が不安定になることがあります。`,
+ blocked:'前のステップのエラーを直してください。', blockedLoad:'データを読み込むと、ここに結果が出ます。',
+ s2eigT:'相関行列の固有値', thNo:'番号', thEig:'固有値', thProp:'寄与率(%)', thCum:'累積(%)',
+ screeT:'スクリープロット', lblK:'因子数', kInit:q=>`初期値は、固有値が1以上の数(${q})です。`,
+ kNote:'固有値1以上は目安です。スクリープロットと、理論上の想定(項目の設計)をあわせて決めてください。より頑健な方法として平行分析があります。',
+ axNo:'番号', axEig:'固有値', lgEig1:'固有値 = 1',
+ s3method:'推定法:主因子法(固定)', lblRot:'回転', rotPm:'プロマックス(標準。因子間の相関を許す)', rotVm:'バリマックス(因子間の相関を0にする)', lblThr:'色付けの閾値(|負荷量|)',
+ s3note:'本ツールは主因子法です。最尤法(適合度検定や信頼区間が必要な場合)も検討してください。',
+ loadPm:'因子パターン行列(プロマックス回転後)', loadVm:'因子負荷量(バリマックス回転後)', loadNone:'因子負荷量(1因子)', thComm:'共通性', contrib:'因子寄与',
+ phiT:'因子間相関', structT:'構造行列(各項目と各因子の相関)',
+ dirNote:'各因子は、負荷量の合計が正になる向きにそろえています。因子は、二乗和(因子の分散)の大きい順に並べています。',
+ iterOk:i=>`主因子法は、${i} 回の反復で収束しました。`,
+ warnHey:l=>`共通性が1以上の項目があります(ヘイウッドケース):${l}。値は切り詰めていません。因子数が多すぎる、または標本が小さい可能性があります。`,
+ warnConv:'反復が最大回数(1000回)に達しても収束しませんでした。因子数を減らすか、項目を見直してください。',
+ warnNeg:'縮約相関行列に、負の固有値がありました(上位の因子に影響しています)。因子数が多すぎる可能性があります。',
+ s4note:'割り当ては、項目の設計(理論)を優先して決めてください。負荷量がマイナスの項目は、逆転項目の可能性があります。次の「5. 逆転項目を確認する」で判断してください(ここでは割り当てだけを決めます)。複数の因子に載る項目や、どの因子にも弱い項目を除くときは、「1. データを入れる」で項目のチェックを外し、因子分析をやり直してください(項目を外すと、ほかの項目の負荷量も変わります。外すのは、一度に1項目ずつにします)。ここで「使わない」を選ぶと、その項目を下位尺度に入れないだけで、因子分析はやり直されません。', s4names:'下位尺度の名前(任意。CSVの列名になります)',
+ s4nameNote:'名前は、項目を設計したときの構成概念で決めてください。因子分析の結果を見てから名前を付けるのは避けてください。',
+ thLoadOn:'負荷量', thAssign:'割り当て先', thFlag:'印', optNone:'使わない',
+ flagWeak:'どの因子にも弱い', flagCross:'複数の因子に負荷',
+ cnt:(nm,c)=>`${nm}: ${c}項目`, warnOne:nm=>`${nm} は項目が1つ以下です。`,
+ resetNote:'因子数や回転を変えたため、割り当てと逆転を初期化しました。',
+ s5note:'逆転項目かどうかは、質問文の意味(理論)で決めてください。負荷量の符号は目安です。自動では逆転しません。チェックを入れると、「6. 信頼性」と「7. 下位尺度得点」が自動で再計算されます(ボタンは不要です)。因子分析の結果(ステップ3)は、元のデータのままで変わりません。',
+ lblScale:'尺度の範囲', lblSMin:'最小値', lblSMax:'最大値', scaleChk:'データの最小値・最大値から求めた初期値です。確認してください。',
+ thFactor:'因子(下位尺度)', thRev:'逆転', hintRev:'逆転が必要かもしれません',
+ warnRange:l=>`データに、尺度の範囲の外にある値があります(${l})。範囲を確認してください。`, s5none:'割り当てた項目がありません。',
+ s6t1:'項目数', thAlpha:'α', thAlphaS:'標準化α', thRDrop:'項目と全体の相関', thADrop:'その項目を除いたα',
+ tagNegR:'相関が負', tagUp:'除くとαが上がる',
+ warnK1:nm=>`${nm}: 項目が1つ以下のため、αは計算しません。`, warnAneg:nm=>`${nm}: αが負です。逆転の忘れの可能性があります。`,
+ s6note:'αは、項目数が多いほど高くなりやすい指標です。αが高くても、1つの因子であることの証拠にはなりません(因子分析で構造を確かめるのはそのためです)。項目を除くときは、「1. データを入れる」に戻って項目を外し、因子分析からやり直してください。',
+ s6meanNote:'逆転を反映した値で計算しています。', k2:'(項目が2つのとき、「除いたα」は計算できません)',
+ s7note:'下位尺度得点は、項目の平均です(逆転を反映)。因子得点は出力しません(推定値で、計算方法によって値が変わるため)。',
+ s7head:'下位尺度得点(先頭10行)', s7desc:'要約', s7corr:'下位尺度どうしの相関', thName:'下位尺度', thN:'項目数',
+ dlCsv:'⬇ 下位尺度得点をCSVでダウンロード', s7none:'得点を出せる下位尺度がありません。',
+ repTitle:'報告するときに書くこと(下書き)', repCopy:'コピー', copied:'コピーしました',
+ repLines:o=>[
+  `対象: ${o.n}ケース(欠損値のない回答のみ)、${o.m}項目`,
+  `因子分析: 主因子法(共通性の初期値は重相関の2乗。共通性の合計の変化が1e-8未満になるまで反復。${o.iter}回)`,
+  `回転: ${o.rot==='promax'?'プロマックス回転(べき乗4)':'バリマックス回転(Kaiser正規化あり)'}`,
+  `因子数: ${o.k}(根拠: ______。例: 固有値1以上の基準、スクリープロット、理論上の想定)`,
+  `負荷量の閾値: ${o.thr}`,
+  `逆転項目: ${o.revs.length?o.revs.join('、')+`(尺度の範囲 ${o.min}〜${o.max})`:'なし'}`,
+  ...o.facs.map(f=>`下位尺度「${f.name}」: ${f.k}項目、α=${f.alpha}`),
+  '下位尺度得点: 項目の平均'],
+ regT:'次の一歩:回帰分析へ', regNote:'CSVを、アウトカム(被説明変数)のデータとIDで結合して、回帰分析に使います。例:',
+ rsTitle:'Rで同じ計算をする(検算用スクリプト)',
+ rsDesc:'いま入力しているデータと、画面で選んだ設定(因子数、回転、割り当て、逆転、尺度の範囲)を埋め込んだRスクリプトを作ります。基本のRだけで、このツールと同じ計算を行い、結果を並べて確かめられます。最後に、因子数を変えたいときなどの修正案があります。',
+ rsMake:'Rスクリプトを作成', rsCopy:'コピー', rsSave:'.Rファイルを保存', rsPh:'「Rスクリプトを作成」を押すと、ここに表示されます',
+ foot:'このツールは、Claude(Anthropic)の支援を受けて開発しました。',
+ ex:'例題'
+});
+Object.assign(I18N.en,{
+ title:'Scale Maker', h1:'Scale Maker',
+ disc1:'Yuki Toyoda Laboratory, Graduate School of Innovation Management, Hosei University',
+ disc2:'This is a learning tool. It may contain calculation errors, so please verify the results with other software before using them in research or business.',
+ preTitle:'Three questions before you start',
+ pre:['Do you have a reason to assume latent factors (the concepts you want to measure) behind the items?','Were the items designed from theory? (Factors should not be named after the fact, from the output.)','Is the sample size large enough?'],
+ s1t:'Enter the data', s2t:'Decide the number of factors', s3t:'Run the factor analysis', s4t:'Check the item assignment', s5t:'Check the reverse-coded items', s6t:'Check reliability (Cronbach\'s alpha)', s7t:'Get the subscale scores',
+ stDone:'Done', stCheck:'Check', stWait:'Not yet',
+ exBtn:'Example 1 (customer satisfaction, 5-point, n = 200, 15 items)', exBtn2:'Example 2 (brand attachment, 7-point, n = 300, 10 items)', exBtn3:'Example 3 (brand trust, quality and price sensitivity, 7-point, n = 300, 9 items; the same data as the step-by-step article)', openCsv:'📂 Open CSV file',
+ csvLabel:'Paste CSV (row 1 = item names, column 1 = respondent ID) or choose a file', csvPh:'ID,Item1,Item2,Item3,...\nR001,4,5,3,...\nR002,3,4,4,...',
+ parsed:(n,m,k)=>`Loaded: ${n} cases × ${m} items`+(k?` (${k} row(s) excluded because of missing or invalid values)`:''),
+ s1note:'Rows with missing values are excluded (only complete cases are used). Pearson correlations are used even for ordinal scales such as 5-point items.',
+ varsTitle:'Items to use', selAll:'Select all', selNone:'Deselect all',
+ thItem:'Item', thMean:'Mean', thSD:'SD', thMin:'Min', thMax:'Max',
+ errLoad:'Please load data first.', errVar3:'Please select at least 3 items.',
+ errZeroSd:l=>`The following items have zero variance (constants). Please exclude them: ${l}`,
+ errPerfect:p=>'Some pairs of items are perfectly correlated (r ≈ ±1). Please exclude one item of each pair:\n'+p.map(x=>`${x[0]} and ${x[1]} (r=${x[2]})`).join('\n'),
+ errN:(n,m)=>`The number of cases (${n}) is not larger than the number of items (${m}). Reduce the items or add data.`,
+ errEigen:'The eigenvalue computation did not converge. Please reduce the number of items and try again.',
+ errSingular:e=>`The correlation matrix is nearly singular (smallest eigenvalue = ${e}). The initial communalities (squared multiple correlations) cannot be computed.\nThe data may contain perfectly correlated or linearly dependent items. Please review the items.`,
+ warnSmall:(n,m)=>`The sample may be small (${n} cases, ${m} items). With fewer than 100 cases, or fewer than 5 times as many cases as items, the results can be unstable.`,
+ blocked:'Please fix the error in the previous step.', blockedLoad:'Load data and the results will appear here.',
+ s2eigT:'Eigenvalues of the correlation matrix', thNo:'No.', thEig:'Eigenvalue', thProp:'Proportion (%)', thCum:'Cumulative (%)',
+ screeT:'Scree plot', lblK:'Number of factors', kInit:q=>`The initial value is the number of eigenvalues of 1 or more (${q}).`,
+ kNote:'An eigenvalue of 1 or more is only a guide. Decide together with the scree plot and your theoretical expectation (the item design). Parallel analysis is a more robust method.',
+ axNo:'Number', axEig:'Eigenvalue', lgEig1:'Eigenvalue = 1',
+ s3method:'Estimation: principal axis factoring (fixed)', lblRot:'Rotation', rotPm:'Promax (default; allows correlated factors)', rotVm:'Varimax (uncorrelated factors)', lblThr:'Highlight threshold (|loading|)',
+ s3note:'This tool uses principal axis factoring. Maximum likelihood (when you need a fit test or confidence intervals) is also worth considering.',
+ loadPm:'Factor pattern matrix (after promax rotation)', loadVm:'Factor loadings (after varimax rotation)', loadNone:'Factor loadings (one factor)', thComm:'Communality', contrib:'Factor contribution',
+ phiT:'Factor correlations', structT:'Structure matrix (correlation of each item with each factor)',
+ dirNote:'Each factor is oriented so that the sum of its loadings is positive. Factors are ordered by their sum of squares (variance).',
+ iterOk:i=>`Principal axis factoring converged in ${i} iterations.`,
+ warnHey:l=>`Some items have a communality of 1 or more (Heywood case): ${l}. The values were not truncated. There may be too many factors, or the sample may be too small.`,
+ warnConv:'The iteration did not converge within the maximum number of iterations (1000). Reduce the number of factors or review the items.',
+ warnNeg:'The reduced correlation matrix had a negative eigenvalue (affecting a leading factor). There may be too many factors.',
+ s4note:'Decide the assignment mainly from the item design (theory). An item with a negative loading may be a reverse-coded item. Judge that in the next step, "5. Check the reverse-coded items" (here you only decide the assignment). To remove an item that loads on several factors, or that is weak on all of them, uncheck it in "1. Enter the data" and redo the factor analysis (removing an item changes the loadings of the other items, so remove one item at a time). Choosing "Do not use" here only leaves the item out of the subscales; the factor analysis is not redone.', s4names:'Subscale names (optional; used as CSV column names)',
+ s4nameNote:'Name the subscales after the constructs you designed the items for. Please avoid naming them after seeing the factor analysis output.',
+ thLoadOn:'Loadings', thAssign:'Assign to', thFlag:'Flags', optNone:'Do not use',
+ flagWeak:'weak on all factors', flagCross:'loads on several factors',
+ cnt:(nm,c)=>`${nm}: ${c} item(s)`, warnOne:nm=>`${nm} has one item or fewer.`,
+ resetNote:'The assignment and reverse coding were reset because the number of factors or the rotation changed.',
+ s5note:'Decide whether an item is reverse-coded from the meaning of the question (theory). The sign of a loading is only a guide. Items are never reversed automatically. When you tick an item, "6. Reliability" and "7. Subscale scores" are recalculated automatically (no button is needed). The factor analysis result (step 3) stays based on the original data and does not change.',
+ lblScale:'Scale range', lblSMin:'Minimum', lblSMax:'Maximum', scaleChk:'These initial values come from the minimum and maximum of the data. Please check them.',
+ thFactor:'Factor (subscale)', thRev:'Reverse', hintRev:'may need reversing',
+ warnRange:l=>`Some values are outside the scale range (${l}). Please check the range.`, s5none:'No item has been assigned.',
+ s6t1:'Items', thAlpha:'alpha', thAlphaS:'Standardized alpha', thRDrop:'Item-rest correlation', thADrop:'Alpha if item dropped',
+ tagNegR:'negative correlation', tagUp:'alpha rises if dropped',
+ warnK1:nm=>`${nm}: alpha is not computed because there is one item or fewer.`, warnAneg:nm=>`${nm}: alpha is negative. A reverse-coded item may have been missed.`,
+ s6note:'Alpha tends to be higher when there are more items. A high alpha is not evidence of a single factor (that is why the structure is checked with factor analysis). To drop an item, go back to "1. Enter the data", deselect it, and redo the factor analysis.',
+ s6meanNote:'Computed with reverse coding applied.', k2:'(With two items, "alpha if item dropped" cannot be computed.)',
+ s7note:'Subscale scores are item means (with reverse coding applied). Factor scores are not output (they are estimates, and their values depend on the calculation method).',
+ s7head:'Subscale scores (first 10 rows)', s7desc:'Summary', s7corr:'Correlations between subscales', thName:'Subscale', thN:'Items',
+ dlCsv:'⬇ Download subscale scores as CSV', s7none:'There is no subscale to score.',
+ repTitle:'What to report (draft)', repCopy:'Copy', copied:'Copied',
+ repLines:o=>[
+  `Sample: ${o.n} cases (complete responses only), ${o.m} items`,
+  `Factor analysis: principal axis factoring (initial communalities = squared multiple correlations; iterated until the change in the sum of communalities was below 1e-8; ${o.iter} iterations)`,
+  `Rotation: ${o.rot==='promax'?'promax (power 4)':'varimax (with Kaiser normalization)'}`,
+  `Number of factors: ${o.k} (basis: ______; e.g., eigenvalues of 1 or more, scree plot, theoretical expectation)`,
+  `Loading threshold: ${o.thr}`,
+  `Reverse-coded items: ${o.revs.length?o.revs.join(', ')+` (scale range ${o.min} to ${o.max})`:'none'}`,
+  ...o.facs.map(f=>`Subscale "${f.name}": ${f.k} items, alpha = ${f.alpha}`),
+  'Subscale scores: item means'],
+ regT:'Next step: regression analysis', regNote:'Merge the CSV with the outcome (dependent variable) data by ID and use it in a regression. For example:',
+ rsTitle:'Run the same calculation in R (check script)',
+ rsDesc:'This creates an R script with your data and the settings chosen on the screen (number of factors, rotation, assignment, reverse coding, scale range) embedded. It uses base R only and performs the same calculation as this tool, so you can compare the results side by side. At the end there are suggestions for changing the number of factors and so on.',
+ rsMake:'Create R script', rsCopy:'Copy', rsSave:'Save .R file', rsPh:'Press "Create R script" and the script will appear here',
+ foot:'This tool was developed with the assistance of Claude (Anthropic).',
+ ex:'Example'
+});
+
+const EX={ja:`ID,品質1_耐久性が高い,品質2_仕上げが丁寧,品質3_機能が充実,品質4_故障が多い,品質5_期待どおり,接客1_対応が迅速,接客2_説明が丁寧,接客3_対応が遅い,接客4_相談しやすい,接客5_信頼できる,価格1_価格が妥当,価格2_費用対効果,価格3_他社より安い,価格4_払う価値がある,価格5_料金が明確
+R001,2,3,1,3,2,1,1,3,3,2,5,2,3,4,2
+R002,3,3,3,2,3,4,5,2,4,4,1,1,2,1,1
+R003,1,1,2,4,2,4,4,3,3,2,4,3,3,3,4
+R004,3,4,3,4,3,5,5,2,5,2,5,3,3,5,4
+R005,4,3,4,3,3,2,3,4,2,2,3,1,2,3,2
+R006,2,3,2,3,1,3,2,2,2,2,3,1,3,2,4
+R007,5,5,5,3,2,3,3,3,4,1,5,5,4,3,5
+R008,4,4,5,1,4,5,5,1,5,5,2,2,4,2,3
+R009,4,3,3,4,3,3,1,4,1,3,3,5,4,2,5
+R010,5,5,5,1,5,5,3,3,4,5,3,4,3,3,4
+R011,2,2,2,2,2,4,3,1,4,4,5,5,5,5,5
+R012,3,1,4,4,3,3,3,1,3,1,1,1,1,1,1
+R013,1,4,5,4,2,2,1,3,3,1,3,1,2,1,1
+R014,5,3,5,3,4,3,1,3,3,4,4,2,5,3,2
+R015,5,4,5,2,5,4,2,2,3,2,4,4,3,1,2
+R016,4,3,3,3,2,4,4,4,2,3,3,3,1,4,2
+R017,1,1,4,2,1,1,2,4,1,1,4,3,5,3,5
+R018,3,1,1,4,1,2,1,3,2,2,1,1,4,1,1
+R019,2,3,3,5,3,3,4,1,5,5,5,5,5,4,3
+R020,3,3,1,2,3,3,4,3,1,3,2,3,3,5,2
+R021,5,5,5,2,2,2,4,1,3,4,5,4,5,3,4
+R022,3,1,3,2,2,3,3,3,3,2,4,4,4,4,3
+R023,3,5,2,5,3,3,1,3,2,3,4,4,4,3,3
+R024,3,2,3,4,1,5,3,3,2,2,1,3,5,5,4
+R025,3,3,3,2,3,1,1,2,1,1,5,5,3,4,5
+R026,4,2,3,1,2,3,4,4,5,4,4,3,5,1,2
+R027,3,1,1,4,2,5,4,1,5,4,2,4,2,4,3
+R028,2,1,3,3,4,1,2,4,1,2,3,2,3,2,2
+R029,1,3,2,5,2,2,2,2,3,2,2,4,1,2,2
+R030,4,3,4,2,5,4,5,1,5,4,2,5,4,3,3
+R031,2,3,3,3,4,3,3,4,2,3,3,3,3,2,3
+R032,4,1,4,3,5,2,4,1,4,4,4,3,2,2,2
+R033,3,2,4,4,2,1,2,2,3,4,3,3,2,3,3
+R034,4,3,3,5,2,3,2,2,3,3,4,3,4,5,4
+R035,2,1,1,2,4,1,5,3,2,1,3,2,2,4,1
+R036,2,1,3,3,1,3,3,5,5,4,4,5,1,4,2
+R037,2,1,4,3,3,2,4,3,3,4,2,3,3,2,3
+R038,4,1,2,3,3,2,3,3,2,4,5,4,5,4,4
+R039,2,3,4,4,2,2,1,3,3,2,4,3,4,1,3
+R040,5,5,5,1,5,5,5,1,5,4,3,2,3,4,5
+R041,5,2,3,4,5,3,2,2,4,2,5,4,5,5,5
+R042,3,2,3,4,3,5,3,2,3,3,2,2,4,3,1
+R043,3,4,3,4,2,1,2,4,3,1,2,3,1,2,1
+R044,4,2,3,4,3,5,2,3,4,3,3,3,5,5,2
+R045,1,3,2,5,2,4,3,4,3,4,4,2,5,4,5
+R046,4,5,1,3,3,2,3,4,1,3,2,3,4,3,2
+R047,3,1,1,3,1,1,3,5,2,1,1,2,3,2,2
+R048,4,4,2,3,4,4,3,2,5,5,3,2,5,4,3
+R049,5,5,5,3,5,2,2,5,3,4,2,5,2,2,3
+R050,2,2,3,2,3,1,2,4,4,3,3,3,4,2,4
+R051,1,1,2,5,3,1,1,4,1,3,5,1,4,5,4
+R052,1,1,1,5,1,1,1,5,1,1,2,3,5,2,4
+R053,4,5,4,2,5,5,5,3,3,3,4,5,5,4,5
+R054,4,2,3,1,3,2,3,5,1,2,2,2,1,1,1
+R055,4,3,4,2,3,4,4,2,4,4,5,4,4,5,5
+R056,2,1,5,2,4,3,3,1,3,4,1,2,1,3,1
+R057,3,4,3,1,1,1,4,3,3,1,2,2,1,1,1
+R058,4,3,1,3,4,5,4,3,3,4,4,5,3,4,4
+R059,3,3,4,2,2,4,3,4,1,3,1,3,2,3,1
+R060,3,3,2,3,1,2,2,4,4,1,5,2,3,1,4
+R061,3,3,2,1,3,3,2,3,3,3,2,5,3,5,3
+R062,3,3,3,4,1,4,5,1,5,5,4,2,4,5,3
+R063,1,1,1,4,4,4,3,3,1,5,1,1,3,1,2
+R064,1,2,3,4,4,5,4,2,5,3,2,2,2,3,1
+R065,5,3,3,1,3,3,3,5,2,2,4,5,5,5,5
+R066,1,1,3,2,2,1,2,5,1,2,1,2,1,2,3
+R067,4,5,3,1,4,4,4,2,3,3,1,2,2,2,1
+R068,2,4,2,2,1,3,1,4,2,3,4,4,1,3,3
+R069,2,2,1,5,5,2,1,3,3,1,5,3,5,3,3
+R070,2,1,3,5,5,5,3,3,5,4,2,3,3,4,4
+R071,5,4,3,4,5,5,5,2,5,5,3,4,5,4,3
+R072,4,3,4,1,4,3,3,4,1,3,4,5,3,5,4
+R073,1,1,1,4,3,2,1,5,2,1,2,1,3,1,1
+R074,2,5,3,3,4,4,3,2,4,5,3,4,2,3,3
+R075,2,2,5,4,2,2,2,3,1,1,4,4,4,4,5
+R076,1,1,1,5,1,4,3,3,5,3,1,4,4,1,2
+R077,1,1,1,5,1,2,1,5,4,3,3,3,5,3,3
+R078,4,2,3,3,3,2,2,4,1,3,3,4,1,4,3
+R079,1,2,1,3,2,2,3,4,1,2,1,1,3,3,3
+R080,3,3,3,3,4,4,2,4,1,3,3,5,5,4,4
+R081,2,3,1,4,1,3,2,4,4,3,2,2,1,1,1
+R082,2,4,3,3,2,4,4,2,2,3,3,4,2,4,5
+R083,3,4,3,1,2,3,3,4,4,1,4,5,2,3,5
+R084,4,3,4,3,3,4,4,1,4,4,4,5,2,3,3
+R085,3,5,1,4,2,2,3,5,1,3,1,2,1,1,4
+R086,5,4,2,4,3,1,1,3,2,2,1,1,1,1,1
+R087,3,1,1,5,1,3,4,2,3,3,3,3,1,2,2
+R088,3,2,4,2,3,2,3,3,2,3,4,5,5,4,4
+R089,5,5,4,3,3,2,3,3,1,3,4,3,3,4,3
+R090,2,1,3,5,1,3,4,4,3,3,1,1,1,2,2
+R091,4,5,3,3,3,4,2,5,1,4,5,3,3,3,3
+R092,5,5,4,1,5,4,4,1,2,4,3,5,2,3,5
+R093,3,4,5,1,2,2,3,5,2,1,2,4,5,2,3
+R094,1,3,2,4,5,4,5,1,5,5,2,3,3,4,3
+R095,3,4,2,2,2,2,1,5,1,1,2,3,3,3,1
+R096,2,2,3,5,5,4,5,1,4,4,1,1,2,1,1
+R097,3,3,4,3,2,5,4,1,3,4,1,3,2,1,3
+R098,3,1,1,4,2,4,4,3,3,5,3,2,3,3,3
+R099,4,3,1,1,4,3,1,2,1,5,2,1,3,2,2
+R100,4,5,3,2,4,1,2,4,1,1,3,3,4,5,5
+R101,3,2,2,2,3,3,3,3,3,3,5,3,2,2,3
+R102,2,3,4,3,2,4,2,2,3,1,3,3,3,2,2
+R103,4,5,5,4,4,5,5,1,5,5,5,4,5,5,3
+R104,3,2,3,5,2,1,1,3,2,3,5,3,5,2,2
+R105,1,3,1,3,3,2,4,3,2,4,5,5,2,5,4
+R106,4,4,4,3,5,1,1,4,2,4,2,3,1,3,2
+R107,4,4,4,1,4,3,3,3,1,1,3,4,4,3,4
+R108,3,2,2,4,2,4,3,3,3,4,5,5,5,4,4
+R109,4,3,5,3,4,4,3,5,5,3,5,5,4,4,3
+R110,3,1,3,3,2,3,1,3,5,3,2,1,2,3,1
+R111,3,2,1,5,5,3,4,2,4,5,3,3,3,4,3
+R112,4,5,5,2,3,3,2,2,3,2,4,4,5,4,5
+R113,3,2,4,4,4,1,2,4,2,2,2,2,2,5,2
+R114,1,1,2,3,4,4,3,3,5,4,3,3,1,1,3
+R115,2,2,1,4,2,1,1,5,1,3,2,3,1,4,2
+R116,3,3,3,5,1,3,5,1,5,3,4,3,3,4,2
+R117,3,2,4,2,3,3,5,4,2,3,2,3,3,3,4
+R118,4,4,4,1,4,3,2,4,2,1,5,4,5,3,4
+R119,4,4,3,3,3,1,3,3,3,4,1,3,2,2,1
+R120,2,2,2,4,3,5,3,4,5,3,5,4,5,5,3
+R121,5,5,4,1,5,3,1,4,2,1,2,4,3,1,4
+R122,1,1,2,5,4,4,5,2,3,3,1,2,3,4,1
+R123,4,3,5,3,4,3,5,3,4,3,3,3,2,2,3
+R124,5,5,5,1,5,4,4,1,5,5,5,5,5,5,5
+R125,3,4,1,2,3,1,1,4,1,1,4,5,3,4,2
+R126,5,5,5,1,4,4,4,2,4,4,2,3,2,3,3
+R127,2,2,1,3,3,1,1,3,2,2,5,4,5,5,5
+R128,5,4,3,2,4,3,4,3,2,4,3,4,2,5,5
+R129,5,3,3,2,5,1,2,3,1,3,3,2,2,1,2
+R130,3,3,4,2,1,1,2,3,1,2,3,2,2,3,3
+R131,4,3,2,3,2,1,1,4,1,2,4,2,4,4,3
+R132,3,4,2,1,4,2,3,3,1,4,5,5,5,5,3
+R133,3,2,1,4,5,2,5,3,3,3,3,3,3,4,1
+R134,2,3,3,5,2,1,2,5,1,2,4,3,2,2,4
+R135,5,4,4,1,5,3,3,5,2,2,3,4,4,4,3
+R136,1,2,1,4,1,2,2,4,3,2,3,3,1,3,2
+R137,5,4,5,2,5,5,2,3,4,1,3,4,4,2,2
+R138,3,3,5,2,5,3,4,3,3,5,2,4,3,4,3
+R139,3,3,2,4,1,4,5,1,5,5,2,3,2,1,2
+R140,4,3,2,4,4,3,1,2,3,5,2,1,4,3,1
+R141,3,2,3,3,3,2,3,2,5,1,1,1,2,3,4
+R142,3,1,2,5,2,4,5,3,4,4,2,4,4,3,4
+R143,2,1,1,5,2,1,2,3,1,2,5,4,5,3,2
+R144,3,4,1,2,3,4,5,3,3,3,3,2,3,2,3
+R145,3,2,5,3,3,5,2,2,5,5,3,3,5,2,4
+R146,1,1,1,5,3,3,2,5,1,1,3,5,3,4,3
+R147,5,3,3,3,5,1,1,1,2,1,3,3,3,4,2
+R148,2,3,3,5,3,4,2,3,2,2,3,1,2,3,3
+R149,1,1,1,5,2,3,4,1,4,5,1,2,4,2,2
+R150,5,3,5,2,3,2,4,4,3,1,4,3,5,4,3
+R151,5,2,2,3,2,2,4,3,2,1,3,5,4,2,3
+R152,4,5,5,2,5,5,3,1,3,3,2,3,3,3,3
+R153,2,3,1,3,5,5,5,1,5,4,2,1,1,3,1
+R154,2,4,2,3,2,1,1,5,3,4,5,5,4,4,4
+R155,3,3,3,4,3,4,1,4,2,4,2,2,1,2,4
+R156,5,5,5,2,5,3,3,2,3,3,1,1,2,2,2
+R157,3,4,2,5,1,3,1,3,3,4,3,1,3,2,5
+R158,3,1,1,5,2,1,1,4,1,1,2,1,1,3,1
+R159,3,3,1,3,1,3,3,5,3,4,3,1,2,2,4
+R160,3,1,2,4,5,5,4,1,5,3,3,3,5,2,3
+R161,5,3,4,3,3,1,1,5,4,3,5,3,4,5,3
+R162,4,5,5,2,5,5,5,1,5,5,3,1,1,4,3
+R163,2,4,4,4,2,2,2,4,3,3,2,1,3,1,1
+R164,1,4,3,4,1,3,3,4,4,2,3,1,2,2,5
+R165,5,2,3,1,3,3,4,1,3,4,1,1,1,2,2
+R166,3,4,3,1,4,5,3,3,3,3,3,3,2,2,3
+R167,5,5,4,3,3,3,3,3,1,5,3,4,2,1,3
+R168,1,1,1,5,1,3,2,2,3,4,5,3,3,2,3
+R169,2,4,3,5,3,3,4,2,3,3,4,4,4,4,3
+R170,5,4,4,3,2,5,3,3,4,1,4,3,3,2,3
+R171,1,3,3,4,2,3,5,2,4,4,3,2,1,3,3
+R172,5,4,3,5,3,5,3,3,4,3,3,4,4,4,4
+R173,5,5,5,2,5,4,5,3,5,3,5,3,5,3,4
+R174,5,3,5,1,3,2,2,2,3,1,3,3,4,4,2
+R175,4,5,3,3,5,3,4,2,3,3,5,3,3,4,5
+R176,3,1,2,3,3,1,1,5,1,1,1,1,1,1,1
+R177,5,3,4,3,5,5,3,3,1,4,4,3,2,3,5
+R178,3,4,3,3,5,2,3,3,2,3,2,1,3,2,1
+R179,4,3,5,3,1,5,5,1,3,5,3,3,4,4,1
+R180,2,3,2,5,4,2,3,2,2,4,4,2,1,3,2
+R181,3,1,1,2,2,3,1,5,3,1,4,2,3,1,4
+R182,2,2,1,5,1,2,1,5,2,1,1,1,1,1,1
+R183,2,2,2,3,3,4,2,4,3,3,4,4,4,3,2
+R184,2,3,1,3,3,4,2,2,3,5,2,1,1,3,2
+R185,4,5,4,4,3,3,3,2,3,4,2,3,2,3,3
+R186,4,4,5,2,5,3,4,5,5,2,4,5,4,3,5
+R187,2,2,2,2,3,5,5,1,4,4,1,3,2,3,2
+R188,2,2,3,1,3,5,5,2,5,5,3,4,5,5,5
+R189,3,5,3,3,3,4,3,3,1,5,1,5,2,2,3
+R190,2,3,1,5,4,3,2,2,3,2,3,3,2,3,2
+R191,1,1,2,5,1,2,1,3,2,4,1,4,3,2,1
+R192,3,2,3,4,4,1,2,3,2,2,5,4,5,3,4
+R193,3,4,2,2,4,5,3,1,3,5,2,3,1,1,1
+R194,5,5,3,4,3,1,1,5,2,1,4,4,4,5,4
+R195,1,1,1,5,1,1,1,5,1,1,1,1,2,1,1
+R196,4,3,4,3,5,3,3,3,4,2,3,3,1,1,3
+R197,3,4,4,2,3,4,1,4,4,2,4,2,3,5,5
+R198,5,5,5,1,4,3,2,3,3,3,2,2,1,2,1
+R199,5,4,5,1,3,5,5,1,5,5,4,5,2,3,2
+R200,2,3,3,4,3,5,4,3,3,3,2,3,4,3,5`,en:`ID,Quality1_Durable,Quality2_WellFinished,Quality3_FullFeatured,Quality4_OftenBreaks,Quality5_AsExpected,Service1_Prompt,Service2_ClearExplanation,Service3_Slow,Service4_EasyToConsult,Service5_Trustworthy,Price1_Fair,Price2_ValueForMoney,Price3_CheaperThanOthers,Price4_WorthPaying,Price5_ClearPricing
+R001,2,3,1,3,2,1,1,3,3,2,5,2,3,4,2
+R002,3,3,3,2,3,4,5,2,4,4,1,1,2,1,1
+R003,1,1,2,4,2,4,4,3,3,2,4,3,3,3,4
+R004,3,4,3,4,3,5,5,2,5,2,5,3,3,5,4
+R005,4,3,4,3,3,2,3,4,2,2,3,1,2,3,2
+R006,2,3,2,3,1,3,2,2,2,2,3,1,3,2,4
+R007,5,5,5,3,2,3,3,3,4,1,5,5,4,3,5
+R008,4,4,5,1,4,5,5,1,5,5,2,2,4,2,3
+R009,4,3,3,4,3,3,1,4,1,3,3,5,4,2,5
+R010,5,5,5,1,5,5,3,3,4,5,3,4,3,3,4
+R011,2,2,2,2,2,4,3,1,4,4,5,5,5,5,5
+R012,3,1,4,4,3,3,3,1,3,1,1,1,1,1,1
+R013,1,4,5,4,2,2,1,3,3,1,3,1,2,1,1
+R014,5,3,5,3,4,3,1,3,3,4,4,2,5,3,2
+R015,5,4,5,2,5,4,2,2,3,2,4,4,3,1,2
+R016,4,3,3,3,2,4,4,4,2,3,3,3,1,4,2
+R017,1,1,4,2,1,1,2,4,1,1,4,3,5,3,5
+R018,3,1,1,4,1,2,1,3,2,2,1,1,4,1,1
+R019,2,3,3,5,3,3,4,1,5,5,5,5,5,4,3
+R020,3,3,1,2,3,3,4,3,1,3,2,3,3,5,2
+R021,5,5,5,2,2,2,4,1,3,4,5,4,5,3,4
+R022,3,1,3,2,2,3,3,3,3,2,4,4,4,4,3
+R023,3,5,2,5,3,3,1,3,2,3,4,4,4,3,3
+R024,3,2,3,4,1,5,3,3,2,2,1,3,5,5,4
+R025,3,3,3,2,3,1,1,2,1,1,5,5,3,4,5
+R026,4,2,3,1,2,3,4,4,5,4,4,3,5,1,2
+R027,3,1,1,4,2,5,4,1,5,4,2,4,2,4,3
+R028,2,1,3,3,4,1,2,4,1,2,3,2,3,2,2
+R029,1,3,2,5,2,2,2,2,3,2,2,4,1,2,2
+R030,4,3,4,2,5,4,5,1,5,4,2,5,4,3,3
+R031,2,3,3,3,4,3,3,4,2,3,3,3,3,2,3
+R032,4,1,4,3,5,2,4,1,4,4,4,3,2,2,2
+R033,3,2,4,4,2,1,2,2,3,4,3,3,2,3,3
+R034,4,3,3,5,2,3,2,2,3,3,4,3,4,5,4
+R035,2,1,1,2,4,1,5,3,2,1,3,2,2,4,1
+R036,2,1,3,3,1,3,3,5,5,4,4,5,1,4,2
+R037,2,1,4,3,3,2,4,3,3,4,2,3,3,2,3
+R038,4,1,2,3,3,2,3,3,2,4,5,4,5,4,4
+R039,2,3,4,4,2,2,1,3,3,2,4,3,4,1,3
+R040,5,5,5,1,5,5,5,1,5,4,3,2,3,4,5
+R041,5,2,3,4,5,3,2,2,4,2,5,4,5,5,5
+R042,3,2,3,4,3,5,3,2,3,3,2,2,4,3,1
+R043,3,4,3,4,2,1,2,4,3,1,2,3,1,2,1
+R044,4,2,3,4,3,5,2,3,4,3,3,3,5,5,2
+R045,1,3,2,5,2,4,3,4,3,4,4,2,5,4,5
+R046,4,5,1,3,3,2,3,4,1,3,2,3,4,3,2
+R047,3,1,1,3,1,1,3,5,2,1,1,2,3,2,2
+R048,4,4,2,3,4,4,3,2,5,5,3,2,5,4,3
+R049,5,5,5,3,5,2,2,5,3,4,2,5,2,2,3
+R050,2,2,3,2,3,1,2,4,4,3,3,3,4,2,4
+R051,1,1,2,5,3,1,1,4,1,3,5,1,4,5,4
+R052,1,1,1,5,1,1,1,5,1,1,2,3,5,2,4
+R053,4,5,4,2,5,5,5,3,3,3,4,5,5,4,5
+R054,4,2,3,1,3,2,3,5,1,2,2,2,1,1,1
+R055,4,3,4,2,3,4,4,2,4,4,5,4,4,5,5
+R056,2,1,5,2,4,3,3,1,3,4,1,2,1,3,1
+R057,3,4,3,1,1,1,4,3,3,1,2,2,1,1,1
+R058,4,3,1,3,4,5,4,3,3,4,4,5,3,4,4
+R059,3,3,4,2,2,4,3,4,1,3,1,3,2,3,1
+R060,3,3,2,3,1,2,2,4,4,1,5,2,3,1,4
+R061,3,3,2,1,3,3,2,3,3,3,2,5,3,5,3
+R062,3,3,3,4,1,4,5,1,5,5,4,2,4,5,3
+R063,1,1,1,4,4,4,3,3,1,5,1,1,3,1,2
+R064,1,2,3,4,4,5,4,2,5,3,2,2,2,3,1
+R065,5,3,3,1,3,3,3,5,2,2,4,5,5,5,5
+R066,1,1,3,2,2,1,2,5,1,2,1,2,1,2,3
+R067,4,5,3,1,4,4,4,2,3,3,1,2,2,2,1
+R068,2,4,2,2,1,3,1,4,2,3,4,4,1,3,3
+R069,2,2,1,5,5,2,1,3,3,1,5,3,5,3,3
+R070,2,1,3,5,5,5,3,3,5,4,2,3,3,4,4
+R071,5,4,3,4,5,5,5,2,5,5,3,4,5,4,3
+R072,4,3,4,1,4,3,3,4,1,3,4,5,3,5,4
+R073,1,1,1,4,3,2,1,5,2,1,2,1,3,1,1
+R074,2,5,3,3,4,4,3,2,4,5,3,4,2,3,3
+R075,2,2,5,4,2,2,2,3,1,1,4,4,4,4,5
+R076,1,1,1,5,1,4,3,3,5,3,1,4,4,1,2
+R077,1,1,1,5,1,2,1,5,4,3,3,3,5,3,3
+R078,4,2,3,3,3,2,2,4,1,3,3,4,1,4,3
+R079,1,2,1,3,2,2,3,4,1,2,1,1,3,3,3
+R080,3,3,3,3,4,4,2,4,1,3,3,5,5,4,4
+R081,2,3,1,4,1,3,2,4,4,3,2,2,1,1,1
+R082,2,4,3,3,2,4,4,2,2,3,3,4,2,4,5
+R083,3,4,3,1,2,3,3,4,4,1,4,5,2,3,5
+R084,4,3,4,3,3,4,4,1,4,4,4,5,2,3,3
+R085,3,5,1,4,2,2,3,5,1,3,1,2,1,1,4
+R086,5,4,2,4,3,1,1,3,2,2,1,1,1,1,1
+R087,3,1,1,5,1,3,4,2,3,3,3,3,1,2,2
+R088,3,2,4,2,3,2,3,3,2,3,4,5,5,4,4
+R089,5,5,4,3,3,2,3,3,1,3,4,3,3,4,3
+R090,2,1,3,5,1,3,4,4,3,3,1,1,1,2,2
+R091,4,5,3,3,3,4,2,5,1,4,5,3,3,3,3
+R092,5,5,4,1,5,4,4,1,2,4,3,5,2,3,5
+R093,3,4,5,1,2,2,3,5,2,1,2,4,5,2,3
+R094,1,3,2,4,5,4,5,1,5,5,2,3,3,4,3
+R095,3,4,2,2,2,2,1,5,1,1,2,3,3,3,1
+R096,2,2,3,5,5,4,5,1,4,4,1,1,2,1,1
+R097,3,3,4,3,2,5,4,1,3,4,1,3,2,1,3
+R098,3,1,1,4,2,4,4,3,3,5,3,2,3,3,3
+R099,4,3,1,1,4,3,1,2,1,5,2,1,3,2,2
+R100,4,5,3,2,4,1,2,4,1,1,3,3,4,5,5
+R101,3,2,2,2,3,3,3,3,3,3,5,3,2,2,3
+R102,2,3,4,3,2,4,2,2,3,1,3,3,3,2,2
+R103,4,5,5,4,4,5,5,1,5,5,5,4,5,5,3
+R104,3,2,3,5,2,1,1,3,2,3,5,3,5,2,2
+R105,1,3,1,3,3,2,4,3,2,4,5,5,2,5,4
+R106,4,4,4,3,5,1,1,4,2,4,2,3,1,3,2
+R107,4,4,4,1,4,3,3,3,1,1,3,4,4,3,4
+R108,3,2,2,4,2,4,3,3,3,4,5,5,5,4,4
+R109,4,3,5,3,4,4,3,5,5,3,5,5,4,4,3
+R110,3,1,3,3,2,3,1,3,5,3,2,1,2,3,1
+R111,3,2,1,5,5,3,4,2,4,5,3,3,3,4,3
+R112,4,5,5,2,3,3,2,2,3,2,4,4,5,4,5
+R113,3,2,4,4,4,1,2,4,2,2,2,2,2,5,2
+R114,1,1,2,3,4,4,3,3,5,4,3,3,1,1,3
+R115,2,2,1,4,2,1,1,5,1,3,2,3,1,4,2
+R116,3,3,3,5,1,3,5,1,5,3,4,3,3,4,2
+R117,3,2,4,2,3,3,5,4,2,3,2,3,3,3,4
+R118,4,4,4,1,4,3,2,4,2,1,5,4,5,3,4
+R119,4,4,3,3,3,1,3,3,3,4,1,3,2,2,1
+R120,2,2,2,4,3,5,3,4,5,3,5,4,5,5,3
+R121,5,5,4,1,5,3,1,4,2,1,2,4,3,1,4
+R122,1,1,2,5,4,4,5,2,3,3,1,2,3,4,1
+R123,4,3,5,3,4,3,5,3,4,3,3,3,2,2,3
+R124,5,5,5,1,5,4,4,1,5,5,5,5,5,5,5
+R125,3,4,1,2,3,1,1,4,1,1,4,5,3,4,2
+R126,5,5,5,1,4,4,4,2,4,4,2,3,2,3,3
+R127,2,2,1,3,3,1,1,3,2,2,5,4,5,5,5
+R128,5,4,3,2,4,3,4,3,2,4,3,4,2,5,5
+R129,5,3,3,2,5,1,2,3,1,3,3,2,2,1,2
+R130,3,3,4,2,1,1,2,3,1,2,3,2,2,3,3
+R131,4,3,2,3,2,1,1,4,1,2,4,2,4,4,3
+R132,3,4,2,1,4,2,3,3,1,4,5,5,5,5,3
+R133,3,2,1,4,5,2,5,3,3,3,3,3,3,4,1
+R134,2,3,3,5,2,1,2,5,1,2,4,3,2,2,4
+R135,5,4,4,1,5,3,3,5,2,2,3,4,4,4,3
+R136,1,2,1,4,1,2,2,4,3,2,3,3,1,3,2
+R137,5,4,5,2,5,5,2,3,4,1,3,4,4,2,2
+R138,3,3,5,2,5,3,4,3,3,5,2,4,3,4,3
+R139,3,3,2,4,1,4,5,1,5,5,2,3,2,1,2
+R140,4,3,2,4,4,3,1,2,3,5,2,1,4,3,1
+R141,3,2,3,3,3,2,3,2,5,1,1,1,2,3,4
+R142,3,1,2,5,2,4,5,3,4,4,2,4,4,3,4
+R143,2,1,1,5,2,1,2,3,1,2,5,4,5,3,2
+R144,3,4,1,2,3,4,5,3,3,3,3,2,3,2,3
+R145,3,2,5,3,3,5,2,2,5,5,3,3,5,2,4
+R146,1,1,1,5,3,3,2,5,1,1,3,5,3,4,3
+R147,5,3,3,3,5,1,1,1,2,1,3,3,3,4,2
+R148,2,3,3,5,3,4,2,3,2,2,3,1,2,3,3
+R149,1,1,1,5,2,3,4,1,4,5,1,2,4,2,2
+R150,5,3,5,2,3,2,4,4,3,1,4,3,5,4,3
+R151,5,2,2,3,2,2,4,3,2,1,3,5,4,2,3
+R152,4,5,5,2,5,5,3,1,3,3,2,3,3,3,3
+R153,2,3,1,3,5,5,5,1,5,4,2,1,1,3,1
+R154,2,4,2,3,2,1,1,5,3,4,5,5,4,4,4
+R155,3,3,3,4,3,4,1,4,2,4,2,2,1,2,4
+R156,5,5,5,2,5,3,3,2,3,3,1,1,2,2,2
+R157,3,4,2,5,1,3,1,3,3,4,3,1,3,2,5
+R158,3,1,1,5,2,1,1,4,1,1,2,1,1,3,1
+R159,3,3,1,3,1,3,3,5,3,4,3,1,2,2,4
+R160,3,1,2,4,5,5,4,1,5,3,3,3,5,2,3
+R161,5,3,4,3,3,1,1,5,4,3,5,3,4,5,3
+R162,4,5,5,2,5,5,5,1,5,5,3,1,1,4,3
+R163,2,4,4,4,2,2,2,4,3,3,2,1,3,1,1
+R164,1,4,3,4,1,3,3,4,4,2,3,1,2,2,5
+R165,5,2,3,1,3,3,4,1,3,4,1,1,1,2,2
+R166,3,4,3,1,4,5,3,3,3,3,3,3,2,2,3
+R167,5,5,4,3,3,3,3,3,1,5,3,4,2,1,3
+R168,1,1,1,5,1,3,2,2,3,4,5,3,3,2,3
+R169,2,4,3,5,3,3,4,2,3,3,4,4,4,4,3
+R170,5,4,4,3,2,5,3,3,4,1,4,3,3,2,3
+R171,1,3,3,4,2,3,5,2,4,4,3,2,1,3,3
+R172,5,4,3,5,3,5,3,3,4,3,3,4,4,4,4
+R173,5,5,5,2,5,4,5,3,5,3,5,3,5,3,4
+R174,5,3,5,1,3,2,2,2,3,1,3,3,4,4,2
+R175,4,5,3,3,5,3,4,2,3,3,5,3,3,4,5
+R176,3,1,2,3,3,1,1,5,1,1,1,1,1,1,1
+R177,5,3,4,3,5,5,3,3,1,4,4,3,2,3,5
+R178,3,4,3,3,5,2,3,3,2,3,2,1,3,2,1
+R179,4,3,5,3,1,5,5,1,3,5,3,3,4,4,1
+R180,2,3,2,5,4,2,3,2,2,4,4,2,1,3,2
+R181,3,1,1,2,2,3,1,5,3,1,4,2,3,1,4
+R182,2,2,1,5,1,2,1,5,2,1,1,1,1,1,1
+R183,2,2,2,3,3,4,2,4,3,3,4,4,4,3,2
+R184,2,3,1,3,3,4,2,2,3,5,2,1,1,3,2
+R185,4,5,4,4,3,3,3,2,3,4,2,3,2,3,3
+R186,4,4,5,2,5,3,4,5,5,2,4,5,4,3,5
+R187,2,2,2,2,3,5,5,1,4,4,1,3,2,3,2
+R188,2,2,3,1,3,5,5,2,5,5,3,4,5,5,5
+R189,3,5,3,3,3,4,3,3,1,5,1,5,2,2,3
+R190,2,3,1,5,4,3,2,2,3,2,3,3,2,3,2
+R191,1,1,2,5,1,2,1,3,2,4,1,4,3,2,1
+R192,3,2,3,4,4,1,2,3,2,2,5,4,5,3,4
+R193,3,4,2,2,4,5,3,1,3,5,2,3,1,1,1
+R194,5,5,3,4,3,1,1,5,2,1,4,4,4,5,4
+R195,1,1,1,5,1,1,1,5,1,1,1,1,2,1,1
+R196,4,3,4,3,5,3,3,3,4,2,3,3,1,1,3
+R197,3,4,4,2,3,4,1,4,4,2,4,2,3,5,5
+R198,5,5,5,1,4,3,2,3,3,3,2,2,1,2,1
+R199,5,4,5,1,3,5,5,1,5,5,4,5,2,3,2
+R200,2,3,3,4,3,5,4,3,3,3,2,3,4,3,5`};
+const EX2={ja:`ID,愛着1_このブランドが好きだ,愛着2_特別な存在だ,愛着3_離れがたい,愛着4_関心が薄い,愛着5_自分らしさを表す,意向1_また買いたい,意向2_友人に勧めたい,意向3_新製品も試したい,意向4_他に乗り換えたい,意向5_使い続けたい
+B001,3,6,5,3,3,2,3,2,6,3
+B002,4,3,3,4,4,4,4,4,5,3
+B003,2,1,4,6,1,3,2,3,5,2
+B004,4,5,4,4,6,5,4,4,2,4
+B005,4,3,4,5,4,1,3,3,5,4
+B006,2,3,3,6,1,2,3,3,5,1
+B007,4,3,2,7,5,6,5,4,5,4
+B008,7,7,4,4,4,5,6,4,1,5
+B009,7,7,7,3,7,5,7,6,1,3
+B010,2,2,2,6,4,5,4,4,4,4
+B011,5,6,5,4,6,4,7,5,4,7
+B012,3,5,3,4,5,7,7,4,1,5
+B013,4,6,6,3,3,2,2,2,6,2
+B014,7,7,6,3,7,7,7,7,3,7
+B015,4,6,5,4,5,6,4,6,3,6
+B016,4,7,6,3,4,6,6,7,1,6
+B017,3,4,4,6,3,5,4,2,5,4
+B018,5,4,4,3,5,5,5,7,2,6
+B019,3,3,2,5,1,2,3,4,6,3
+B020,7,6,5,4,5,4,5,5,1,4
+B021,4,4,4,5,4,3,4,5,4,4
+B022,4,2,2,4,3,4,2,4,3,5
+B023,7,3,4,4,6,5,5,4,3,4
+B024,4,2,4,6,4,4,4,1,4,3
+B025,3,2,2,5,1,3,1,4,6,6
+B026,2,2,3,6,4,3,3,4,5,3
+B027,2,2,3,6,3,4,3,4,3,3
+B028,4,6,5,2,5,6,4,5,4,5
+B029,2,4,2,4,2,5,3,3,5,4
+B030,3,3,3,4,3,6,6,4,2,5
+B031,6,4,4,3,4,3,2,3,5,4
+B032,4,3,4,5,1,2,2,3,7,3
+B033,6,7,4,3,5,5,4,4,1,5
+B034,6,4,4,2,7,4,4,3,3,4
+B035,3,2,1,6,3,5,3,4,1,5
+B036,5,4,7,2,4,3,4,3,3,3
+B037,4,3,4,4,3,4,1,6,3,5
+B038,5,7,5,2,5,4,4,6,4,4
+B039,7,4,5,3,6,7,6,2,3,5
+B040,3,7,2,6,5,3,4,3,3,5
+B041,1,2,3,5,3,2,4,3,2,3
+B042,4,4,4,5,4,7,6,7,1,5
+B043,2,3,1,5,2,3,4,4,4,3
+B044,4,3,6,3,3,2,3,3,6,3
+B045,4,2,2,4,2,2,2,2,7,2
+B046,4,7,5,3,3,3,3,1,5,1
+B047,3,2,1,6,4,4,2,3,4,4
+B048,7,6,5,3,7,5,5,4,3,5
+B049,2,6,4,5,3,2,2,1,4,1
+B050,4,3,3,4,6,3,3,5,4,1
+B051,4,6,4,3,5,5,5,6,5,4
+B052,5,5,5,5,4,4,5,3,5,6
+B053,3,3,4,4,4,4,5,4,3,4
+B054,2,5,3,5,4,4,4,4,5,4
+B055,3,3,2,3,3,3,1,1,5,2
+B056,2,1,4,5,2,4,3,2,5,4
+B057,5,4,4,5,5,6,4,3,3,4
+B058,4,5,5,3,6,5,3,4,3,6
+B059,2,4,4,5,3,5,5,4,2,3
+B060,4,1,2,5,2,2,3,4,5,2
+B061,4,6,4,5,4,6,7,1,1,5
+B062,4,5,5,4,5,5,5,3,1,6
+B063,3,2,3,6,2,1,2,3,6,3
+B064,3,4,2,4,2,4,7,5,2,7
+B065,5,3,5,4,7,6,6,7,2,6
+B066,3,3,3,5,3,2,3,3,6,4
+B067,1,3,3,7,1,1,3,2,4,2
+B068,4,4,4,4,4,6,5,4,4,5
+B069,3,4,4,4,3,3,3,4,4,3
+B070,7,5,7,4,6,6,7,5,2,6
+B071,5,5,6,3,6,3,4,3,6,2
+B072,3,3,3,3,3,6,6,5,7,4
+B073,5,5,6,2,6,6,7,4,2,7
+B074,6,7,7,3,6,4,5,4,4,4
+B075,2,3,2,6,2,2,2,3,5,4
+B076,3,3,4,5,4,4,5,4,4,3
+B077,4,3,3,5,2,5,4,3,4,3
+B078,4,5,5,2,5,4,4,6,3,6
+B079,6,3,3,3,4,6,5,4,5,7
+B080,2,1,1,7,2,5,4,5,3,4
+B081,4,1,4,5,2,4,4,1,4,4
+B082,5,4,3,5,4,4,2,7,7,2
+B083,5,4,7,1,4,3,4,4,4,5
+B084,5,6,4,2,6,5,6,3,3,4
+B085,5,4,2,7,3,4,3,4,5,3
+B086,3,3,5,6,3,4,1,2,4,3
+B087,7,6,5,1,5,6,4,4,2,6
+B088,3,4,1,7,3,5,5,5,5,3
+B089,2,4,5,3,4,2,4,5,4,4
+B090,2,5,4,5,2,2,2,5,6,1
+B091,5,3,3,3,1,3,5,4,7,1
+B092,4,3,4,7,3,4,3,6,4,3
+B093,5,3,3,5,4,4,4,4,4,6
+B094,7,6,4,1,7,3,4,6,1,4
+B095,3,5,3,3,3,4,1,4,5,4
+B096,5,4,4,3,5,5,5,3,3,5
+B097,2,3,7,4,3,3,1,5,6,1
+B098,3,4,4,4,5,3,3,4,3,5
+B099,7,7,5,4,6,4,4,6,4,3
+B100,7,4,4,3,4,3,5,5,4,4
+B101,5,4,5,5,4,3,3,3,4,2
+B102,2,1,1,6,1,1,1,2,7,1
+B103,5,4,7,3,6,7,5,4,1,6
+B104,6,2,4,5,4,3,3,5,7,4
+B105,1,3,2,5,4,3,7,3,2,5
+B106,3,2,6,6,3,1,1,6,6,2
+B107,4,5,4,5,4,4,5,2,6,4
+B108,5,4,5,5,3,2,3,4,6,1
+B109,4,4,4,5,4,5,7,5,2,4
+B110,4,6,6,3,5,4,4,4,4,3
+B111,6,4,5,3,4,4,6,3,2,4
+B112,4,4,6,2,4,3,4,4,4,5
+B113,6,6,5,4,6,5,5,3,5,4
+B114,7,5,6,3,4,5,5,3,3,4
+B115,5,5,5,4,5,4,5,2,3,6
+B116,7,6,5,1,5,3,5,6,3,5
+B117,4,5,4,5,5,3,4,6,4,3
+B118,4,3,4,6,5,7,7,6,2,5
+B119,3,4,5,4,5,3,4,1,3,5
+B120,1,4,2,4,3,3,3,1,4,1
+B121,3,1,2,6,4,3,3,2,4,5
+B122,3,2,2,7,2,5,4,6,5,5
+B123,7,7,7,1,7,7,7,6,3,6
+B124,3,3,2,6,1,2,2,2,6,1
+B125,3,5,6,5,3,2,3,6,6,4
+B126,3,1,2,4,5,7,5,6,3,7
+B127,5,6,5,4,6,5,4,4,4,3
+B128,4,2,4,4,3,3,4,6,5,3
+B129,6,6,6,4,6,6,3,6,4,4
+B130,6,4,7,2,6,4,4,5,2,6
+B131,3,1,5,5,3,4,1,1,4,6
+B132,4,1,5,4,4,4,5,6,2,7
+B133,3,3,2,5,4,4,2,4,6,3
+B134,4,3,2,4,4,5,4,4,4,5
+B135,3,2,4,6,4,4,4,5,3,5
+B136,3,5,4,3,6,7,7,7,2,6
+B137,5,5,4,5,5,4,5,5,3,3
+B138,2,3,4,6,5,7,7,3,1,6
+B139,6,5,5,3,7,7,7,4,1,4
+B140,6,7,7,1,7,7,5,3,1,6
+B141,5,2,4,5,5,5,6,5,2,5
+B142,3,4,1,4,4,5,6,5,2,6
+B143,4,4,6,2,4,4,3,1,4,3
+B144,1,3,4,4,2,3,2,5,3,1
+B145,7,5,5,4,6,7,6,6,2,5
+B146,5,6,4,4,6,7,5,6,1,5
+B147,1,3,4,5,3,1,2,3,6,2
+B148,3,2,4,7,4,4,3,5,4,3
+B149,2,1,4,7,2,3,1,4,7,4
+B150,3,2,5,4,3,4,4,4,4,4
+B151,4,4,4,3,4,4,6,4,3,4
+B152,2,3,3,6,4,4,3,2,4,4
+B153,4,3,2,4,3,6,5,3,3,6
+B154,5,6,5,3,5,5,2,4,4,5
+B155,4,3,3,5,2,3,2,3,7,3
+B156,3,4,4,2,3,6,4,4,2,2
+B157,3,4,6,5,3,4,3,4,5,4
+B158,4,4,5,1,5,4,5,4,2,5
+B159,2,3,2,7,2,4,3,7,6,3
+B160,2,4,2,6,3,5,1,6,5,3
+B161,4,6,5,1,7,7,4,4,2,5
+B162,3,4,2,6,2,5,5,4,4,4
+B163,3,5,5,4,4,4,4,4,5,4
+B164,4,4,1,7,1,3,4,6,5,3
+B165,7,6,7,4,7,7,7,5,1,7
+B166,4,5,4,3,4,5,7,7,3,4
+B167,4,4,5,4,3,2,3,5,5,3
+B168,4,3,4,3,4,5,4,6,5,4
+B169,5,5,5,4,4,4,4,1,6,2
+B170,2,2,5,6,4,4,4,3,3,5
+B171,5,5,6,4,4,6,4,2,2,4
+B172,2,3,3,2,3,4,4,6,4,4
+B173,4,3,4,4,5,4,3,2,4,4
+B174,3,4,2,4,2,4,4,4,4,4
+B175,2,5,4,4,3,1,1,2,6,1
+B176,2,2,2,6,2,3,4,4,4,2
+B177,5,7,5,3,6,5,6,5,2,5
+B178,6,6,5,4,5,6,5,2,2,7
+B179,5,7,6,3,5,5,5,7,2,5
+B180,3,4,5,3,5,5,6,6,1,6
+B181,6,4,5,4,4,3,4,6,3,4
+B182,3,4,4,4,3,4,2,1,5,2
+B183,5,6,7,4,6,4,6,7,3,4
+B184,5,4,5,5,6,3,4,5,6,4
+B185,3,5,6,6,3,4,3,4,6,6
+B186,5,4,5,2,7,6,4,4,4,6
+B187,4,4,4,4,4,6,4,1,4,4
+B188,6,5,4,3,6,7,4,5,4,4
+B189,4,3,4,5,1,1,1,5,6,1
+B190,2,2,5,5,5,3,5,4,5,4
+B191,1,3,2,5,4,3,1,5,3,3
+B192,6,5,5,4,1,3,3,2,7,3
+B193,6,7,5,3,4,3,5,4,3,4
+B194,6,5,7,1,7,4,7,4,4,4
+B195,4,6,5,4,2,2,3,4,5,3
+B196,1,2,4,5,3,3,4,1,4,3
+B197,4,1,4,4,3,4,2,2,3,3
+B198,5,6,4,2,3,5,5,3,4,6
+B199,1,5,3,4,2,2,4,4,4,3
+B200,5,5,4,4,5,6,5,5,3,4
+B201,2,3,3,5,2,3,4,1,7,4
+B202,1,1,1,4,2,3,5,4,4,3
+B203,4,4,5,3,6,6,6,6,1,6
+B204,4,3,6,1,5,3,2,4,5,5
+B205,2,4,3,6,2,4,2,4,6,4
+B206,7,5,6,3,6,3,4,3,4,7
+B207,6,6,5,2,6,5,5,4,4,7
+B208,2,4,4,6,2,2,3,4,4,4
+B209,4,5,4,4,5,4,4,5,3,4
+B210,4,5,3,4,3,3,1,4,4,3
+B211,4,2,6,6,4,6,5,3,2,5
+B212,2,4,3,6,2,4,4,3,5,3
+B213,6,5,4,3,4,3,4,2,4,5
+B214,2,1,3,7,1,1,1,3,7,1
+B215,2,6,5,5,5,5,5,5,3,7
+B216,2,2,5,5,4,4,2,4,4,4
+B217,2,3,3,5,4,4,3,2,6,2
+B218,3,3,3,5,4,4,3,3,5,2
+B219,5,5,5,6,6,5,4,7,4,2
+B220,2,5,5,5,5,4,4,4,4,3
+B221,3,4,4,6,3,3,4,7,5,3
+B222,3,5,4,4,5,5,5,3,3,5
+B223,6,5,4,2,3,2,4,5,5,3
+B224,1,2,3,6,1,3,2,4,7,1
+B225,5,4,5,4,5,5,4,7,5,4
+B226,2,4,4,4,3,4,4,2,3,6
+B227,4,4,4,5,3,1,3,3,4,3
+B228,5,3,4,4,5,5,4,4,3,6
+B229,4,4,3,5,2,1,1,3,7,2
+B230,7,6,6,1,7,6,5,4,1,4
+B231,5,4,3,6,4,4,4,5,3,3
+B232,4,4,4,1,4,4,3,1,4,5
+B233,3,3,1,5,2,3,2,3,4,2
+B234,5,5,7,3,7,6,6,5,3,7
+B235,1,4,3,5,2,1,1,1,7,2
+B236,4,3,3,5,3,4,3,4,4,3
+B237,3,3,5,7,4,3,5,3,4,6
+B238,2,4,4,5,1,1,1,2,7,2
+B239,4,4,5,3,5,7,6,4,2,7
+B240,1,2,1,6,1,1,1,3,7,4
+B241,2,3,5,5,6,3,4,3,4,5
+B242,5,5,3,6,6,6,5,3,2,6
+B243,4,4,5,3,4,4,1,1,7,4
+B244,6,6,6,2,6,4,4,4,3,5
+B245,4,5,5,6,5,4,4,4,4,4
+B246,4,3,4,4,5,3,7,2,4,3
+B247,4,4,5,5,5,4,5,4,7,5
+B248,2,3,5,5,3,2,2,1,5,2
+B249,4,3,6,4,4,4,2,2,4,6
+B250,4,3,1,6,3,5,4,7,3,2
+B251,3,3,3,4,4,4,4,3,4,5
+B252,4,4,3,4,5,6,5,6,3,6
+B253,1,2,1,5,1,3,3,2,4,1
+B254,4,7,5,3,7,7,5,4,3,5
+B255,4,4,5,4,2,2,1,5,4,2
+B256,4,3,3,5,3,3,5,4,5,3
+B257,3,3,2,4,4,3,6,4,3,5
+B258,6,7,6,1,7,6,6,5,3,6
+B259,4,4,5,6,4,4,4,5,2,4
+B260,6,5,6,1,7,7,6,7,1,7
+B261,5,6,5,4,6,5,6,3,6,3
+B262,4,5,3,5,3,5,5,6,4,4
+B263,5,4,6,4,7,6,6,5,3,6
+B264,6,4,4,3,6,5,5,6,2,6
+B265,5,6,7,4,5,5,4,5,3,5
+B266,2,4,4,5,2,1,2,3,7,1
+B267,3,1,2,2,4,6,2,1,2,3
+B268,6,3,4,4,4,5,1,4,4,4
+B269,4,4,5,4,3,3,5,4,5,3
+B270,4,5,4,2,3,3,4,4,4,4
+B271,5,2,5,4,4,3,4,3,5,1
+B272,4,6,3,4,4,6,4,5,3,4
+B273,2,3,2,6,2,1,1,3,7,1
+B274,3,4,7,3,5,3,2,4,6,4
+B275,3,5,3,4,5,5,4,3,4,4
+B276,4,4,7,6,5,4,5,6,3,3
+B277,3,4,3,4,2,3,4,4,6,6
+B278,6,5,5,1,5,3,6,3,4,3
+B279,2,4,3,7,2,4,5,4,4,4
+B280,4,1,2,7,2,3,3,4,3,4
+B281,2,5,1,6,4,6,5,4,4,4
+B282,6,5,4,3,5,3,3,4,3,2
+B283,6,6,7,3,7,6,7,4,1,5
+B284,3,5,4,4,4,4,4,2,4,5
+B285,4,5,3,3,2,1,2,2,6,1
+B286,4,4,5,4,4,4,5,6,5,5
+B287,4,4,7,5,5,5,5,4,2,5
+B288,3,4,4,4,4,6,2,4,3,5
+B289,7,5,7,1,7,7,6,5,1,7
+B290,5,4,6,2,6,2,4,3,3,4
+B291,4,4,5,4,3,2,4,3,4,5
+B292,4,4,4,3,3,5,5,5,4,3
+B293,6,7,7,2,7,6,4,3,6,6
+B294,5,6,4,4,5,6,5,4,1,5
+B295,4,3,4,3,5,5,3,3,1,4
+B296,6,6,4,3,4,5,6,4,3,7
+B297,4,6,3,5,4,3,2,4,4,3
+B298,7,6,7,1,4,5,2,4,6,4
+B299,5,5,5,4,4,4,4,5,5,7
+B300,3,4,7,2,3,3,2,4,4,5`,en:`ID,Attach1_LikeBrand,Attach2_Special,Attach3_HardToLeave,Attach4_LittleInterest,Attach5_ExpressesMe,Intent1_BuyAgain,Intent2_Recommend,Intent3_TryNewProducts,Intent4_WantToSwitch,Intent5_KeepUsing
+B001,3,6,5,3,3,2,3,2,6,3
+B002,4,3,3,4,4,4,4,4,5,3
+B003,2,1,4,6,1,3,2,3,5,2
+B004,4,5,4,4,6,5,4,4,2,4
+B005,4,3,4,5,4,1,3,3,5,4
+B006,2,3,3,6,1,2,3,3,5,1
+B007,4,3,2,7,5,6,5,4,5,4
+B008,7,7,4,4,4,5,6,4,1,5
+B009,7,7,7,3,7,5,7,6,1,3
+B010,2,2,2,6,4,5,4,4,4,4
+B011,5,6,5,4,6,4,7,5,4,7
+B012,3,5,3,4,5,7,7,4,1,5
+B013,4,6,6,3,3,2,2,2,6,2
+B014,7,7,6,3,7,7,7,7,3,7
+B015,4,6,5,4,5,6,4,6,3,6
+B016,4,7,6,3,4,6,6,7,1,6
+B017,3,4,4,6,3,5,4,2,5,4
+B018,5,4,4,3,5,5,5,7,2,6
+B019,3,3,2,5,1,2,3,4,6,3
+B020,7,6,5,4,5,4,5,5,1,4
+B021,4,4,4,5,4,3,4,5,4,4
+B022,4,2,2,4,3,4,2,4,3,5
+B023,7,3,4,4,6,5,5,4,3,4
+B024,4,2,4,6,4,4,4,1,4,3
+B025,3,2,2,5,1,3,1,4,6,6
+B026,2,2,3,6,4,3,3,4,5,3
+B027,2,2,3,6,3,4,3,4,3,3
+B028,4,6,5,2,5,6,4,5,4,5
+B029,2,4,2,4,2,5,3,3,5,4
+B030,3,3,3,4,3,6,6,4,2,5
+B031,6,4,4,3,4,3,2,3,5,4
+B032,4,3,4,5,1,2,2,3,7,3
+B033,6,7,4,3,5,5,4,4,1,5
+B034,6,4,4,2,7,4,4,3,3,4
+B035,3,2,1,6,3,5,3,4,1,5
+B036,5,4,7,2,4,3,4,3,3,3
+B037,4,3,4,4,3,4,1,6,3,5
+B038,5,7,5,2,5,4,4,6,4,4
+B039,7,4,5,3,6,7,6,2,3,5
+B040,3,7,2,6,5,3,4,3,3,5
+B041,1,2,3,5,3,2,4,3,2,3
+B042,4,4,4,5,4,7,6,7,1,5
+B043,2,3,1,5,2,3,4,4,4,3
+B044,4,3,6,3,3,2,3,3,6,3
+B045,4,2,2,4,2,2,2,2,7,2
+B046,4,7,5,3,3,3,3,1,5,1
+B047,3,2,1,6,4,4,2,3,4,4
+B048,7,6,5,3,7,5,5,4,3,5
+B049,2,6,4,5,3,2,2,1,4,1
+B050,4,3,3,4,6,3,3,5,4,1
+B051,4,6,4,3,5,5,5,6,5,4
+B052,5,5,5,5,4,4,5,3,5,6
+B053,3,3,4,4,4,4,5,4,3,4
+B054,2,5,3,5,4,4,4,4,5,4
+B055,3,3,2,3,3,3,1,1,5,2
+B056,2,1,4,5,2,4,3,2,5,4
+B057,5,4,4,5,5,6,4,3,3,4
+B058,4,5,5,3,6,5,3,4,3,6
+B059,2,4,4,5,3,5,5,4,2,3
+B060,4,1,2,5,2,2,3,4,5,2
+B061,4,6,4,5,4,6,7,1,1,5
+B062,4,5,5,4,5,5,5,3,1,6
+B063,3,2,3,6,2,1,2,3,6,3
+B064,3,4,2,4,2,4,7,5,2,7
+B065,5,3,5,4,7,6,6,7,2,6
+B066,3,3,3,5,3,2,3,3,6,4
+B067,1,3,3,7,1,1,3,2,4,2
+B068,4,4,4,4,4,6,5,4,4,5
+B069,3,4,4,4,3,3,3,4,4,3
+B070,7,5,7,4,6,6,7,5,2,6
+B071,5,5,6,3,6,3,4,3,6,2
+B072,3,3,3,3,3,6,6,5,7,4
+B073,5,5,6,2,6,6,7,4,2,7
+B074,6,7,7,3,6,4,5,4,4,4
+B075,2,3,2,6,2,2,2,3,5,4
+B076,3,3,4,5,4,4,5,4,4,3
+B077,4,3,3,5,2,5,4,3,4,3
+B078,4,5,5,2,5,4,4,6,3,6
+B079,6,3,3,3,4,6,5,4,5,7
+B080,2,1,1,7,2,5,4,5,3,4
+B081,4,1,4,5,2,4,4,1,4,4
+B082,5,4,3,5,4,4,2,7,7,2
+B083,5,4,7,1,4,3,4,4,4,5
+B084,5,6,4,2,6,5,6,3,3,4
+B085,5,4,2,7,3,4,3,4,5,3
+B086,3,3,5,6,3,4,1,2,4,3
+B087,7,6,5,1,5,6,4,4,2,6
+B088,3,4,1,7,3,5,5,5,5,3
+B089,2,4,5,3,4,2,4,5,4,4
+B090,2,5,4,5,2,2,2,5,6,1
+B091,5,3,3,3,1,3,5,4,7,1
+B092,4,3,4,7,3,4,3,6,4,3
+B093,5,3,3,5,4,4,4,4,4,6
+B094,7,6,4,1,7,3,4,6,1,4
+B095,3,5,3,3,3,4,1,4,5,4
+B096,5,4,4,3,5,5,5,3,3,5
+B097,2,3,7,4,3,3,1,5,6,1
+B098,3,4,4,4,5,3,3,4,3,5
+B099,7,7,5,4,6,4,4,6,4,3
+B100,7,4,4,3,4,3,5,5,4,4
+B101,5,4,5,5,4,3,3,3,4,2
+B102,2,1,1,6,1,1,1,2,7,1
+B103,5,4,7,3,6,7,5,4,1,6
+B104,6,2,4,5,4,3,3,5,7,4
+B105,1,3,2,5,4,3,7,3,2,5
+B106,3,2,6,6,3,1,1,6,6,2
+B107,4,5,4,5,4,4,5,2,6,4
+B108,5,4,5,5,3,2,3,4,6,1
+B109,4,4,4,5,4,5,7,5,2,4
+B110,4,6,6,3,5,4,4,4,4,3
+B111,6,4,5,3,4,4,6,3,2,4
+B112,4,4,6,2,4,3,4,4,4,5
+B113,6,6,5,4,6,5,5,3,5,4
+B114,7,5,6,3,4,5,5,3,3,4
+B115,5,5,5,4,5,4,5,2,3,6
+B116,7,6,5,1,5,3,5,6,3,5
+B117,4,5,4,5,5,3,4,6,4,3
+B118,4,3,4,6,5,7,7,6,2,5
+B119,3,4,5,4,5,3,4,1,3,5
+B120,1,4,2,4,3,3,3,1,4,1
+B121,3,1,2,6,4,3,3,2,4,5
+B122,3,2,2,7,2,5,4,6,5,5
+B123,7,7,7,1,7,7,7,6,3,6
+B124,3,3,2,6,1,2,2,2,6,1
+B125,3,5,6,5,3,2,3,6,6,4
+B126,3,1,2,4,5,7,5,6,3,7
+B127,5,6,5,4,6,5,4,4,4,3
+B128,4,2,4,4,3,3,4,6,5,3
+B129,6,6,6,4,6,6,3,6,4,4
+B130,6,4,7,2,6,4,4,5,2,6
+B131,3,1,5,5,3,4,1,1,4,6
+B132,4,1,5,4,4,4,5,6,2,7
+B133,3,3,2,5,4,4,2,4,6,3
+B134,4,3,2,4,4,5,4,4,4,5
+B135,3,2,4,6,4,4,4,5,3,5
+B136,3,5,4,3,6,7,7,7,2,6
+B137,5,5,4,5,5,4,5,5,3,3
+B138,2,3,4,6,5,7,7,3,1,6
+B139,6,5,5,3,7,7,7,4,1,4
+B140,6,7,7,1,7,7,5,3,1,6
+B141,5,2,4,5,5,5,6,5,2,5
+B142,3,4,1,4,4,5,6,5,2,6
+B143,4,4,6,2,4,4,3,1,4,3
+B144,1,3,4,4,2,3,2,5,3,1
+B145,7,5,5,4,6,7,6,6,2,5
+B146,5,6,4,4,6,7,5,6,1,5
+B147,1,3,4,5,3,1,2,3,6,2
+B148,3,2,4,7,4,4,3,5,4,3
+B149,2,1,4,7,2,3,1,4,7,4
+B150,3,2,5,4,3,4,4,4,4,4
+B151,4,4,4,3,4,4,6,4,3,4
+B152,2,3,3,6,4,4,3,2,4,4
+B153,4,3,2,4,3,6,5,3,3,6
+B154,5,6,5,3,5,5,2,4,4,5
+B155,4,3,3,5,2,3,2,3,7,3
+B156,3,4,4,2,3,6,4,4,2,2
+B157,3,4,6,5,3,4,3,4,5,4
+B158,4,4,5,1,5,4,5,4,2,5
+B159,2,3,2,7,2,4,3,7,6,3
+B160,2,4,2,6,3,5,1,6,5,3
+B161,4,6,5,1,7,7,4,4,2,5
+B162,3,4,2,6,2,5,5,4,4,4
+B163,3,5,5,4,4,4,4,4,5,4
+B164,4,4,1,7,1,3,4,6,5,3
+B165,7,6,7,4,7,7,7,5,1,7
+B166,4,5,4,3,4,5,7,7,3,4
+B167,4,4,5,4,3,2,3,5,5,3
+B168,4,3,4,3,4,5,4,6,5,4
+B169,5,5,5,4,4,4,4,1,6,2
+B170,2,2,5,6,4,4,4,3,3,5
+B171,5,5,6,4,4,6,4,2,2,4
+B172,2,3,3,2,3,4,4,6,4,4
+B173,4,3,4,4,5,4,3,2,4,4
+B174,3,4,2,4,2,4,4,4,4,4
+B175,2,5,4,4,3,1,1,2,6,1
+B176,2,2,2,6,2,3,4,4,4,2
+B177,5,7,5,3,6,5,6,5,2,5
+B178,6,6,5,4,5,6,5,2,2,7
+B179,5,7,6,3,5,5,5,7,2,5
+B180,3,4,5,3,5,5,6,6,1,6
+B181,6,4,5,4,4,3,4,6,3,4
+B182,3,4,4,4,3,4,2,1,5,2
+B183,5,6,7,4,6,4,6,7,3,4
+B184,5,4,5,5,6,3,4,5,6,4
+B185,3,5,6,6,3,4,3,4,6,6
+B186,5,4,5,2,7,6,4,4,4,6
+B187,4,4,4,4,4,6,4,1,4,4
+B188,6,5,4,3,6,7,4,5,4,4
+B189,4,3,4,5,1,1,1,5,6,1
+B190,2,2,5,5,5,3,5,4,5,4
+B191,1,3,2,5,4,3,1,5,3,3
+B192,6,5,5,4,1,3,3,2,7,3
+B193,6,7,5,3,4,3,5,4,3,4
+B194,6,5,7,1,7,4,7,4,4,4
+B195,4,6,5,4,2,2,3,4,5,3
+B196,1,2,4,5,3,3,4,1,4,3
+B197,4,1,4,4,3,4,2,2,3,3
+B198,5,6,4,2,3,5,5,3,4,6
+B199,1,5,3,4,2,2,4,4,4,3
+B200,5,5,4,4,5,6,5,5,3,4
+B201,2,3,3,5,2,3,4,1,7,4
+B202,1,1,1,4,2,3,5,4,4,3
+B203,4,4,5,3,6,6,6,6,1,6
+B204,4,3,6,1,5,3,2,4,5,5
+B205,2,4,3,6,2,4,2,4,6,4
+B206,7,5,6,3,6,3,4,3,4,7
+B207,6,6,5,2,6,5,5,4,4,7
+B208,2,4,4,6,2,2,3,4,4,4
+B209,4,5,4,4,5,4,4,5,3,4
+B210,4,5,3,4,3,3,1,4,4,3
+B211,4,2,6,6,4,6,5,3,2,5
+B212,2,4,3,6,2,4,4,3,5,3
+B213,6,5,4,3,4,3,4,2,4,5
+B214,2,1,3,7,1,1,1,3,7,1
+B215,2,6,5,5,5,5,5,5,3,7
+B216,2,2,5,5,4,4,2,4,4,4
+B217,2,3,3,5,4,4,3,2,6,2
+B218,3,3,3,5,4,4,3,3,5,2
+B219,5,5,5,6,6,5,4,7,4,2
+B220,2,5,5,5,5,4,4,4,4,3
+B221,3,4,4,6,3,3,4,7,5,3
+B222,3,5,4,4,5,5,5,3,3,5
+B223,6,5,4,2,3,2,4,5,5,3
+B224,1,2,3,6,1,3,2,4,7,1
+B225,5,4,5,4,5,5,4,7,5,4
+B226,2,4,4,4,3,4,4,2,3,6
+B227,4,4,4,5,3,1,3,3,4,3
+B228,5,3,4,4,5,5,4,4,3,6
+B229,4,4,3,5,2,1,1,3,7,2
+B230,7,6,6,1,7,6,5,4,1,4
+B231,5,4,3,6,4,4,4,5,3,3
+B232,4,4,4,1,4,4,3,1,4,5
+B233,3,3,1,5,2,3,2,3,4,2
+B234,5,5,7,3,7,6,6,5,3,7
+B235,1,4,3,5,2,1,1,1,7,2
+B236,4,3,3,5,3,4,3,4,4,3
+B237,3,3,5,7,4,3,5,3,4,6
+B238,2,4,4,5,1,1,1,2,7,2
+B239,4,4,5,3,5,7,6,4,2,7
+B240,1,2,1,6,1,1,1,3,7,4
+B241,2,3,5,5,6,3,4,3,4,5
+B242,5,5,3,6,6,6,5,3,2,6
+B243,4,4,5,3,4,4,1,1,7,4
+B244,6,6,6,2,6,4,4,4,3,5
+B245,4,5,5,6,5,4,4,4,4,4
+B246,4,3,4,4,5,3,7,2,4,3
+B247,4,4,5,5,5,4,5,4,7,5
+B248,2,3,5,5,3,2,2,1,5,2
+B249,4,3,6,4,4,4,2,2,4,6
+B250,4,3,1,6,3,5,4,7,3,2
+B251,3,3,3,4,4,4,4,3,4,5
+B252,4,4,3,4,5,6,5,6,3,6
+B253,1,2,1,5,1,3,3,2,4,1
+B254,4,7,5,3,7,7,5,4,3,5
+B255,4,4,5,4,2,2,1,5,4,2
+B256,4,3,3,5,3,3,5,4,5,3
+B257,3,3,2,4,4,3,6,4,3,5
+B258,6,7,6,1,7,6,6,5,3,6
+B259,4,4,5,6,4,4,4,5,2,4
+B260,6,5,6,1,7,7,6,7,1,7
+B261,5,6,5,4,6,5,6,3,6,3
+B262,4,5,3,5,3,5,5,6,4,4
+B263,5,4,6,4,7,6,6,5,3,6
+B264,6,4,4,3,6,5,5,6,2,6
+B265,5,6,7,4,5,5,4,5,3,5
+B266,2,4,4,5,2,1,2,3,7,1
+B267,3,1,2,2,4,6,2,1,2,3
+B268,6,3,4,4,4,5,1,4,4,4
+B269,4,4,5,4,3,3,5,4,5,3
+B270,4,5,4,2,3,3,4,4,4,4
+B271,5,2,5,4,4,3,4,3,5,1
+B272,4,6,3,4,4,6,4,5,3,4
+B273,2,3,2,6,2,1,1,3,7,1
+B274,3,4,7,3,5,3,2,4,6,4
+B275,3,5,3,4,5,5,4,3,4,4
+B276,4,4,7,6,5,4,5,6,3,3
+B277,3,4,3,4,2,3,4,4,6,6
+B278,6,5,5,1,5,3,6,3,4,3
+B279,2,4,3,7,2,4,5,4,4,4
+B280,4,1,2,7,2,3,3,4,3,4
+B281,2,5,1,6,4,6,5,4,4,4
+B282,6,5,4,3,5,3,3,4,3,2
+B283,6,6,7,3,7,6,7,4,1,5
+B284,3,5,4,4,4,4,4,2,4,5
+B285,4,5,3,3,2,1,2,2,6,1
+B286,4,4,5,4,4,4,5,6,5,5
+B287,4,4,7,5,5,5,5,4,2,5
+B288,3,4,4,4,4,6,2,4,3,5
+B289,7,5,7,1,7,7,6,5,1,7
+B290,5,4,6,2,6,2,4,3,3,4
+B291,4,4,5,4,3,2,4,3,4,5
+B292,4,4,4,3,3,5,5,5,4,3
+B293,6,7,7,2,7,6,4,3,6,6
+B294,5,6,4,4,5,6,5,4,1,5
+B295,4,3,4,3,5,5,3,3,1,4
+B296,6,6,4,3,4,5,6,4,3,7
+B297,4,6,3,5,4,3,2,4,4,3
+B298,7,6,7,1,4,5,2,4,6,4
+B299,5,5,5,4,4,4,4,5,5,7
+B300,3,4,7,2,3,3,2,4,4,5`};
+const EX3={ja:`ID,Q1_誠実である,Q2_約束を守ると思う,Q3_安心して利用できる,Q4_品質が高い,Q5_性能が優れている,Q6_品質にばらつきがある,Q7_少しの価格差でも気になる,Q8_値引きがあると買いたくなる,Q9_同じような商品なら安い方を選ぶ
+S001,5,5,3,3,3,3,4,4,6
+S002,2,4,2,3,3,5,5,4,5
+S003,4,4,3,3,4,5,5,6,3
+S004,5,4,4,4,5,1,5,4,4
+S005,4,4,4,4,2,7,3,4,4
+S006,2,1,1,2,2,6,4,5,5
+S007,3,4,3,2,1,5,2,6,5
+S008,4,3,4,5,6,5,5,1,4
+S009,3,1,4,4,5,3,2,4,4
+S010,2,3,1,4,4,3,5,4,3
+S011,4,5,5,3,4,6,4,5,4
+S012,3,1,3,2,5,5,2,1,3
+S013,4,5,4,6,4,3,5,5,5
+S014,5,5,4,5,7,3,4,5,4
+S015,1,2,1,1,1,6,4,5,4
+S016,5,5,6,2,4,6,2,1,3
+S017,2,4,3,1,1,7,3,4,5
+S018,4,3,5,4,3,4,3,3,2
+S019,3,3,4,4,4,5,6,3,4
+S020,6,4,6,5,4,4,4,3,2
+S021,3,6,3,6,6,3,5,7,4
+S022,4,4,4,4,3,4,4,3,4
+S023,2,2,4,3,3,5,3,1,2
+S024,6,7,5,6,5,1,5,5,2
+S025,5,5,5,4,5,4,5,4,3
+S026,6,6,6,6,5,2,3,4,6
+S027,6,7,5,6,6,2,4,4,5
+S028,4,4,4,3,4,3,4,1,4
+S029,5,4,4,5,4,4,5,5,5
+S030,7,5,5,5,6,2,3,2,2
+S031,2,3,3,2,2,6,1,3,1
+S032,5,3,5,4,4,4,3,5,4
+S033,5,4,6,4,4,5,4,5,6
+S034,3,5,4,3,4,4,4,4,4
+S035,4,4,3,4,5,4,2,1,1
+S036,4,7,4,6,5,6,3,2,4
+S037,4,5,5,5,6,4,3,3,1
+S038,3,4,3,3,3,6,6,4,5
+S039,4,4,4,5,3,3,4,4,5
+S040,5,4,3,4,2,4,2,2,4
+S041,3,3,3,4,3,4,4,7,5
+S042,4,4,5,4,4,2,4,2,1
+S043,2,4,3,5,5,5,5,6,5
+S044,4,4,3,4,5,6,4,3,5
+S045,3,2,5,2,3,5,2,2,1
+S046,6,7,7,6,5,3,2,1,3
+S047,4,6,5,5,4,2,2,4,3
+S048,4,4,5,4,6,2,5,4,3
+S049,5,6,6,4,4,4,3,2,5
+S050,4,5,3,5,6,5,4,7,1
+S051,3,2,4,3,3,2,3,4,6
+S052,3,3,3,4,3,4,5,4,3
+S053,3,3,3,5,4,3,3,4,3
+S054,6,5,5,3,3,4,6,4,3
+S055,3,3,5,1,3,6,5,7,4
+S056,4,4,3,4,3,2,4,5,4
+S057,1,3,3,3,4,5,3,3,2
+S058,3,3,4,3,1,5,6,6,5
+S059,4,3,4,4,3,6,5,4,6
+S060,4,3,1,4,3,7,3,5,3
+S061,2,4,5,5,4,2,3,2,5
+S062,4,3,5,2,3,4,3,2,4
+S063,3,4,5,2,1,5,4,3,4
+S064,4,5,4,3,3,7,3,3,4
+S065,1,1,4,4,4,4,3,2,3
+S066,4,3,4,5,5,4,4,5,5
+S067,4,4,2,2,3,5,5,4,6
+S068,5,5,5,4,6,6,3,4,2
+S069,3,1,5,4,5,3,3,5,6
+S070,4,3,5,5,5,1,4,3,4
+S071,6,7,2,5,4,3,1,1,2
+S072,3,5,4,4,5,2,4,4,4
+S073,5,5,6,5,7,4,4,3,3
+S074,3,1,2,2,3,6,5,4,6
+S075,5,3,4,7,6,1,4,3,2
+S076,3,1,2,2,4,5,4,4,5
+S077,7,5,7,7,5,4,1,2,1
+S078,4,4,4,3,3,5,5,5,3
+S079,3,5,4,3,4,5,4,3,1
+S080,5,4,5,4,3,4,5,3,6
+S081,4,2,3,3,5,4,7,7,7
+S082,6,4,5,5,6,1,3,4,3
+S083,2,1,2,2,3,6,3,5,4
+S084,2,2,4,4,3,4,2,2,2
+S085,3,3,5,3,3,4,6,3,4
+S086,4,7,5,3,4,5,6,6,4
+S087,4,4,4,5,3,1,1,4,1
+S088,2,4,4,3,5,4,2,2,3
+S089,6,5,7,4,2,4,4,2,2
+S090,6,7,6,5,6,1,3,3,4
+S091,1,1,1,1,1,7,4,2,4
+S092,6,5,6,6,6,1,2,4,3
+S093,2,3,4,1,1,7,2,2,4
+S094,5,5,5,6,5,4,1,3,3
+S095,2,2,2,4,4,5,7,7,4
+S096,5,4,5,2,3,2,3,3,4
+S097,2,4,5,4,5,4,3,7,4
+S098,4,3,4,4,4,5,7,6,4
+S099,3,4,5,7,2,4,4,7,3
+S100,7,5,3,2,3,3,2,4,1
+S101,7,4,4,6,5,3,6,5,5
+S102,4,2,5,4,5,3,3,4,5
+S103,5,5,3,2,1,4,2,4,4
+S104,2,3,4,3,2,4,6,4,4
+S105,6,5,4,3,4,5,3,4,5
+S106,4,5,6,2,4,7,4,3,4
+S107,3,1,2,6,5,4,5,6,7
+S108,6,5,6,7,7,1,3,3,5
+S109,2,3,3,4,4,4,1,3,3
+S110,3,2,1,2,3,6,4,6,5
+S111,3,2,2,3,1,6,4,3,6
+S112,3,2,3,1,2,7,5,3,3
+S113,3,5,5,5,4,2,4,3,6
+S114,3,5,4,4,6,3,4,6,5
+S115,3,2,5,1,4,4,3,4,5
+S116,3,3,4,4,4,3,4,5,5
+S117,4,2,3,4,6,3,4,5,4
+S118,5,5,6,6,6,4,7,7,7
+S119,6,7,7,5,5,4,4,2,3
+S120,1,3,4,3,1,7,5,5,7
+S121,6,5,7,7,5,3,3,5,4
+S122,6,5,6,4,4,3,4,1,4
+S123,3,4,2,6,4,2,7,4,3
+S124,6,3,4,3,4,6,4,3,4
+S125,2,3,2,2,3,3,6,5,5
+S126,5,4,4,5,4,2,1,2,1
+S127,4,1,2,2,3,2,3,4,5
+S128,5,5,3,1,1,5,4,3,3
+S129,4,5,4,4,6,3,5,3,2
+S130,7,2,5,4,3,3,4,2,3
+S131,3,4,3,4,4,4,4,3,5
+S132,7,6,6,6,5,1,3,5,2
+S133,5,6,7,6,6,1,6,3,4
+S134,3,6,4,4,2,2,4,6,6
+S135,6,5,3,4,4,3,4,4,3
+S136,4,5,3,1,4,6,4,2,3
+S137,3,4,3,4,3,4,2,4,3
+S138,7,4,7,2,2,6,5,5,6
+S139,5,6,6,3,3,3,6,4,5
+S140,5,4,3,4,7,1,5,6,4
+S141,3,4,4,4,5,4,3,6,4
+S142,4,4,3,6,4,4,4,4,4
+S143,5,5,4,4,6,4,2,4,5
+S144,1,4,3,3,2,4,4,4,3
+S145,5,5,7,4,6,2,3,3,5
+S146,2,2,4,1,1,4,3,3,4
+S147,4,5,3,7,7,1,5,5,4
+S148,5,6,5,5,4,3,4,4,6
+S149,4,3,5,4,4,4,3,3,4
+S150,2,1,3,1,3,6,4,5,4
+S151,5,4,4,5,5,4,4,4,2
+S152,4,4,6,6,6,1,4,4,4
+S153,5,4,4,5,5,1,3,4,7
+S154,5,6,5,4,4,2,1,4,2
+S155,5,3,4,7,4,1,3,5,5
+S156,4,4,5,7,6,1,2,1,3
+S157,3,3,4,4,4,4,6,4,4
+S158,3,4,6,5,5,5,5,6,6
+S159,3,3,4,4,5,6,4,4,7
+S160,3,5,5,7,6,1,5,3,5
+S161,7,5,5,6,5,4,3,2,6
+S162,4,2,3,5,4,4,5,4,2
+S163,2,2,2,5,6,4,3,6,4
+S164,5,4,5,6,6,3,4,4,3
+S165,3,4,5,6,4,4,3,6,6
+S166,3,3,5,5,6,3,6,5,4
+S167,5,5,4,1,3,6,4,3,5
+S168,3,2,4,2,3,5,2,2,3
+S169,3,3,2,7,5,3,3,5,4
+S170,4,4,1,7,5,5,5,4,6
+S171,4,5,4,2,4,4,7,4,7
+S172,3,3,2,1,1,6,2,2,3
+S173,6,6,5,4,4,5,3,3,1
+S174,5,2,4,4,4,4,7,7,5
+S175,4,4,6,2,4,5,4,2,4
+S176,3,4,6,5,5,5,5,6,5
+S177,1,3,3,4,3,4,4,3,6
+S178,4,3,4,5,7,1,5,7,7
+S179,6,7,7,3,3,5,3,1,1
+S180,5,4,3,2,1,6,4,2,1
+S181,3,3,2,3,4,4,3,4,4
+S182,5,5,4,5,4,2,3,1,3
+S183,4,4,4,4,4,4,2,2,1
+S184,6,4,6,3,4,4,3,1,1
+S185,3,4,5,7,7,3,4,4,4
+S186,5,5,6,6,6,1,1,4,2
+S187,5,5,6,6,6,2,5,5,5
+S188,6,4,4,4,6,3,3,6,4
+S189,5,7,4,4,2,4,4,3,3
+S190,3,2,4,3,3,6,1,1,3
+S191,3,4,6,7,6,1,3,2,3
+S192,4,4,3,5,5,2,4,4,4
+S193,6,7,5,4,4,2,2,3,4
+S194,4,6,2,6,5,4,4,4,3
+S195,4,4,2,2,4,4,2,4,4
+S196,7,7,5,4,4,5,2,1,1
+S197,4,4,3,3,4,4,2,4,3
+S198,2,1,3,1,2,5,5,4,4
+S199,2,3,2,4,2,5,4,7,7
+S200,4,5,4,4,1,4,4,4,3
+S201,4,5,2,5,4,4,3,3,3
+S202,5,3,3,5,5,4,3,5,4
+S203,3,3,4,4,3,7,3,4,5
+S204,1,3,1,4,3,4,3,4,4
+S205,3,5,3,3,2,4,5,4,2
+S206,7,5,7,5,5,2,5,4,4
+S207,2,2,4,4,4,1,4,4,7
+S208,4,2,3,3,4,5,4,5,3
+S209,3,5,4,4,4,5,3,4,5
+S210,6,4,7,4,7,2,4,6,3
+S211,3,3,4,5,4,6,3,3,3
+S212,5,5,4,6,5,2,3,4,4
+S213,5,3,2,3,4,5,7,7,7
+S214,4,4,3,4,4,4,4,4,4
+S215,4,5,5,7,5,3,7,5,7
+S216,5,4,5,3,2,4,1,1,2
+S217,5,5,5,4,3,3,4,7,3
+S218,7,5,5,6,4,3,4,2,4
+S219,4,6,6,4,4,4,2,3,2
+S220,7,6,7,5,5,3,4,2,2
+S221,3,4,5,3,1,7,6,5,7
+S222,2,1,1,4,3,5,4,6,4
+S223,4,6,4,4,3,7,4,3,4
+S224,4,5,3,3,2,5,6,5,5
+S225,3,3,4,2,2,3,4,5,4
+S226,6,5,4,6,7,1,4,5,5
+S227,4,2,5,3,4,3,6,5,4
+S228,4,2,3,4,3,3,4,3,4
+S229,5,3,5,4,4,3,4,3,4
+S230,6,5,4,6,6,4,5,5,6
+S231,4,3,6,6,3,3,3,4,4
+S232,5,4,4,2,3,5,6,7,6
+S233,5,6,5,5,6,4,3,4,4
+S234,4,5,4,5,3,3,4,3,2
+S235,1,2,3,2,6,4,4,4,2
+S236,4,4,5,6,4,2,1,1,1
+S237,3,1,3,4,4,4,2,1,4
+S238,7,4,6,7,7,1,3,3,6
+S239,4,6,4,4,3,6,1,3,4
+S240,6,7,6,6,5,3,4,6,7
+S241,2,3,6,4,6,5,6,4,5
+S242,4,5,6,4,6,2,3,4,3
+S243,5,6,5,5,5,1,4,4,5
+S244,4,4,4,5,6,4,2,4,2
+S245,4,4,5,4,3,5,3,4,5
+S246,3,4,4,3,4,5,4,4,6
+S247,5,4,3,4,4,3,6,3,4
+S248,3,4,4,2,5,5,3,4,4
+S249,6,6,2,4,3,3,3,4,4
+S250,4,4,4,4,4,5,4,3,2
+S251,4,6,4,5,5,5,7,5,6
+S252,3,5,5,4,6,4,4,4,6
+S253,4,2,4,5,6,5,3,1,2
+S254,4,3,4,4,5,6,4,4,2
+S255,6,5,6,4,6,4,2,1,2
+S256,3,4,2,4,6,4,2,6,6
+S257,4,2,2,3,1,4,5,4,4
+S258,6,4,6,3,4,4,4,4,3
+S259,3,3,3,1,4,5,5,4,3
+S260,5,4,5,4,5,2,1,2,1
+S261,3,5,6,3,4,4,4,3,4
+S262,4,4,4,5,5,2,7,6,7
+S263,4,2,4,1,3,4,6,5,3
+S264,2,6,5,4,4,5,3,3,5
+S265,4,4,4,3,4,5,5,4,4
+S266,3,3,4,3,5,2,4,5,4
+S267,4,4,5,4,5,4,2,3,4
+S268,4,5,7,6,5,2,3,4,5
+S269,4,5,4,4,3,2,5,7,2
+S270,4,4,3,5,5,4,5,5,6
+S271,4,4,4,6,5,4,6,2,4
+S272,5,4,2,4,4,6,2,5,4
+S273,4,4,1,5,6,4,5,1,2
+S274,5,4,4,7,6,4,3,4,3
+S275,5,6,5,5,7,1,5,5,4
+S276,5,5,4,4,5,4,3,3,2
+S277,6,4,4,4,6,4,4,3,4
+S278,4,2,3,2,5,4,5,4,6
+S279,4,5,4,5,4,5,6,5,6
+S280,4,2,1,4,4,5,2,2,1
+S281,4,5,7,4,3,4,5,4,4
+S282,6,5,6,4,7,4,3,5,3
+S283,4,1,3,3,4,5,4,3,5
+S284,4,5,2,5,3,6,2,4,2
+S285,5,4,6,7,7,3,4,5,5
+S286,4,4,4,4,5,3,5,5,4
+S287,5,2,3,3,4,5,3,3,1
+S288,4,4,2,5,4,4,4,4,4
+S289,6,6,5,4,3,7,4,3,4
+S290,4,4,3,3,3,5,4,5,6
+S291,3,6,4,5,6,3,5,4,6
+S292,3,4,1,3,3,5,3,5,4
+S293,6,6,5,3,4,1,6,5,3
+S294,7,4,4,5,4,4,5,4,7
+S295,4,4,3,2,1,4,6,6,5
+S296,6,5,4,4,3,4,6,5,4
+S297,4,5,4,4,1,5,2,3,5
+S298,2,2,3,4,5,4,1,3,1
+S299,4,4,6,4,4,6,3,5,4
+S300,4,3,6,4,1,5,4,2,4`,en:`ID,Q1_Sincere,Q2_KeepsPromises,Q3_SafeToUse,Q4_HighQuality,Q5_SuperiorPerformance,Q6_QualityVaries,Q7_NoticeSmallPriceGaps,Q8_DiscountsTempt,Q9_ChooseCheaperIfSimilar
+S001,5,5,3,3,3,3,4,4,6
+S002,2,4,2,3,3,5,5,4,5
+S003,4,4,3,3,4,5,5,6,3
+S004,5,4,4,4,5,1,5,4,4
+S005,4,4,4,4,2,7,3,4,4
+S006,2,1,1,2,2,6,4,5,5
+S007,3,4,3,2,1,5,2,6,5
+S008,4,3,4,5,6,5,5,1,4
+S009,3,1,4,4,5,3,2,4,4
+S010,2,3,1,4,4,3,5,4,3
+S011,4,5,5,3,4,6,4,5,4
+S012,3,1,3,2,5,5,2,1,3
+S013,4,5,4,6,4,3,5,5,5
+S014,5,5,4,5,7,3,4,5,4
+S015,1,2,1,1,1,6,4,5,4
+S016,5,5,6,2,4,6,2,1,3
+S017,2,4,3,1,1,7,3,4,5
+S018,4,3,5,4,3,4,3,3,2
+S019,3,3,4,4,4,5,6,3,4
+S020,6,4,6,5,4,4,4,3,2
+S021,3,6,3,6,6,3,5,7,4
+S022,4,4,4,4,3,4,4,3,4
+S023,2,2,4,3,3,5,3,1,2
+S024,6,7,5,6,5,1,5,5,2
+S025,5,5,5,4,5,4,5,4,3
+S026,6,6,6,6,5,2,3,4,6
+S027,6,7,5,6,6,2,4,4,5
+S028,4,4,4,3,4,3,4,1,4
+S029,5,4,4,5,4,4,5,5,5
+S030,7,5,5,5,6,2,3,2,2
+S031,2,3,3,2,2,6,1,3,1
+S032,5,3,5,4,4,4,3,5,4
+S033,5,4,6,4,4,5,4,5,6
+S034,3,5,4,3,4,4,4,4,4
+S035,4,4,3,4,5,4,2,1,1
+S036,4,7,4,6,5,6,3,2,4
+S037,4,5,5,5,6,4,3,3,1
+S038,3,4,3,3,3,6,6,4,5
+S039,4,4,4,5,3,3,4,4,5
+S040,5,4,3,4,2,4,2,2,4
+S041,3,3,3,4,3,4,4,7,5
+S042,4,4,5,4,4,2,4,2,1
+S043,2,4,3,5,5,5,5,6,5
+S044,4,4,3,4,5,6,4,3,5
+S045,3,2,5,2,3,5,2,2,1
+S046,6,7,7,6,5,3,2,1,3
+S047,4,6,5,5,4,2,2,4,3
+S048,4,4,5,4,6,2,5,4,3
+S049,5,6,6,4,4,4,3,2,5
+S050,4,5,3,5,6,5,4,7,1
+S051,3,2,4,3,3,2,3,4,6
+S052,3,3,3,4,3,4,5,4,3
+S053,3,3,3,5,4,3,3,4,3
+S054,6,5,5,3,3,4,6,4,3
+S055,3,3,5,1,3,6,5,7,4
+S056,4,4,3,4,3,2,4,5,4
+S057,1,3,3,3,4,5,3,3,2
+S058,3,3,4,3,1,5,6,6,5
+S059,4,3,4,4,3,6,5,4,6
+S060,4,3,1,4,3,7,3,5,3
+S061,2,4,5,5,4,2,3,2,5
+S062,4,3,5,2,3,4,3,2,4
+S063,3,4,5,2,1,5,4,3,4
+S064,4,5,4,3,3,7,3,3,4
+S065,1,1,4,4,4,4,3,2,3
+S066,4,3,4,5,5,4,4,5,5
+S067,4,4,2,2,3,5,5,4,6
+S068,5,5,5,4,6,6,3,4,2
+S069,3,1,5,4,5,3,3,5,6
+S070,4,3,5,5,5,1,4,3,4
+S071,6,7,2,5,4,3,1,1,2
+S072,3,5,4,4,5,2,4,4,4
+S073,5,5,6,5,7,4,4,3,3
+S074,3,1,2,2,3,6,5,4,6
+S075,5,3,4,7,6,1,4,3,2
+S076,3,1,2,2,4,5,4,4,5
+S077,7,5,7,7,5,4,1,2,1
+S078,4,4,4,3,3,5,5,5,3
+S079,3,5,4,3,4,5,4,3,1
+S080,5,4,5,4,3,4,5,3,6
+S081,4,2,3,3,5,4,7,7,7
+S082,6,4,5,5,6,1,3,4,3
+S083,2,1,2,2,3,6,3,5,4
+S084,2,2,4,4,3,4,2,2,2
+S085,3,3,5,3,3,4,6,3,4
+S086,4,7,5,3,4,5,6,6,4
+S087,4,4,4,5,3,1,1,4,1
+S088,2,4,4,3,5,4,2,2,3
+S089,6,5,7,4,2,4,4,2,2
+S090,6,7,6,5,6,1,3,3,4
+S091,1,1,1,1,1,7,4,2,4
+S092,6,5,6,6,6,1,2,4,3
+S093,2,3,4,1,1,7,2,2,4
+S094,5,5,5,6,5,4,1,3,3
+S095,2,2,2,4,4,5,7,7,4
+S096,5,4,5,2,3,2,3,3,4
+S097,2,4,5,4,5,4,3,7,4
+S098,4,3,4,4,4,5,7,6,4
+S099,3,4,5,7,2,4,4,7,3
+S100,7,5,3,2,3,3,2,4,1
+S101,7,4,4,6,5,3,6,5,5
+S102,4,2,5,4,5,3,3,4,5
+S103,5,5,3,2,1,4,2,4,4
+S104,2,3,4,3,2,4,6,4,4
+S105,6,5,4,3,4,5,3,4,5
+S106,4,5,6,2,4,7,4,3,4
+S107,3,1,2,6,5,4,5,6,7
+S108,6,5,6,7,7,1,3,3,5
+S109,2,3,3,4,4,4,1,3,3
+S110,3,2,1,2,3,6,4,6,5
+S111,3,2,2,3,1,6,4,3,6
+S112,3,2,3,1,2,7,5,3,3
+S113,3,5,5,5,4,2,4,3,6
+S114,3,5,4,4,6,3,4,6,5
+S115,3,2,5,1,4,4,3,4,5
+S116,3,3,4,4,4,3,4,5,5
+S117,4,2,3,4,6,3,4,5,4
+S118,5,5,6,6,6,4,7,7,7
+S119,6,7,7,5,5,4,4,2,3
+S120,1,3,4,3,1,7,5,5,7
+S121,6,5,7,7,5,3,3,5,4
+S122,6,5,6,4,4,3,4,1,4
+S123,3,4,2,6,4,2,7,4,3
+S124,6,3,4,3,4,6,4,3,4
+S125,2,3,2,2,3,3,6,5,5
+S126,5,4,4,5,4,2,1,2,1
+S127,4,1,2,2,3,2,3,4,5
+S128,5,5,3,1,1,5,4,3,3
+S129,4,5,4,4,6,3,5,3,2
+S130,7,2,5,4,3,3,4,2,3
+S131,3,4,3,4,4,4,4,3,5
+S132,7,6,6,6,5,1,3,5,2
+S133,5,6,7,6,6,1,6,3,4
+S134,3,6,4,4,2,2,4,6,6
+S135,6,5,3,4,4,3,4,4,3
+S136,4,5,3,1,4,6,4,2,3
+S137,3,4,3,4,3,4,2,4,3
+S138,7,4,7,2,2,6,5,5,6
+S139,5,6,6,3,3,3,6,4,5
+S140,5,4,3,4,7,1,5,6,4
+S141,3,4,4,4,5,4,3,6,4
+S142,4,4,3,6,4,4,4,4,4
+S143,5,5,4,4,6,4,2,4,5
+S144,1,4,3,3,2,4,4,4,3
+S145,5,5,7,4,6,2,3,3,5
+S146,2,2,4,1,1,4,3,3,4
+S147,4,5,3,7,7,1,5,5,4
+S148,5,6,5,5,4,3,4,4,6
+S149,4,3,5,4,4,4,3,3,4
+S150,2,1,3,1,3,6,4,5,4
+S151,5,4,4,5,5,4,4,4,2
+S152,4,4,6,6,6,1,4,4,4
+S153,5,4,4,5,5,1,3,4,7
+S154,5,6,5,4,4,2,1,4,2
+S155,5,3,4,7,4,1,3,5,5
+S156,4,4,5,7,6,1,2,1,3
+S157,3,3,4,4,4,4,6,4,4
+S158,3,4,6,5,5,5,5,6,6
+S159,3,3,4,4,5,6,4,4,7
+S160,3,5,5,7,6,1,5,3,5
+S161,7,5,5,6,5,4,3,2,6
+S162,4,2,3,5,4,4,5,4,2
+S163,2,2,2,5,6,4,3,6,4
+S164,5,4,5,6,6,3,4,4,3
+S165,3,4,5,6,4,4,3,6,6
+S166,3,3,5,5,6,3,6,5,4
+S167,5,5,4,1,3,6,4,3,5
+S168,3,2,4,2,3,5,2,2,3
+S169,3,3,2,7,5,3,3,5,4
+S170,4,4,1,7,5,5,5,4,6
+S171,4,5,4,2,4,4,7,4,7
+S172,3,3,2,1,1,6,2,2,3
+S173,6,6,5,4,4,5,3,3,1
+S174,5,2,4,4,4,4,7,7,5
+S175,4,4,6,2,4,5,4,2,4
+S176,3,4,6,5,5,5,5,6,5
+S177,1,3,3,4,3,4,4,3,6
+S178,4,3,4,5,7,1,5,7,7
+S179,6,7,7,3,3,5,3,1,1
+S180,5,4,3,2,1,6,4,2,1
+S181,3,3,2,3,4,4,3,4,4
+S182,5,5,4,5,4,2,3,1,3
+S183,4,4,4,4,4,4,2,2,1
+S184,6,4,6,3,4,4,3,1,1
+S185,3,4,5,7,7,3,4,4,4
+S186,5,5,6,6,6,1,1,4,2
+S187,5,5,6,6,6,2,5,5,5
+S188,6,4,4,4,6,3,3,6,4
+S189,5,7,4,4,2,4,4,3,3
+S190,3,2,4,3,3,6,1,1,3
+S191,3,4,6,7,6,1,3,2,3
+S192,4,4,3,5,5,2,4,4,4
+S193,6,7,5,4,4,2,2,3,4
+S194,4,6,2,6,5,4,4,4,3
+S195,4,4,2,2,4,4,2,4,4
+S196,7,7,5,4,4,5,2,1,1
+S197,4,4,3,3,4,4,2,4,3
+S198,2,1,3,1,2,5,5,4,4
+S199,2,3,2,4,2,5,4,7,7
+S200,4,5,4,4,1,4,4,4,3
+S201,4,5,2,5,4,4,3,3,3
+S202,5,3,3,5,5,4,3,5,4
+S203,3,3,4,4,3,7,3,4,5
+S204,1,3,1,4,3,4,3,4,4
+S205,3,5,3,3,2,4,5,4,2
+S206,7,5,7,5,5,2,5,4,4
+S207,2,2,4,4,4,1,4,4,7
+S208,4,2,3,3,4,5,4,5,3
+S209,3,5,4,4,4,5,3,4,5
+S210,6,4,7,4,7,2,4,6,3
+S211,3,3,4,5,4,6,3,3,3
+S212,5,5,4,6,5,2,3,4,4
+S213,5,3,2,3,4,5,7,7,7
+S214,4,4,3,4,4,4,4,4,4
+S215,4,5,5,7,5,3,7,5,7
+S216,5,4,5,3,2,4,1,1,2
+S217,5,5,5,4,3,3,4,7,3
+S218,7,5,5,6,4,3,4,2,4
+S219,4,6,6,4,4,4,2,3,2
+S220,7,6,7,5,5,3,4,2,2
+S221,3,4,5,3,1,7,6,5,7
+S222,2,1,1,4,3,5,4,6,4
+S223,4,6,4,4,3,7,4,3,4
+S224,4,5,3,3,2,5,6,5,5
+S225,3,3,4,2,2,3,4,5,4
+S226,6,5,4,6,7,1,4,5,5
+S227,4,2,5,3,4,3,6,5,4
+S228,4,2,3,4,3,3,4,3,4
+S229,5,3,5,4,4,3,4,3,4
+S230,6,5,4,6,6,4,5,5,6
+S231,4,3,6,6,3,3,3,4,4
+S232,5,4,4,2,3,5,6,7,6
+S233,5,6,5,5,6,4,3,4,4
+S234,4,5,4,5,3,3,4,3,2
+S235,1,2,3,2,6,4,4,4,2
+S236,4,4,5,6,4,2,1,1,1
+S237,3,1,3,4,4,4,2,1,4
+S238,7,4,6,7,7,1,3,3,6
+S239,4,6,4,4,3,6,1,3,4
+S240,6,7,6,6,5,3,4,6,7
+S241,2,3,6,4,6,5,6,4,5
+S242,4,5,6,4,6,2,3,4,3
+S243,5,6,5,5,5,1,4,4,5
+S244,4,4,4,5,6,4,2,4,2
+S245,4,4,5,4,3,5,3,4,5
+S246,3,4,4,3,4,5,4,4,6
+S247,5,4,3,4,4,3,6,3,4
+S248,3,4,4,2,5,5,3,4,4
+S249,6,6,2,4,3,3,3,4,4
+S250,4,4,4,4,4,5,4,3,2
+S251,4,6,4,5,5,5,7,5,6
+S252,3,5,5,4,6,4,4,4,6
+S253,4,2,4,5,6,5,3,1,2
+S254,4,3,4,4,5,6,4,4,2
+S255,6,5,6,4,6,4,2,1,2
+S256,3,4,2,4,6,4,2,6,6
+S257,4,2,2,3,1,4,5,4,4
+S258,6,4,6,3,4,4,4,4,3
+S259,3,3,3,1,4,5,5,4,3
+S260,5,4,5,4,5,2,1,2,1
+S261,3,5,6,3,4,4,4,3,4
+S262,4,4,4,5,5,2,7,6,7
+S263,4,2,4,1,3,4,6,5,3
+S264,2,6,5,4,4,5,3,3,5
+S265,4,4,4,3,4,5,5,4,4
+S266,3,3,4,3,5,2,4,5,4
+S267,4,4,5,4,5,4,2,3,4
+S268,4,5,7,6,5,2,3,4,5
+S269,4,5,4,4,3,2,5,7,2
+S270,4,4,3,5,5,4,5,5,6
+S271,4,4,4,6,5,4,6,2,4
+S272,5,4,2,4,4,6,2,5,4
+S273,4,4,1,5,6,4,5,1,2
+S274,5,4,4,7,6,4,3,4,3
+S275,5,6,5,5,7,1,5,5,4
+S276,5,5,4,4,5,4,3,3,2
+S277,6,4,4,4,6,4,4,3,4
+S278,4,2,3,2,5,4,5,4,6
+S279,4,5,4,5,4,5,6,5,6
+S280,4,2,1,4,4,5,2,2,1
+S281,4,5,7,4,3,4,5,4,4
+S282,6,5,6,4,7,4,3,5,3
+S283,4,1,3,3,4,5,4,3,5
+S284,4,5,2,5,3,6,2,4,2
+S285,5,4,6,7,7,3,4,5,5
+S286,4,4,4,4,5,3,5,5,4
+S287,5,2,3,3,4,5,3,3,1
+S288,4,4,2,5,4,4,4,4,4
+S289,6,6,5,4,3,7,4,3,4
+S290,4,4,3,3,3,5,4,5,6
+S291,3,6,4,5,6,3,5,4,6
+S292,3,4,1,3,3,5,3,5,4
+S293,6,6,5,3,4,1,6,5,3
+S294,7,4,4,5,4,4,5,4,7
+S295,4,4,3,2,1,4,6,6,5
+S296,6,5,4,4,3,4,6,5,4
+S297,4,5,4,4,1,5,2,3,5
+S298,2,2,3,4,5,4,1,3,1
+S299,4,4,6,4,4,6,3,5,4
+S300,4,3,6,4,1,5,4,2,4`};
+
+// ===================== state =====================
+const S={ids:[],names:[],rows:[],skipped:0,sel:[],selIdx:[],X:null,R:null,eig:null,err:null,warns:[],
+  k:3,userK:false,qInit:3,rot:'promax',thr:0.40,fa:null,faErr:null,assign:[],rev:[],facNames:[],dirty:false,resetNote:false,min:1,max:5,loaded:false};
+const $=id=>document.getElementById(id);
+const fx=(v,d)=>Number.isFinite(v)?v.toFixed(d===undefined?3:d):'–';
+function cleanName(x){ return (x||'').trim().replace(/[<>&"'`,\\]/g,'_'); }
+function esc(x){ return String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function facLabel(j){ return (S.facNames[j]&&S.facNames[j].trim())?S.facNames[j].trim():'F'+(j+1); }
+function msg(cls,text){ return `<div class="msg ${cls}">${esc(text)}</div>`; }
+
+// ===================== data input =====================
+function loadExample(n){ $('csv').value=(n===3?EX3:n===2?EX2:EX)[LANG]; parseCSV(); }
+function loadCSVFile(ev){
+  const file=ev.target.files[0]; if(!file) return;
+  const tryRead=enc=>{ const rd=new FileReader(); rd.onload=e=>{ let txt=e.target.result.replace(/^﻿/,''); if(enc==='UTF-8'&&(txt.match(/�/g)||[]).length>5){ tryRead('Shift-JIS'); return; } $('csv').value=txt; parseCSV(); }; rd.readAsText(file,enc); };
+  tryRead('UTF-8'); ev.target.value='';
+}
+function parseCSV(){
+  const txt=$('csv').value.trim();
+  if(!txt){ S.rows=[]; S.names=[]; S.loaded=false; $('s1vars').style.display='none'; $('s1info').innerHTML=''; computeAll(); return; }
+  const lines=txt.split('\n').map(l=>l.trim()).filter(l=>l);
+  if(lines.length<3) return;
+  const names=lines[0].split(',').slice(1).map(cleanName);
+  S.names=names; S.ids=[]; S.rows=[]; S.skipped=0; const seen={};
+  for(let i=1;i<lines.length;i++){
+    const cols=lines[i].split(',');
+    const row=cols.slice(1,1+names.length).map(v=>parseFloat(v.trim()));
+    if(row.length<names.length||row.some(isNaN)){ S.skipped++; continue; }
+    let id=cleanName(cols[0]); if(seen[id]){ seen[id]++; id=id+'_'+seen[id]; } else seen[id]=1;
+    S.ids.push(id); S.rows.push(row);
+  }
+  S.sel=names.map(()=>true); S.loaded=true;
+  buildVarChecks(); computeAll();
+}
+$('csv').addEventListener('input',parseCSV);
+function buildVarChecks(){
+  $('s1vars').style.display='block';
+  $('varchecks').innerHTML=S.names.map((v,i)=>`<label><input type="checkbox" value="${i}" ${S.sel[i]?'checked':''} onchange="onVarChange()"> ${esc(v)}</label>`).join('');
+}
+function onVarChange(){ S.sel=[...document.querySelectorAll('#varchecks input')].map(c=>c.checked); computeAll(); }
+function selAll(v){ S.sel=S.names.map(()=>v); buildVarChecks(); computeAll(); }
+function renderS1(){
+  if(!S.loaded){ $('s1info').innerHTML=''; return; }
+  $('s1info').innerHTML=msg('info',t('parsed',S.rows.length,S.names.length,S.skipped))+`<div class="note">${esc(t('s1note'))}</div>`;
+  const n=S.rows.length;
+  let h=`<table class="t"><thead><tr><th>${t('thItem')}</th><th>${t('thMean')}</th><th>${t('thSD')}</th><th>${t('thMin')}</th><th>${t('thMax')}</th></tr></thead><tbody>`;
+  S.names.forEach((nm,j)=>{ const col=S.rows.map(r=>r[j]); const mu=col.reduce((a,b)=>a+b,0)/n; const sd=Math.sqrt(col.reduce((a,b)=>a+(b-mu)*(b-mu),0)/(n-1)); h+=`<tr style="${S.sel[j]?'':'color:#9aa3b2'}"><td>${esc(nm)}</td><td>${fx(mu,2)}</td><td>${fx(sd,2)}</td><td>${Math.min(...col)}</td><td>${Math.max(...col)}</td></tr>`; });
+  $('s1sum').innerHTML=h+'</tbody></table>';
+}
+
+// ===================== pipeline =====================
+function setStatus(n,state){
+  const el=$('st'+n); el.className='st '+(state||''); el.textContent=state==='done'?t('stDone'):state==='check'?t('stCheck'):t('stWait');
+  const a=$('pg'+n); if(a) a.className=state||'';
+}
+function validate(){
+  S.err=null; S.warns=[]; S.selIdx=S.sel.map((b,i)=>b?i:-1).filter(i=>i>=0);
+  if(!S.loaded||!S.rows.length){ S.err=['errLoad']; return; }
+  const idx=S.selIdx; const m=idx.length;
+  if(m<3){ S.err=['errVar3']; return; }
+  const X=S.rows.map(r=>idx.map(j=>r[j])); S.X=X; const n=X.length;
+  if(n<=m){ S.err=['errN',n,m]; return; }
+  const C=covMat(X);
+  const zero=idx.filter((_,i)=>C[i][i]<1e-10).map(j=>S.names[j]);
+  if(zero.length){ S.err=['errZeroSd',zero.join(', ')]; return; }
+  const pairs=[];
+  for(let i=0;i<m;i++) for(let j=i+1;j<m;j++){ const r=C[i][j]/Math.sqrt(C[i][i]*C[j][j]); if(Math.abs(r)>0.9999) pairs.push([S.names[idx[i]],S.names[idx[j]],r.toFixed(4)]); }
+  if(pairs.length){ S.err=['errPerfect',pairs]; return; }
+  if(n<100||n<5*m) S.warns.push(['warnSmall',n,m]);
+}
+function computeAll(){
+  S.userK=false; S.fa=null; S.faErr=null; S.dirty=false; S.resetNote=false; S.facNames=[];
+  validate();
+  if(!S.err){
+    const R=corMat(S.X); const e=eigenSym(R);
+    if(!e.converged){ S.err=['errEigen']; }
+    else{
+      S.R=R; S.eig=e.values; const m=S.selIdx.length;
+      S.qInit=Math.max(1,Math.min(m-1,e.values.filter(v=>v>=1).length)); S.k=S.qInit;
+      // scale range initial values from the selected items
+      let mn=Infinity,mx=-Infinity,allInt=true;
+      for(const r of S.X) for(const v of r){ if(v<mn) mn=v; if(v>mx) mx=v; if(!Number.isInteger(v)) allInt=false; }
+      S.min=allInt?mn:Math.floor(mn); S.max=allInt?mx:Math.ceil(mx);
+    }
+  }
+  renderS1(); renderMsgS1(); renderS2();
+  if(!S.err) runFA(true); else { renderS3(); renderS4(); renderS5(); renderS6(); renderS7(); }
+  renderProgressAll();
+}
+function renderMsgS1(){
+  let h=''; if(S.err) h+=msg('err',t.apply(null,S.err)); S.warns.forEach(w=>{ h+=msg('warn',t.apply(null,w)); }); $('s1msg').innerHTML=h;
+  setStatus(1,S.err?'check':(S.loaded?(S.warns.length?'check':'done'):''));
+}
+function runFA(initial){
+  S.faErr=null; S.fa=null;
+  try{ S.fa=factorAnalysis(S.X,S.k,S.rot); }
+  catch(e){ S.faErr=(e&&e.code==='singular')?['errSingular',Number(e.minEig).toExponential(2)]:['errEigen']; }
+  if(S.fa){
+    const m=S.selIdx.length, k=S.k;
+    S.assign=Array.from({length:m},(_,i)=>{ let b=0; for(let j=1;j<k;j++) if(Math.abs(S.fa.pattern[i][j])>Math.abs(S.fa.pattern[i][b])) b=j; return b; });
+    S.rev=Array.from({length:m},()=>false);
+    if(S.facNames.length!==k) S.facNames=Array.from({length:k},()=>'');
+    if(!initial&&S.dirty) S.resetNote=true; else S.resetNote=false;
+    S.dirty=false;
+  }
+  renderS2(); renderS3(); renderS4(); renderS5(); renderS6(); renderS7(); renderProgressAll();
+}
+function onK(v){ let k=Math.round(+v); const m=S.selIdx.length; if(!Number.isFinite(k)) k=S.qInit; k=Math.max(1,Math.min(m-1,k)); S.k=k; S.userK=true; S.facNames=[]; runFA(false); }
+function onRot(v){ S.rot=v; runFA(false); }
+function onThr(v){ const x=+v; if(Number.isFinite(x)&&x>0&&x<1){ S.thr=x; } renderS3(); renderS4(); }
+function onAssign(i,v){ S.assign[i]=+v; S.dirty=true; updateCounts(); renderS5(); renderS6(); renderS7(); renderProgressAll(); }
+function onName(j,v){ S.facNames[j]=cleanName(v); renderS5(); renderS6(); renderS7(); }
+function onRev(i,c){ S.rev[i]=c; S.dirty=true; renderS6(); renderS7(); renderRangeWarn(); }
+function onScale(which,v){ const x=+v; if(!Number.isFinite(x)) return; if(which==='min') S.min=x; else S.max=x; renderRangeWarn(); renderS6(); renderS7(); }
+
+function blockedHtml(){ return `<div class="blocked">${esc(S.loaded?t('blocked'):t('blockedLoad'))}</div>`; }
+function ready(){ return !!(S.loaded&&!S.err&&S.eig); }
+
+// ---------- step 2 ----------
+function screeSvg(eig,k){
+  const m=eig.length, W=520, H=230, L=44, Rr=12, T=12, B=36;
+  const mx=Math.max(1.2,Math.ceil(Math.max(...eig)*2)/2), X=i=>L+(m>1?i*(W-L-Rr)/(m-1):0), Y=v=>T+(H-T-B)*(1-v/mx);
+  let s=`<svg class="scree" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t('screeT'))}"><rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/>`;
+  for(let g=0;g<=mx+1e-9;g+=Math.max(0.5,Math.round(mx/5*2)/2)) s+=`<line x1="${L}" x2="${W-Rr}" y1="${Y(g)}" y2="${Y(g)}" stroke="#e6e9f0"/><text x="${L-6}" y="${Y(g)+4}" font-size="11" text-anchor="end" fill="#5b6577">${g}</text>`;
+  s+=`<line x1="${L}" x2="${W-Rr}" y1="${Y(1)}" y2="${Y(1)}" stroke="#E24B4A" stroke-dasharray="6 4"/><text x="${W-Rr}" y="${Y(1)-4}" font-size="11" text-anchor="end" fill="#E24B4A">${esc(t('lgEig1'))}</text>`;
+  s+=`<polyline fill="none" stroke="#233A9A" stroke-width="2" points="${eig.map((v,i)=>X(i)+','+Y(v)).join(' ')}"/>`;
+  eig.forEach((v,i)=>{ s+=`<circle cx="${X(i)}" cy="${Y(v)}" r="${i<k?5.5:4}" fill="${i<k?'#233A9A':'#fff'}" stroke="#233A9A" stroke-width="2"/><text x="${X(i)}" y="${H-B+16}" font-size="11" text-anchor="middle" fill="#5b6577">${i+1}</text>`; });
+  s+=`<text x="${(L+W-Rr)/2}" y="${H-6}" font-size="11" text-anchor="middle" fill="#5b6577">${esc(t('axNo'))}</text><text x="12" y="${(T+H-B)/2}" font-size="11" text-anchor="middle" fill="#5b6577" transform="rotate(-90 12 ${(T+H-B)/2})">${esc(t('axEig'))}</text></svg>`;
+  return s;
+}
+function renderS2(){
+  if(!ready()){ $('b2').innerHTML=blockedHtml(); setStatus(2,''); return; }
+  const m=S.eig.length, tot=m; let cum=0;
+  let h=`<h3>${t('s2eigT')}</h3><div class="ov"><table class="t"><thead><tr><th>${t('thNo')}</th><th>${t('thEig')}</th><th>${t('thProp')}</th><th>${t('thCum')}</th></tr></thead><tbody>`;
+  S.eig.slice(0,Math.min(m,12)).forEach((v,i)=>{ cum+=v/tot; h+=`<tr><td>${i+1}</td><td class="${v>=1?'hi':''}">${fx(v,4)}</td><td>${fx(v/tot*100,2)}</td><td>${fx(cum*100,2)}</td></tr>`; });
+  h+=`</tbody></table></div><h3>${t('screeT')}</h3><div class="scr-wrap">${screeSvg(S.eig,S.k)}</div>`;
+  h+=`<div class="row"><div><label class="f">${t('lblK')}</label><input type="number" id="kin" min="1" max="${m-1}" step="1" value="${S.k}" onchange="onK(this.value)"></div><div class="note" style="margin:0 0 6px">${esc(t('kInit',S.qInit))}</div></div><div class="note">${esc(t('kNote'))}</div>`;
+  $('b2').innerHTML=h; setStatus(2,'done');
+}
+
+// ---------- step 3 ----------
+function renderS3(){
+  if(!ready()){ $('b3').innerHTML=blockedHtml(); setStatus(3,''); return; }
+  if(S.faErr){ $('b3').innerHTML=msg('err',t.apply(null,S.faErr)); setStatus(3,'check'); return; }
+  const f=S.fa, m=S.selIdx.length, k=S.k, thr=S.thr, names=S.selIdx.map(j=>S.names[j]);
+  let h=`<div class="row"><div class="note" style="margin:0 0 6px"><b>${esc(t('s3method'))}</b></div>
+   <div><label class="f">${t('lblRot')}</label><select id="rotsel" onchange="onRot(this.value)"><option value="promax" ${S.rot==='promax'?'selected':''}>${esc(t('rotPm'))}</option><option value="varimax" ${S.rot==='varimax'?'selected':''}>${esc(t('rotVm'))}</option></select></div>
+   <div><label class="f">${t('lblThr')}</label><input type="number" min="0.1" max="0.9" step="0.05" value="${thr.toFixed(2)}" onchange="onThr(this.value)"></div></div>`;
+  const title=k<2?t('loadNone'):(S.rot==='promax'?t('loadPm'):t('loadVm'));
+  h+=`<h3>${title}</h3><div class="ov"><table class="t"><thead><tr><th>${t('thItem')}</th>${Array.from({length:k},(_,j)=>`<th>F${j+1}</th>`).join('')}<th>${t('thComm')}</th></tr></thead><tbody>`;
+  for(let i=0;i<m;i++){
+    h+=`<tr><td>${esc(names[i])}</td>${f.pattern[i].map(v=>`<td class="${Math.abs(v)>=thr?'hig':''}">${fx(v,4)}</td>`).join('')}<td class="${f.h2[i]>=1?'neg':''}">${fx(f.h2[i],4)}</td></tr>`;
+  }
+  if(k>=2&&S.rot==='varimax') h+=`<tr style="background:#f0f4fa;font-weight:700"><td>${t('contrib')}</td>${Array.from({length:k},(_,j)=>`<td>${fx(f.pattern.reduce((s,r)=>s+r[j]*r[j],0),4)}</td>`).join('')}<td></td></tr>`;
+  h+='</tbody></table></div>';
+  if(k>=2&&S.rot==='promax'){
+    h+=`<h3>${t('phiT')}</h3><div class="ov"><table class="t"><thead><tr><th></th>${Array.from({length:k},(_,j)=>`<th>F${j+1}</th>`).join('')}</tr></thead><tbody>`;
+    for(let i=0;i<k;i++) h+=`<tr><td>F${i+1}</td>${f.phi[i].map((v,j)=>`<td>${i===j?'1.000':fx(v,4)}</td>`).join('')}</tr>`;
+    h+=`</tbody></table></div><details><summary style="cursor:pointer;color:var(--blue);font-weight:700;margin-top:8px">${t('structT')}</summary><div class="ov"><table class="t"><thead><tr><th>${t('thItem')}</th>${Array.from({length:k},(_,j)=>`<th>F${j+1}</th>`).join('')}</tr></thead><tbody>`;
+    for(let i=0;i<m;i++) h+=`<tr><td>${esc(names[i])}</td>${f.structure[i].map(v=>`<td class="${Math.abs(v)>=thr?'hig':''}">${fx(v,4)}</td>`).join('')}</tr>`;
+    h+='</tbody></table></div></details>';
+  }
+  h+=`<div class="note">${esc(t('dirNote'))}</div>`;
+  let st='done';
+  if(f.fit.converged) h+=msg('info',t('iterOk',f.fit.iter)); else { h+=msg('warn',t('warnConv')); st='check'; }
+  if(f.fit.heywood){ const l=names.filter((_,i)=>f.h2[i]>=1).join(', '); h+=msg('warn',t('warnHey',l)); st='check'; }
+  if(f.fit.negEig){ h+=msg('warn',t('warnNeg')); st='check'; }
+  h+=`<div class="note">${esc(t('s3note'))}</div>`;
+  $('b3').innerHTML=h; setStatus(3,st);
+}
+
+// ---------- step 4 ----------
+function updateCounts(){
+  const el=$('cnts'); if(!el||!S.fa) return; const k=S.k; let h='',st='done';
+  for(let j=0;j<k;j++){ const c=S.assign.filter(a=>a===j).length; h+=`<span class="tag ${c<=1?'e':'i'}">${esc(t('cnt',facLabel(j),c))}</span> `; if(c<=1) st='check'; }
+  el.innerHTML=h; setStatus(4,st);
+}
+function renderS4(){
+  if(!ready()){ $('b4').innerHTML=blockedHtml(); setStatus(4,''); return; }
+  if(S.faErr||!S.fa){ $('b4').innerHTML=blockedHtml(); setStatus(4,''); return; }
+  const f=S.fa, m=S.selIdx.length, k=S.k, thr=S.thr, names=S.selIdx.map(j=>S.names[j]);
+  let h=S.resetNote?msg('info',t('resetNote')):'';
+  h+=`<h3>${t('s4names')}</h3><div class="nm-row">${Array.from({length:k},(_,j)=>`<div><label class="f">F${j+1}</label><input type="text" maxlength="30" value="${esc(S.facNames[j]||'')}" placeholder="F${j+1}" onchange="onName(${j},this.value)"></div>`).join('')}</div><div class="note">${esc(t('s4nameNote'))}</div>`;
+  h+=`<div class="ov"><table class="t"><thead><tr><th>${t('thItem')}</th>${Array.from({length:k},(_,j)=>`<th>F${j+1}</th>`).join('')}<th>${t('thAssign')}</th><th>${t('thFlag')}</th></tr></thead><tbody>`;
+  for(let i=0;i<m;i++){
+    const row=f.pattern[i], mx=Math.max(...row.map(Math.abs)), nBig=row.filter(v=>Math.abs(v)>=thr).length;
+    const flags=(mx<thr?`<span class="tag w">${esc(t('flagWeak'))}</span>`:'')+(nBig>=2?`<span class="tag w">${esc(t('flagCross'))}</span>`:'');
+    h+=`<tr><td>${esc(names[i])}</td>${row.map(v=>`<td class="${Math.abs(v)>=thr?'hig':''}">${fx(v,3)}</td>`).join('')}<td class="l"><select onchange="onAssign(${i},this.value)">${Array.from({length:k},(_,j)=>`<option value="${j}" ${S.assign[i]===j?'selected':''}>F${j+1}</option>`).join('')}<option value="-1" ${S.assign[i]===-1?'selected':''}>${esc(t('optNone'))}</option></select></td><td class="l">${flags}</td></tr>`;
+  }
+  h+=`</tbody></table></div><div id="cnts" style="margin-top:6px"></div><div class="note">${esc(t('s4note'))}</div>`;
+  $('b4').innerHTML=h; updateCounts();
+}
+
+// ---------- step 5 ----------
+function dataOutOfRange(){
+  const bad=[]; const idx=S.selIdx;
+  idx.forEach((j,i)=>{ if(S.assign[i]<0) return; for(const r of S.X){ const v=r[i]; if(v<S.min||v>S.max){ bad.push(S.names[j]); break; } } });
+  return bad;
+}
+function renderRangeWarn(){
+  const el=$('rangewarn'); if(!el) return; const bad=dataOutOfRange();
+  el.innerHTML=(S.max<=S.min?msg('err','min < max'):'')+(bad.length?msg('warn',t('warnRange',bad.join(', '))):'');
+}
+function renderS5(){
+  if(!ready()||S.faErr||!S.fa){ $('b5').innerHTML=blockedHtml(); setStatus(5,''); return; }
+  const f=S.fa, m=S.selIdx.length, names=S.selIdx.map(j=>S.names[j]);
+  const used=[]; for(let j=0;j<S.k;j++) for(let i=0;i<m;i++) if(S.assign[i]===j) used.push(i);
+  if(!used.length){ $('b5').innerHTML=`<div class="blocked">${esc(t('s5none'))}</div>`; setStatus(5,'check'); return; }
+  let h=`<div class="row"><div><label class="f">${t('lblSMin')}</label><input type="number" step="1" value="${S.min}" oninput="onScale('min',this.value)"></div><div><label class="f">${t('lblSMax')}</label><input type="number" step="1" value="${S.max}" oninput="onScale('max',this.value)"></div><div class="note" style="margin:0 0 6px"><b>${t('lblScale')}</b>: ${esc(t('scaleChk'))}</div></div><div id="rangewarn"></div>`;
+  h+=`<div class="ov"><table class="t"><thead><tr><th>${t('thItem')}</th><th>${t('thFactor')}</th><th>${t('thLoadOn')}</th><th>${t('thRev')}</th></tr></thead><tbody>`;
+  let anyHint=false;
+  for(const i of used){ const j=S.assign[i], l=f.pattern[i][j], hint=l<0; if(hint) anyHint=true;
+    h+=`<tr><td>${esc(names[i])}</td><td class="l">${esc(facLabel(j))}</td><td class="${hint?'neg':''}">${fx(l,3)}${hint?` <span class="tag w">${esc(t('hintRev'))}</span>`:''}</td><td class="l"><input type="checkbox" ${S.rev[i]?'checked':''} onchange="onRev(${i},this.checked)"></td></tr>`; }
+  h+=`</tbody></table></div><div class="note">${esc(t('s5note'))}</div>`;
+  $('b5').innerHTML=h; renderRangeWarn();
+  setStatus(5,(anyHint&&!S.rev.some(x=>x))||dataOutOfRange().length||S.max<=S.min?'check':'done');
+}
+
+// ---------- step 6 / 7 helpers ----------
+function factorItems(j){ const o=[]; S.assign.forEach((a,i)=>{ if(a===j) o.push(i); }); return o; }
+function revMap(){ const o={}; S.rev.forEach((r,i)=>{ if(r) o[i]=true; }); return o; }
+function factorMatrix(cols){ const rv=revMap(), mn=S.min, mx=S.max; return S.X.map(r=>cols.map(i=>rv[i]?(mn+mx-r[i]):r[i])); }
+function renderS6(){
+  if(!ready()||S.faErr||!S.fa){ $('b6').innerHTML=blockedHtml(); setStatus(6,''); return; }
+  const names=S.selIdx.map(j=>S.names[j]); let h='', st='done', any=false;
+  for(let j=0;j<S.k;j++){
+    const cols=factorItems(j); if(!cols.length) continue; any=true;
+    h+=`<div class="fac-block"><b>${esc(facLabel(j))}</b>${(S.facNames[j]&&S.facNames[j].trim())?` (F${j+1})`:''} ・ ${t('s6t1')}: ${cols.length}`;
+    if(cols.length<2){ h+=msg('warn',t('warnK1',facLabel(j)))+'</div>'; st='check'; continue; }
+    const a=alphaStats(factorMatrix(cols));
+    h+=` ・ ${t('thAlpha')} = <b>${fx(a.alpha,3)}</b> ・ ${t('thAlphaS')} = ${fx(a.alphaStd,3)}`;
+    h+=`<div class="ov"><table class="t"><thead><tr><th>${t('thItem')}</th><th>${t('thMean')}</th><th>${t('thSD')}</th><th>${t('thRDrop')}</th><th>${t('thADrop')}</th></tr></thead><tbody>`;
+    cols.forEach((i,q)=>{ const it=a.items[q]; const tags=(it.rDrop<0?`<span class="tag e">${esc(t('tagNegR'))}</span>`:'')+(it.alphaDrop>a.alpha?`<span class="tag w">${esc(t('tagUp'))}</span>`:'');
+      h+=`<tr><td>${esc(names[i])}${S.rev[i]?' (R)':''}</td><td>${fx(it.mean,2)}</td><td>${fx(it.sd,2)}</td><td class="${it.rDrop<0?'neg':''}">${fx(it.rDrop,3)}</td><td>${cols.length>2?fx(it.alphaDrop,3):'–'}${tags}</td></tr>`; });
+    h+='</tbody></table></div>';
+    if(a.alpha<0){ h+=msg('warn',t('warnAneg',facLabel(j))); st='check'; }
+    if(a.items.some(it=>it.rDrop<0)) st='check';
+    if(cols.length===2) h+=`<div class="note">${esc(t('k2'))}</div>`;
+    h+='</div>';
+  }
+  if(!any){ h=`<div class="blocked">${esc(t('s5none'))}</div>`; st='check'; }
+  h+=`<div class="note">${esc(t('s6meanNote'))} ${esc(t('s6note'))}</div>`;
+  $('b6').innerHTML=h; setStatus(6,st);
+}
+function subscales(){
+  const out=[]; const used=new Set(); const fl=[];
+  for(let j=0;j<S.k;j++){ const cols=factorItems(j); if(!cols.length) continue;
+    let nm=facLabel(j); let base=nm, c=1; while(used.has(nm)){ c++; nm=base+'_'+c; } used.add(nm);
+    out.push({j,name:nm,cols,scores:subscaleScores(S.X,cols,revMap(),S.min,S.max)}); }
+  return out;
+}
+function descr(v){ const n=v.length, mu=v.reduce((a,b)=>a+b,0)/n, sd=Math.sqrt(v.reduce((a,b)=>a+(b-mu)*(b-mu),0)/(n-1)); return {mu,sd,mn:Math.min(...v),mx:Math.max(...v)}; }
+function csvText(sc){
+  const lines=[['ID',...sc.map(s=>s.name)].join(',')];
+  S.ids.forEach((id,r)=>lines.push([id,...sc.map(s=>String(+s.scores[r].toFixed(6)))].join(',')));
+  return lines.join('\r\n');
+}
+function downloadCsv(){
+  const sc=subscales(); if(!sc.length) return;
+  const blob=new Blob(['﻿'+csvText(sc)],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='subscale_scores.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+function reportLines(sc){
+  const o={n:S.X.length,m:S.selIdx.length,iter:S.fa.fit.iter,rot:S.rot,k:S.k,thr:S.thr.toFixed(2),min:S.min,max:S.max,
+    revs:S.selIdx.map((j,i)=>S.rev[i]?S.names[j]:null).filter(Boolean),
+    facs:sc.map(s=>({name:s.name,k:s.cols.length,alpha:s.cols.length>1?fx(alphaStats(factorMatrix(s.cols)).alpha,3):'–'}))};
+  return t('repLines',o);
+}
+function copyReport(){ const ta=$('reptext'); ta.focus(); ta.select(); let ok=false; try{ok=document.execCommand('copy');}catch(e){} if(!ok&&navigator.clipboard) navigator.clipboard.writeText(ta.value).catch(()=>{}); const b=$('repbtn'); b.textContent=t('copied'); setTimeout(()=>{b.textContent=t('repCopy');},1500); }
+function renderS7(){
+  if(!ready()||S.faErr||!S.fa){ $('b7').innerHTML=blockedHtml(); setStatus(7,''); return; }
+  const sc=subscales();
+  if(!sc.length){ $('b7').innerHTML=`<div class="blocked">${esc(t('s7none'))}</div>`; setStatus(7,'check'); return; }
+  let h=`<div class="note">${esc(t('s7note'))}</div><h3>${t('s7desc')}</h3><div class="ov"><table class="t"><thead><tr><th>${t('thName')}</th><th>${t('thN')}</th><th>${t('thMean')}</th><th>${t('thSD')}</th><th>${t('thMin')}</th><th>${t('thMax')}</th></tr></thead><tbody>`;
+  sc.forEach(s=>{ const d=descr(s.scores); h+=`<tr><td>${esc(s.name)}</td><td>${s.cols.length}</td><td>${fx(d.mu,3)}</td><td>${fx(d.sd,3)}</td><td>${fx(d.mn,2)}</td><td>${fx(d.mx,2)}</td></tr>`; });
+  h+='</tbody></table></div>';
+  if(sc.length>=2){ const M=sc[0].scores.map((_,r)=>sc.map(s=>s.scores[r])); const C=corMat(M);
+    h+=`<h3>${t('s7corr')}</h3><div class="ov"><table class="t"><thead><tr><th></th>${sc.map(s=>`<th>${esc(s.name)}</th>`).join('')}</tr></thead><tbody>`;
+    sc.forEach((s,i)=>{ h+=`<tr><td>${esc(s.name)}</td>${C[i].map((v,j)=>`<td>${i===j?'1.000':fx(v,3)}</td>`).join('')}</tr>`; }); h+='</tbody></table></div>'; }
+  h+=`<h3>${t('s7head')}</h3><div class="ov"><table class="t"><thead><tr><th>ID</th>${sc.map(s=>`<th>${esc(s.name)}</th>`).join('')}</tr></thead><tbody>`;
+  for(let r=0;r<Math.min(10,S.ids.length);r++) h+=`<tr><td>${esc(S.ids[r])}</td>${sc.map(s=>`<td>${fx(s.scores[r],3)}</td>`).join('')}</tr>`;
+  h+=`</tbody></table></div><div class="row" style="margin-top:8px"><button class="btn dl" type="button" onclick="downloadCsv()">${esc(t('dlCsv'))}</button></div>`;
+  h+=`<h3>${t('repTitle')}</h3><textarea id="reptext" readonly style="height:170px;font-family:inherit;font-size:13px">${esc(reportLines(sc).map(x=>'・'+x).join('\n'))}</textarea><div class="row" style="margin-top:6px"><button class="btn" id="repbtn" type="button" onclick="copyReport()">${esc(t('repCopy'))}</button></div>`;
+  const nmq=sc.map(s=>'`'+s.name+'`');
+  h+=`<h3>${t('regT')}</h3><div class="note">${esc(t('regNote'))}</div><textarea readonly style="height:112px">scales <- read.csv("subscale_scores.csv", fileEncoding = "UTF-8-BOM")\n# dat <- merge(scales, outcome_data, by = "ID")   # outcome_data: ID と アウトカム y を含むデータ\n# summary(lm(y ~ ${nmq.join(' + ')}, data = dat))</textarea>`;
+  $('b7').innerHTML=h;
+  let st='done'; if(sc.some(s=>s.cols.length<2)) st='check'; setStatus(7,st);
+}
+function renderProgressAll(){
+  const items=[1,2,3,4,5,6,7].map(n=>`<a href="#s${n}" id="pg${n}"><b>${n}</b>${esc(t('s'+n+'t'))}</a>`); $('progress').innerHTML=items.join('');
+  for(let n=1;n<=7;n++){ const c=$('st'+n).className.replace('st','').trim(); const a=$('pg'+n); if(c) a.className=c; }
+}
+function renderAll(){
+  $('pre-list').innerHTML=t('pre').map(x=>`<li>${esc(x)}</li>`).join('');
+  renderS1(); renderMsgS1(); renderS2(); renderS3(); renderS4(); renderS5(); renderS6(); renderS7(); renderProgressAll();
+}
+function onLangChange(){
+  // an untouched example follows the language (names are replaced; the analysis settings are reset)
+  const ta=$('csv');
+  for(const l of ['ja','en']){ const E=(ta.value===EX[l])?EX:(ta.value===EX2[l])?EX2:(ta.value===EX3[l])?EX3:null; if(l!==LANG&&E){ ta.value=E[LANG]; parseCSV(); renderAll(); const rs=$('rs-text'); if(rs.value&&!rsFailed(rs.value)) rsMake(); return; } }
+  renderAll();
+  const rs=$('rs-text'); if(rs.value&&rs.value.indexOf(RS_FAIL.ja)!==0&&rs.value.indexOf(RS_FAIL.en)!==0) rsMake();
+}
+
+// ===================== R script =====================
+function rsRaw(text){ let d='---'; while(text.indexOf(')'+d+'"')>=0) d+='-'; return 'r"'+d+'(\n'+text.replace(/\r\n?/g,'\n').replace(/\s+$/,'')+'\n)'+d+'"'; }
+const RS_FAIL={ja:'# スクリプトを作成できませんでした',en:'# Could not create the script'};
+function rsFailed(v){ return v.indexOf(RS_FAIL.ja)===0||v.indexOf(RS_FAIL.en)===0; }
+function rsMake(){ const ta=$('rs-text'); try{ ta.value=buildRScript(); }catch(e){ ta.value=RS_FAIL[LANG]+': '+(e&&e.message?e.message:(e&&e.length?t.apply(null,e):String(e))); } }
+function rsCopy(){ const ta=$('rs-text'); rsMake(); if(rsFailed(ta.value)) return; ta.focus(); ta.select(); let ok=false; try{ok=document.execCommand('copy');}catch(e){} if(!ok&&navigator.clipboard) navigator.clipboard.writeText(ta.value).catch(()=>{}); const b=$('rs-copy-btn'); b.textContent=t('copied'); setTimeout(()=>{b.textContent=t('rsCopy');},1500); }
+function rsDownload(){ const ta=$('rs-text'); rsMake(); if(rsFailed(ta.value)) return; const b64=btoa(unescape(encodeURIComponent('﻿'+ta.value))); const a=document.createElement('a'); a.href='data:text/plain;charset=utf-8;base64,'+b64; a.download='scale_maker_check.R'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+function buildRScript(){
+  if(!ready()||!S.fa) throw new Error(t(S.err?S.err[0]:'errLoad'));
+  const ja=LANG==='ja', m=S.selIdx.length, k=S.k, rot=S.rot;
+  const sc=subscales(); const idxs=sc.map(s=>s.j+1);
+  const csv=['id,'+S.selIdx.map((_,i)=>'v'+(i+1)).join(',')].concat(S.X.map((r,i)=>S.ids[i]+','+r.join(','))).join('\n');
+  const q=x=>'"'+String(x).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';
+  const T=(a,b)=>ja?a:b;
+  const L=[
+   '# =====================================================================',
+   '# '+T('Scale Maker と同じ計算をRで行う(基本のRだけ。比較用のpsychは、コメントアウトしてあります)','The same calculation as the Scale Maker, in R (base R only; the comparison with psych is commented out)'),
+   '# '+T('このスクリプトは、ツールに入力したデータ(欠損値のない行だけ)と、画面で選んだ設定を埋め込んであります。','This script embeds the data entered in the tool (complete rows only) and the settings chosen on the screen.'),
+   '# '+T('RStudioに貼り付けて、上から順に実行してください。','Paste it into RStudio and run it from top to bottom.'),
+   '# =====================================================================','',
+   '# '+T('項目の対応: ','Item mapping: ')+S.selIdx.map((j,i)=>'v'+(i+1)+'='+S.names[j]).join(', '),'',
+   T('# 1. データ(1列目は回答者ID)','# 1. Data (column 1 = respondent ID)'),
+   'dat <- read.csv(text = '+rsRaw(csv)+', header = TRUE, row.names = 1)',
+   'X <- as.matrix(dat)','m <- ncol(X)','k <- '+k+T('   # 因子数(画面で選んだ数)','   # number of factors (as chosen on the screen)'),'',
+   T('# 2. 相関行列と固有値(因子数を決める目安)','# 2. Correlation matrix and eigenvalues (a guide for the number of factors)'),
+   'R <- cor(X)','print(round(eigen(R)$values, 4))','',
+   T('# 3. 主因子法(初期の共通性 = 重相関の2乗。共通性の合計の変化が 1e-8 未満になるまで反復)','# 3. Principal axis factoring (initial communalities = squared multiple correlations; iterate until the change in their sum is below 1e-8)'),
+   'h <- 1 - 1 / diag(solve(R))','comm <- sum(h); err <- comm; it <- 1',
+   'while (err > 1e-8) {','  rr <- R; diag(rr) <- h','  e <- eigen(rr)',
+   '  L <- e$vectors[, 1:k, drop = FALSE] %*% diag(sqrt(pmax(e$values[1:k], 0)), nrow = k)',
+   '  h <- rowSums(L^2)','  err <- abs(comm - sum(h)); comm <- sum(h); it <- it + 1','  if (it > 1000) break','}',
+   T('L <- sweep(L, 2, ifelse(colSums(L) < 0, -1, 1), "*")   # 因子の向き: 負荷量の合計が正になるようにそろえる','L <- sweep(L, 2, ifelse(colSums(L) < 0, -1, 1), "*")   # orientation: make the sum of each factor\'s loadings positive'),'',
+   T('# 4. 回転('+(rot==='promax'?'プロマックス: stats::promax、べき乗4':'バリマックス: stats::varimax、Kaiser正規化あり')+')','# 4. Rotation ('+(rot==='promax'?'promax: stats::promax, power 4':'varimax: stats::varimax, with Kaiser normalization')+')')];
+  if(k<2) L.push('pattern <- L; Phi <- matrix(1)');
+  else if(rot==='promax') L.push('pm <- promax(L, m = 4)','pattern <- unclass(pm$loadings)','Phi <- solve(crossprod(pm$rotmat))');
+  else L.push('vm <- varimax(L)','pattern <- unclass(vm$loadings)','Phi <- diag(k)');
+  L.push(T('# 回転後の向きと並び順(psych::fa と同じ規則: 合計が正の向き。因子の分散の大きい順)','# Orientation and order after rotation (same rule as psych::fa: positive sum; descending factor variance)'),
+   'sg <- ifelse(colSums(pattern) < 0, -1, 1)','pattern <- sweep(pattern, 2, sg, "*"); Phi <- Phi * outer(sg, sg)',
+   'ord <- order(diag(Phi %*% crossprod(pattern)), decreasing = TRUE)','pattern <- pattern[, ord, drop = FALSE]; Phi <- Phi[ord, ord, drop = FALSE]',
+   'rownames(pattern) <- colnames(X)',
+   'cat("'+T('共通性','Communality')+'\\n"); print(round(h, 4))',
+   'cat("'+T('因子パターン行列','Pattern matrix')+'\\n"); print(round(pattern, 4))',
+   'cat("'+T('因子間相関','Factor correlations')+'\\n"); print(round(Phi, 4))',
+   'cat("'+T('構造行列','Structure matrix')+'\\n"); print(round(pattern %*% Phi, 4))','');
+  const asg=S.assign.map(a=>a+1<=0?0:a+1);
+  L.push(T('# 5. 項目の割り当て(0 = 使わない)と、逆転項目','# 5. Item assignment (0 = not used) and reverse-coded items'),
+   'assign <- c('+asg.join(', ')+')','rev_items <- c('+S.rev.map(r=>r?'TRUE':'FALSE').join(', ')+')',
+   'smin <- '+S.min+'; smax <- '+S.max+T('   # 尺度の範囲','   # scale range'),
+   'Xr <- X','if (any(rev_items)) Xr[, rev_items] <- (smin + smax) - X[, rev_items]','',
+   T('# 6. クロンバックのαと、下位尺度得点(項目の平均)','# 6. Cronbach\'s alpha and subscale scores (item means)'),
+   'alpha_raw <- function(x) { kk <- ncol(x); C <- cov(x); kk / (kk - 1) * (1 - sum(diag(C)) / sum(C)) }',
+   'alpha_std <- function(x) { r <- cor(x); rb <- mean(r[lower.tri(r)]); ncol(x) * rb / (1 + (ncol(x) - 1) * rb) }',
+   'fac_idx <- c('+idxs.join(', ')+')','fac_names <- c('+sc.map(s=>q(s.name)).join(', ')+')',
+   'out <- data.frame(ID = rownames(X))',
+   'for (q in seq_along(fac_idx)) {','  x <- Xr[, which(assign == fac_idx[q]), drop = FALSE]',
+   '  cat("\\n", fac_names[q], ": ", ncol(x), "'+T('項目','items')+'\\n", sep = "")',
+   '  if (ncol(x) >= 2) {','    cat("alpha =", round(alpha_raw(x), 4), " standardized alpha =", round(alpha_std(x), 4), "\\n")',
+   '    print(round(data.frame(r_drop = sapply(1:ncol(x), function(i) cor(x[, i], rowSums(x[, -i, drop = FALSE]))),',
+   '                           alpha_drop = if (ncol(x) > 2) sapply(1:ncol(x), function(i) alpha_raw(x[, -i, drop = FALSE])) else NA, row.names = colnames(x)), 4))',
+   '  }','  out[[fac_names[q]]] <- rowMeans(x)','}','print(head(round(out[, -1, drop = FALSE], 4)))',
+   'write.csv(out, "subscale_scores.csv", row.names = FALSE, fileEncoding = "UTF-8")','',
+   T('# ---------------------------------------------------------------------','# ---------------------------------------------------------------------'),
+   T('# 比較する場合(psych が必要。先頭の # を外して実行)','# To compare with psych (requires psych; remove the leading # and run)'),
+   '# library(psych)',
+   '# fa(X, nfactors = k, fm = "pa", rotate = "'+(k<2?'none':(rot==='promax'?'Promax':'varimax'))+'", SMC = TRUE, min.err = 1e-8, max.iter = 1000)',
+   T('# 注: psych の既定は min.err = 0.001, max.iter = 50 です。既定のままだと、収束が緩く、小数第3位あたりまで結果が変わることがあります。','# Note: psych defaults to min.err = 0.001 and max.iter = 50. With the defaults the convergence is looser, and results can differ around the third decimal place.'),
+   T('# 注: プロマックスの計算は、psych のバージョンによって少し異なります(新しい版では、因子負荷量の小数第3位が、Rの標準の promax と最大0.003ずれることを確認しました)。ツールと、このスクリプトの本体は、Rの標準の stats::promax と同じ計算です。','# Note: the promax calculation differs slightly between psych versions (a newer version differed from base R promax by up to 0.003 in the third decimal place of the loadings). The tool and the main body of this script use the same calculation as base R stats::promax.'),
+   T('# 注: rotate = "promax"(小文字)は、Kaiser正規化が加わるため、値が少し変わります。stats::promax と同じ計算は "Promax" です。','# Note: rotate = "promax" (lower case) adds Kaiser normalization, so the values change slightly. "Promax" is the same calculation as stats::promax.'),
+   '# alpha(Xr[, which(assign == 1)], check.keys = FALSE)','',
+   T('# ---- 修正するなら、ここ -----------------------------------------------','# ---- If you want to change something, here ---------------------------'),
+   T('# 因子数を平行分析で決める場合','# To decide the number of factors by parallel analysis'),
+   '# psych::fa.parallel(X, fm = "pa", fa = "fa")','',
+   T('# 最尤法に変える場合(fm を変える)','# To use maximum likelihood (change fm)'),
+   '# psych::fa(X, nfactors = k, fm = "ml", rotate = "Promax")',
+   T('# または','# or'),
+   '# stats::factanal(X, factors = k, rotation = "promax")');
+  return L.join('\n')+'\n';
+}
+
+// ===================== boot =====================
+LANG=detectLang();
+applyI18n();
+</script>
+</body>
+</html>
