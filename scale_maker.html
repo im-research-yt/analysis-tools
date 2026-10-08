@@ -93,7 +93,7 @@ h3{font-size:14px;margin:12px 0 4px;color:var(--blue)}
   <h1 data-i="h1"></h1><span class="badge">FA + α</span>
   <div class="langsw"><button type="button" data-lang="ja" onclick="setLang('ja')">日本語</button><button type="button" data-lang="en" onclick="setLang('en')">English</button></div>
 </header>
-<div class="disc"><span data-i="disc1"></span><br><span data-i="disc2"></span></div>
+<div class="disc"><span data-i="disc1"></span><br><span data-i="disc2"></span><br><span data-i="disc3"></span></div>
 <div class="wrap">
   <details class="pre"><summary data-i="preTitle"></summary><ol id="pre-list"></ol></details>
   <nav class="progress" id="progress"></nav>
@@ -367,6 +367,7 @@ Object.assign(I18N.ja,{
  title:'Scale Maker', h1:'Scale Maker',
  disc1:'法政大学経営大学院イノベーション･マネジメント研究科 豊田裕貴研究室',
  disc2:'学習用のツールです。計算に誤りが含まれる可能性があるため、研究やビジネスでの利用は、結果を別の方法で確認したうえで、慎重にお願いします。',
+ disc3:'入力したデータは、お使いのブラウザの中でだけ計算され、サーバーへの送信や収集は行いません(ページの閲覧を数える簡単なアクセス解析を使っていますが、入力データは含まれません)。',
  preTitle:'使う前の3つの問い',
  pre:['背後に潜在因子(測りたい概念)を想定する理由がありますか。','項目は、理論から設計したものですか。(出てきた因子に、あとから名前を付けるのではありません。)','標本数は足りていますか。'],
  s1t:'データを入れる', s2t:'因子数を決める', s3t:'因子分析を実行する', s4t:'項目の割り当てを確認する', s5t:'逆転項目を確認する', s6t:'信頼性(クロンバックのα)を確認する', s7t:'下位尺度得点を出す',
@@ -437,6 +438,7 @@ Object.assign(I18N.en,{
  title:'Scale Maker', h1:'Scale Maker',
  disc1:'Yuki Toyoda Laboratory, Graduate School of Innovation Management, Hosei University',
  disc2:'This is a learning tool. It may contain calculation errors, so please verify the results with other software before using them in research or business.',
+ disc3:'The data you enter is processed only inside your browser. It is not sent to any server or collected. (A simple access counter records page views, but it never includes your data.)',
  preTitle:'Three questions before you start',
  pre:['Do you have a reason to assume latent factors (the concepts you want to measure) behind the items?','Were the items designed from theory? (Factors should not be named after the fact, from the output.)','Is the sample size large enough?'],
  s1t:'Enter the data', s2t:'Decide the number of factors', s3t:'Run the factor analysis', s4t:'Check the item assignment', s5t:'Check the reverse-coded items', s6t:'Check reliability (Cronbach\'s alpha)', s7t:'Get the subscale scores',
