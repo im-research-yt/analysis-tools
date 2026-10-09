@@ -170,6 +170,23 @@
   .s{color:var(--code-str);}
   .nnum{color:var(--code-num);}
 
+  .readfirst{
+    margin-top:14px; padding:12px 14px; border-radius:10px;
+    background:var(--accent-2-tint); border:1px solid var(--accent-2);
+    border-left:6px solid var(--accent-2);
+    font-size:12.5px; line-height:1.6; color:var(--text);
+  }
+  .readfirst b{font-size:13.5px; color:var(--accent-2);}
+  .readfirst ul{margin:6px 0 0; padding-left:1.2em;}
+  .readfirst li{margin-bottom:5px;}
+  .readfirst li:last-child{margin-bottom:0;}
+  .readfirst b.em{font-size:13px; color:var(--text); background:#fff3a8; padding:1px 3px; border-radius:3px;}
+  .readfirst .rf-books{margin-top:10px; padding-top:9px; border-top:1px dashed var(--accent-2);}
+  .readfirst .rf-books ul{margin:4px 0 6px;}
+  .readfirst .rf-books li{margin-bottom:3px; font-size:12px;}
+  .readfirst a{color:var(--accent-2); font-weight:700; text-decoration:none;}
+  .readfirst a:hover{text-decoration:underline;}
+
   .trust{
     margin-top:14px; font-size:12px; line-height:1.55; color:var(--text-muted);
     border-top:1px solid var(--border); padding-top:12px;
@@ -285,6 +302,7 @@ html[lang="en"] .backlink-home.bl-en{display:inline}
           <button class="copy-btn" id="copyBtn" data-i="copy"></button>
         </div>
         <pre class="codebox"><code id="codeOut"></code></pre>
+        <div class="readfirst" data-ih="readFirst"></div>
         <p class="trust" data-ih="trust"></p>
         <div class="upsell" data-ih="upsell"></div>
       </div>
@@ -341,7 +359,7 @@ Object.assign(I18N.en,{
   title:"QCA Quickstart",
   desc:"Generates a ready-to-run QCA script (truthTable / minimize) for data you've already calibrated to crisp 0/1 or fuzzy [0,1] membership scores.",
   eyebrow:"QCA · quickstart",
-  h1:"Write a first QCA script",
+  h1:"Write a QCA script for R",
   lead:"Writing a <code class=\"mono\">QCA</code> script by hand is hard at first. Enter your data object, outcome and conditions, and this tool assembles a ready-to-run <code class=\"mono\">truthTable()</code> &rarr; <code class=\"mono\">minimize()</code> script to paste into R. It assumes your data is already calibrated: each outcome and condition column is either a crisp set (0 or 1) or a fuzzy set (a membership score from 0 to 1). If you are new to QCA, crisp-set QCA with 0/1 data is the easiest place to start. Crisp and fuzzy columns can be mixed, and you do not need to say which is which; <code class=\"mono\">truthTable()</code> tells them apart from the values themselves.",
   sec1:"Data, outcome & conditions",
   noteCal:"Before you start, load your data into R (for example <code class=\"mono\">dat &lt;- read.csv(\"data.csv\")</code>) and enter the name of that R object below, not the CSV file name. Every column used here, outcome and conditions alike, must already hold set-membership scores, crisp (0/1) or fuzzy ([0, 1]). If any column still holds raw values, convert it first with <code class=\"mono\">calibrate()</code>; this tool starts from <code class=\"mono\">truthTable()</code>.",
@@ -378,6 +396,7 @@ Object.assign(I18N.en,{
   copy:"Copy code",
   copied:"Copied",
   codeEmpty:"# add at least one condition variable to generate code",
+  readFirst:"<b>Before you use it, and before you read the results</b><ul><li><b class=\"em\">Before using QCA, be sure to read an introductory text and understand the basics of the method.</b> This tool only assembles R code; it does not tell you what the results mean.</li><li>These settings are for practice. incl.cut = 0.8 and n.cut = 1 are starting values; thresholds should be chosen for each study.</li><li>A solution is not proof of causation. It shows that your data contain combinations of conditions linked to the outcome. Read it as a source of candidate actions and of hypotheses to test.</li><li>&ldquo;No solution&rdquo; does not mean that no pathway exists. It means that no minimal solution was produced under these conditions, measurements, number of cases, and settings.</li></ul><div class=\"rf-books\"><b>Standard introductions</b><ul><li>Oana, I.-E., Schneider, C. Q., &amp; Thomann, E. (2021). <i>Qualitative comparative analysis using R: A beginner's guide</i>. Cambridge University Press. <a href=\"https://doi.org/10.1017/9781009006781\" target=\"_blank\" rel=\"noopener\">DOI</a></li><li>Schneider, C. Q., &amp; Wagemann, C. (2012). <i>Set-theoretic methods for the social sciences: A guide to qualitative comparative analysis</i>. Cambridge University Press. <a href=\"https://doi.org/10.1017/CBO9781139004244\" target=\"_blank\" rel=\"noopener\">DOI</a></li><li>Ragin, C. C. (2008). <i>Redesigning social inquiry: Fuzzy sets and beyond</i>. University of Chicago Press.</li></ul><a href=\"https://im-research-yt.github.io/posts/reading-list-basics/\" target=\"_blank\" rel=\"noopener\">See the reading list (basics) on the blog &rarr;</a></div>",
   trust:"<b>Why this shape:</b> <code class=\"mono\">truthTable()</code> and <code class=\"mono\">minimize()</code> are QCA's own functions, used exactly as documented; this page only assembles the call for you, it does not compute anything itself.",
   upsell:"<b>Only checked one threshold?</b> Real thresholds are rarely obvious. See how the solution changes across a range of them with the companion tool; <a href=\"sweep-builder.html\">Sweep Builder (ThSQCA) &rarr;</a>",
   ftSweep:"Sweep Builder",
@@ -426,6 +445,7 @@ Object.assign(I18N.ja,{
   copy:"コードをコピー",
   copied:"コピーしました",
   codeEmpty:"# 条件変数を一つ以上入力すると、コードが生成されます",
+  readFirst:"<b>使う前と、結果を読む前に</b><ul><li><b class=\"em\">QCAを使う前に、必ず入門書などで手法の基礎を理解してください。</b>このツールは、Rのコードを組み立てるだけで、結果の意味は教えてくれません。</li><li>この設定は練習用です。incl.cut = 0.8 と n.cut = 1 は初期値で、閾値は研究ごとに決めます。</li><li>解は、因果関係の証明ではありません。観察データのなかで、アウトカムに結びつく条件の組み合わせが見つかった、ということです。施策の候補や、検証すべき仮説の材料として読んでください。</li><li>解が出ないときも、「経路が存在しない」という意味ではありません。この条件、測定、事例数、設定では、最小解が出なかった、ということです。</li></ul><div class=\"rf-books\"><b>代表的な入門書</b><ul><li>Oana, I.-E., Schneider, C. Q., &amp; Thomann, E. (2021). <i>Qualitative comparative analysis using R: A beginner's guide</i>. Cambridge University Press. <a href=\"https://doi.org/10.1017/9781009006781\" target=\"_blank\" rel=\"noopener\">DOI</a></li><li>Schneider, C. Q., &amp; Wagemann, C. (2012). <i>Set-theoretic methods for the social sciences: A guide to qualitative comparative analysis</i>. Cambridge University Press. <a href=\"https://doi.org/10.1017/CBO9781139004244\" target=\"_blank\" rel=\"noopener\">DOI</a></li><li>Ragin, C. C. (2008). <i>Redesigning social inquiry: Fuzzy sets and beyond</i>. University of Chicago Press.</li></ul><a href=\"https://im-research-yt.github.io/ja/articles/reading-list-basics/\" target=\"_blank\" rel=\"noopener\">ブログの文献リスト(基礎編)を見る &rarr;</a></div>",
   trust:"<b>この形にしている理由:</b> <code class=\"mono\">truthTable()</code> と <code class=\"mono\">minimize()</code> はQCAパッケージ自身の関数で、ドキュメントどおりに使っています。このページは呼び出しのコードを組み立てるだけで、計算そのものは行いません。",
   upsell:"<b>閾値を一つしか確認していませんか。</b> 適切な閾値が一目で決まることはまれです。閾値を動かしたときに解がどう変わるかは、姉妹ツールで確認できます。<a href=\"sweep-builder.html\">スイープビルダー（ThSQCA）&rarr;</a>",
   ftSweep:"スイープビルダー",
