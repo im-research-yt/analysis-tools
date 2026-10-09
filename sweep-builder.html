@@ -68,6 +68,9 @@
     font-size:14.5px; line-height:1.55;
   }
 
+  header.top p a{color:var(--accent-2); font-weight:600; text-decoration:none;}
+  header.top p a:hover{text-decoration:underline;}
+
   .layout{
     display:grid; grid-template-columns: 1.15fr 1fr; gap:20px;
     align-items:start;
@@ -212,6 +215,29 @@
   .s{color:var(--code-str);}
   .nnum{color:var(--code-num);}
 
+  .adv.guide{margin:-6px 0 16px;}
+  .guide-body{font-size:12.5px; line-height:1.6; color:var(--text-muted);}
+  .guide-body ul{margin:0 0 8px; padding-left:1.2em;}
+  .guide-body li{margin-bottom:4px;}
+  .guide-body b{color:var(--text);}
+  .readfirst{
+    margin-top:14px; padding:12px 14px; border-radius:10px;
+    background:#f5e6d8; border:1px solid var(--accent); border-left:6px solid var(--accent);
+    font-size:12.5px; line-height:1.6; color:var(--text);
+  }
+  .readfirst b{font-size:13.5px; color:var(--accent);}
+  .readfirst ul{margin:6px 0 0; padding-left:1.2em;}
+  .readfirst li{margin-bottom:5px;}
+  .readfirst li:last-child{margin-bottom:0;}
+  .readfirst b.em{font-size:13px; color:var(--text); background:#fff3a8; padding:1px 3px; border-radius:3px;}
+  .readfirst .rf-books{margin-top:10px; padding-top:9px; border-top:1px dashed var(--accent);}
+  .readfirst .rf-books > b{display:block; margin-top:6px;}
+  .readfirst .rf-books > b:first-child{margin-top:0;}
+  .readfirst .rf-books ul{margin:4px 0 6px;}
+  .readfirst .rf-books li{margin-bottom:3px; font-size:12px;}
+  .readfirst a{color:var(--accent); font-weight:700; text-decoration:none;}
+  .readfirst a:hover{text-decoration:underline;}
+
   .trust{
     margin-top:14px; font-size:12px; line-height:1.55; color:var(--text-muted);
     border-top:1px solid var(--border); padding-top:12px;
@@ -270,6 +296,10 @@ html[lang="en"] .backlink-home.bl-en{display:inline}
           <button class="tab" data-tab="dt"><span data-i="tabDt"></span><span class="fn">dtSweep()</span></button>
         </div>
         <p class="tab-desc" id="tabDesc"></p>
+        <details class="adv guide" id="tabGuideBox">
+          <summary data-i="tabGuide"></summary>
+          <div class="guide-body" data-ih="tabGuideBody"></div>
+        </details>
 
         <p class="section-title"><span class="n">2</span><span data-i="sec2"></span></p>
         <div class="row3">
@@ -344,6 +374,7 @@ html[lang="en"] .backlink-home.bl-en{display:inline}
               <input type="text" id="priCut" value="0">
             </div>
           </div>
+          <p class="note-box" data-ih="noteAdv" style="margin:8px 0 0"></p>
         </details>
       </div>
     </div>
@@ -355,6 +386,7 @@ html[lang="en"] .backlink-home.bl-en{display:inline}
           <button class="copy-btn" id="copyBtn" data-i="copy"></button>
         </div>
         <pre class="codebox"><code id="codeOut"></code></pre>
+        <div class="readfirst" data-ih="readFirst"></div>
         <p class="trust" data-ih="trust"></p>
       </div>
     </div>
@@ -415,7 +447,7 @@ Object.assign(I18N.en,{
   desc:"Turn a single-threshold QCA setup into ready-to-run ThSQCA sweep code.",
   eyebrow:"ThSQCA · sweep builder",
   h1:"Turn a fixed-threshold QCA setup into sweep code",
-  lead:"Already have a working <code class=\"mono\">QCA::truthTable()</code> / <code class=\"mono\">minimize()</code> analysis? Pick a sweep type, fill in the same variables and thresholds you already use, and copy out the equivalent <code class=\"mono\">ThSQCA</code> call.",
+  lead:"This app builds ThSQCA (threshold-sweep QCA) code, which runs QCA while sweeping the threshold used to dichotomize a variable into 0 or 1. It assumes that an ordinary QCA with one fixed threshold (<code class=\"mono\">QCA::truthTable()</code> / <code class=\"mono\">minimize()</code>) already works. Before you sweep, confirm that the ordinary analysis runs. For dichotomized data, <a href=\"qca-quickstart.html\">QCA Quickstart</a> can build the code for that check. <br><br>Pick a sweep type, enter the variables and thresholds you already use, and copy the matching <code class=\"mono\">ThSQCA</code> call.",
   sec1:"Sweep type",
   tabOt:"Outcome", tabCts:"Single condition", tabCtm:"Multi condition", tabDt:"Dual",
   tabDesc_ot:"Fix all condition thresholds, vary only the outcome threshold. Use this to see whether the sufficiency solution changes as the target level of the outcome rises.",
@@ -425,11 +457,11 @@ Object.assign(I18N.en,{
   sec2:"Data & variables",
   lblDat:"Data object <span class=\"hint\">R variable name</span>",
   lblOutcome:"Outcome <span class=\"hint\">column name</span>",
-  lblThrY:"Outcome threshold <span class=\"hint\">fixed value</span>",
-  lblRange:"Outcome threshold range <span class=\"hint\">e.g. 6:9</span>",
+  lblThrY:"Outcome threshold <span class=\"hint\">fixed value; values at or above it become 1</span>",
+  lblRange:"Outcome threshold range <span class=\"hint\">e.g. 6:9 (6, 7, 8, 9)</span>",
   lblConds:"Condition variables <span class=\"hint\">comma-separated column names</span>",
   sec3:"Condition thresholds",
-  noteThr:"Most conditions are on their raw scale and get dichotomized at a threshold. If one is already calibrated to fuzzy-set membership scores in [0, 1], check <b>fuzzy 0&ndash;1</b> for it; it is then passed straight through (via <code class=\"mono\">pre_calibrated</code>) with no threshold, and won't be offered as a variable to sweep.",
+  noteThr:"Most conditions are on their raw scale and get dichotomized at a threshold. If one is already calibrated to fuzzy-set membership scores in [0, 1], check <b>fuzzy 0&ndash;1</b> for it; it is then passed straight through (via <code class=\"mono\">pre_calibrated</code>) with no threshold, and won't be offered as a variable to sweep. With multiple conditions or dual sweeps, choose for each condition either <b>Fixed</b> (one threshold value) or <b>Sweep</b> (vary it from the lower to the upper limit).",
   fuzzyLabel:"fuzzy 0&ndash;1",
   fuzzyNoThr:"fuzzy, no threshold",
   alreadyFuzzy:"already 0&ndash;1 membership",
@@ -461,16 +493,20 @@ Object.assign(I18N.en,{
   dirNone:"No expectation",
   dirFavors:"Favors outcome (presence/high)",
   dirDisfavors:"Disfavors outcome (absence/low)",
-  noteDir:"For each condition: does its presence/high level (<b>Favors outcome</b>) or its absence/low level (<b>Disfavors outcome</b>) help produce the outcome, or is there <b>No expectation</b> either way? This is exactly what turns the parsimonious solution into the intermediate solution; the type most QCA guides (Ragin 2008; Schneider &amp; Wagemann 2012) recommend reporting.",
+  noteDir:"For each condition: does its presence/high level (<b>Favors outcome</b>) or its absence/low level (<b>Disfavors outcome</b>) help produce the outcome, or is there <b>No expectation</b> either way? This is exactly what turns the parsimonious solution into the intermediate solution; the type most QCA guides (Ragin 2008; Schneider &amp; Wagemann 2012) recommend reporting. Base the choice on the subject matter and the theory. This setting is used only for the intermediate solution.",
   adv:"Advanced (extract_mode, pri.cut)",
   lblSweepVar:"Condition to sweep",
   lblCtsRange:"Its threshold range <span class=\"hint\">e.g. 6:9</span>",
   lblThrDefault:"thrX_default <span class=\"hint\">threshold for all other conditions</span>",
-  noSweepable:"(no sweepable conditions — all marked fuzzy)",
-  codeTitle:function(fn){return "Generated R code — "+fn;},
+  noSweepable:"(no sweepable conditions; all marked fuzzy)",
+  codeTitle:function(fn){return "Generated R code: "+fn;},
   copy:"Copy code",
   copied:"Copied",
   codeEmpty:"# add at least one condition variable to generate code",
+  tabGuide:"How to choose a sweep type",
+  tabGuideBody:"<ul><li><b>Outcome</b>: when you want to vary the level at which the outcome counts as present. Condition thresholds stay fixed.</li><li><b>Single condition</b>: when you want to vary the threshold of one condition only. The other conditions and the outcome stay fixed.</li><li><b>Multi condition</b>: when you want to vary the thresholds of several conditions at once, across a grid. The outcome stays fixed.</li><li><b>Dual</b>: when you want to vary the outcome threshold and condition thresholds together. This is the most general form, and the number of combinations grows.</li></ul>To begin with, varying only one thing makes the changes in the results easier to read.",
+  noteAdv:"<b>extract_mode</b>: how to handle multiple solutions (M1, M2, and so on). <b>first</b> (default) returns only the first solution (M1). <b>all</b> returns all solutions concatenated. <b>essential</b> returns the terms common to all solutions (essential terms), plus the selective terms (terms that differ between solutions) and the number of solutions.<br><b>pri.cut</b>: the cutoff for PRI (proportional reduction in inconsistency). At 0 (default), PRI does not narrow the results. With data dichotomized to 0/1, PRI equals consistency, so a value at or below incl.cut changes nothing. A value above incl.cut makes the criterion stricter, and the solution may change.",
+  readFirst:"<b>Before you use it, and before you read the results</b><ul><li><b class=\"em\">Before using QCA, be sure to read an introductory text and understand the basics of the method.</b> This tool only assembles R code; it does not tell you what the results mean.</li><li>Before you sweep, confirm that an ordinary QCA with one fixed threshold runs on your data.</li><li>QCA reports sufficient conditions and other results with the thresholds you set held fixed. When QCA is used to support decisions, however, it is also useful to vary the threshold of each variable. For details, see &ldquo;<a href=\"https://im-research-yt.github.io/\" target=\"_blank\" rel=\"noopener\">2. Learn ThSQCA in R</a>&rdquo; on the blog.</li><li>A solution is not proof of causation. It shows that your data contain combinations of conditions linked to the outcome. Read it as a source of candidate actions and of hypotheses to test.</li><li>&ldquo;No solution&rdquo; does not mean that no pathway exists. It means that no minimal solution was produced under these conditions, measurements, number of cases, and settings.</li></ul><div class=\"rf-books\"><b>Standard introductions to QCA</b><ul><li>Oana, I.-E., Schneider, C. Q., &amp; Thomann, E. (2021). <i>Qualitative comparative analysis using R: A beginner's guide</i>. Cambridge University Press. <a href=\"https://doi.org/10.1017/9781009006781\" target=\"_blank\" rel=\"noopener\">DOI</a></li><li>Schneider, C. Q., &amp; Wagemann, C. (2012). <i>Set-theoretic methods for the social sciences: A guide to qualitative comparative analysis</i>. Cambridge University Press. <a href=\"https://doi.org/10.1017/CBO9781139004244\" target=\"_blank\" rel=\"noopener\">DOI</a></li><li>Ragin, C. C. (2008). <i>Redesigning social inquiry: Fuzzy sets and beyond</i>. University of Chicago Press.</li></ul><b>On ThSQCA and thresholds</b><ul><li>Toyoda, Y. (2026). Threshold-sweep QCA: Threshold dependence as an analytical dimension. <i>Quality &amp; Quantity</i>. <a href=\"https://doi.org/10.1007/s11135-026-03092-3\" target=\"_blank\" rel=\"noopener\">DOI</a></li><li>Krogslund, C., Choi, D. D., &amp; Poertner, M. (2015). Fuzzy sets on shaky ground: Parameter sensitivity and confirmation bias in fsQCA. <i>Political Analysis, 23</i>(1), 21&ndash;41. <a href=\"https://doi.org/10.1093/pan/mpu016\" target=\"_blank\" rel=\"noopener\">DOI</a></li></ul><a href=\"https://im-research-yt.github.io/posts/reading-list-basics/\" target=\"_blank\" rel=\"noopener\">See the reading list (basics) on the blog &rarr;</a></div>",
   trust:"<b>Why trust the numbers:</b> every sweep function delegates truth-table construction and Boolean minimization to <code class=\"mono\">QCA::truthTable()</code> and <code class=\"mono\">QCA::minimize()</code> unchanged. ThSQCA only loops, collects, and reports; it does not reimplement the computation, so results match a direct QCA run at every cell.",
   ftCode:"Code targets ThSQCA 2.0.9 (CRAN)",
   ftQs:"QCA Quickstart",
@@ -483,7 +519,7 @@ Object.assign(I18N.ja,{
   desc:"固定閾値のQCA設定を、そのまま実行できるThSQCAのスイープコードに変換します。",
   eyebrow:"ThSQCA · スイープビルダー",
   h1:"固定閾値のQCA設定を、スイープのコードに変換する",
-  lead:"すでに <code class=\"mono\">QCA::truthTable()</code> / <code class=\"mono\">minimize()</code> による分析が動いていますか。スイープの種類を選び、いま使っている変数と閾値をそのまま入力すると、対応する <code class=\"mono\">ThSQCA</code> の呼び出しコードをコピーできます。",
+  lead:"変数を0か1に二値化するときの閾値を動かしながらQCAを行う、ThSQCA（閾値スイープQCA）のコードを組み立てるアプリです。閾値を1つに固定した通常のQCA（<code class=\"mono\">QCA::truthTable()</code> / <code class=\"mono\">minimize()</code>）が、すでに動いていることを前提とします。スイープに進む前に、通常のQCAで分析が成立することを確認してください。二値化したデータで通常のQCAを試すコードは、<a href=\"qca-quickstart.html\">QCAクイックスタート</a>で作れます。<br><br>スイープの種類を選び、いま使っている変数と閾値をそのまま入力すると、対応する <code class=\"mono\">ThSQCA</code> の呼び出しコードをコピーできます。",
   sec1:"スイープの種類",
   tabOt:"アウトカム", tabCts:"単一条件", tabCtm:"複数条件", tabDt:"二重",
   tabDesc_ot:"すべての条件閾値を固定し、アウトカム閾値だけを変化させます。アウトカムの目標水準が上がるにつれて、十分性解が変わるかどうかを確かめるために使います。",
@@ -493,11 +529,11 @@ Object.assign(I18N.ja,{
   sec2:"データと変数",
   lblDat:"データ <span class=\"hint\">Rの変数名</span>",
   lblOutcome:"アウトカム <span class=\"hint\">列名</span>",
-  lblThrY:"アウトカム閾値 <span class=\"hint\">固定値</span>",
-  lblRange:"アウトカム閾値の範囲 <span class=\"hint\">例: 6:9</span>",
+  lblThrY:"アウトカム閾値 <span class=\"hint\">固定値。この値以上を1にします</span>",
+  lblRange:"アウトカム閾値の範囲 <span class=\"hint\">例: 6:9（6, 7, 8, 9）</span>",
   lblConds:"条件変数 <span class=\"hint\">列名をコンマ区切りで</span>",
   sec3:"条件閾値",
-  noteThr:"ほとんどの条件は元の尺度のままで、閾値で二値化されます。すでにファジィ集合のメンバーシップスコア（[0, 1]）にキャリブレーション済みの条件には、<b>ファジィ 0&ndash;1</b> にチェックを入れてください。その条件は閾値なしでそのまま渡され（<code class=\"mono\">pre_calibrated</code> 経由）、スイープ対象の変数としては選べなくなります。",
+  noteThr:"ほとんどの条件は元の尺度のままで、閾値で二値化されます。すでにファジィ集合のメンバーシップスコア（[0, 1]）にキャリブレーション済みの条件には、<b>ファジィ 0&ndash;1</b> にチェックを入れてください。その条件は閾値なしでそのまま渡され（<code class=\"mono\">pre_calibrated</code> 経由）、スイープ対象の変数としては選べなくなります。複数条件と二重では、条件ごとに、<b>固定</b>（閾値を1つの値に固定する）か、<b>スイープ</b>（下限から上限まで動かす）かを選びます。",
   fuzzyLabel:"ファジィ 0&ndash;1",
   fuzzyNoThr:"ファジィ、閾値なし",
   alreadyFuzzy:"すでに0&ndash;1のスコア",
@@ -529,7 +565,7 @@ Object.assign(I18N.ja,{
   dirNone:"期待なし",
   dirFavors:"存在・高水準がアウトカムに寄与",
   dirDisfavors:"不在・低水準がアウトカムに寄与",
-  noteDir:"条件ごとに、その存在・高水準がアウトカムの成立に寄与するのか（<b>存在・高水準がアウトカムに寄与</b>）、不在・低水準が寄与するのか（<b>不在・低水準がアウトカムに寄与</b>）、あるいはどちらとも言えないのか（<b>期待なし</b>）を選びます。この設定こそが、倹約解を中間解に変えるものです。中間解は、QCAの多くの解説書（Ragin 2008; Schneider &amp; Wagemann 2012）が報告を推奨している種類の解です。",
+  noteDir:"条件ごとに、その存在・高水準がアウトカムの成立に寄与するのか（<b>存在・高水準がアウトカムに寄与</b>）、不在・低水準が寄与するのか（<b>不在・低水準がアウトカムに寄与</b>）、あるいはどちらとも言えないのか（<b>期待なし</b>）を選びます。この設定こそが、倹約解を中間解に変えるものです。中間解は、QCAの多くの解説書（Ragin 2008; Schneider &amp; Wagemann 2012）が報告を推奨している種類の解です。分析対象の特性や理論的背景をふまえて判断してください。この設定は、中間解のときだけ使われます。",
   adv:"詳細設定（extract_mode, pri.cut）",
   lblSweepVar:"スイープする条件",
   lblCtsRange:"その条件の閾値の範囲 <span class=\"hint\">例: 6:9</span>",
@@ -539,6 +575,10 @@ Object.assign(I18N.ja,{
   copy:"コードをコピー",
   copied:"コピーしました",
   codeEmpty:"# 条件変数を一つ以上入力すると、コードが生成されます",
+  tabGuide:"スイープの種類の選び方",
+  tabGuideBody:"<ul><li><b>アウトカム</b>: アウトカムを、どの水準で「ある」とみなすかを動かしたいとき。条件の閾値は固定します。</li><li><b>単一条件</b>: 1つの条件の閾値だけを動かしたいとき。ほかの条件とアウトカムは固定します。</li><li><b>複数条件</b>: 複数の条件の閾値を、同時に格子状に動かしたいとき。アウトカムは固定します。</li><li><b>二重</b>: アウトカムと条件の閾値を、同時に動かしたいとき。最も一般的な形で、組み合わせの数が増えます。</li></ul>はじめは、動かすものを1つにしぼると、結果の変化が読み取りやすくなります。",
+  noteAdv:"<b>extract_mode</b>: 複数の解（M1, M2…）が出たときの扱いです。<b>first</b>（初期値）は、最初の解（M1）だけを返します。<b>all</b> は、すべての解を連結して返します。<b>essential</b> は、すべての解に共通する項（必須項）に加えて、選択項（解によって異なる項）と解の数を返します。<br><b>pri.cut</b>: PRI（proportional reduction in inconsistency）の基準値です。0（初期値）のときは、PRIによる絞り込みを行いません。0/1に二値化したデータでは、PRIは一貫性と同じ値になるため、incl.cut 以下の値を指定しても結果は変わりません。incl.cut より大きい値にすると、基準が厳しくなり、解が変わることがあります。",
+  readFirst:"<b>使う前と、結果を読む前に</b><ul><li><b class=\"em\">QCAを使う前に、必ず入門書などで手法の基礎を理解してください。</b>このツールは、Rのコードを組み立てるだけで、結果の意味は教えてくれません。</li><li>スイープの前に、閾値を1つに固定した通常のQCAで、分析が成立することを確認してください。</li><li>QCAは、設定した閾値を固定して、十分条件などを出力します。ただし、意思決定の支援に使う場合は、各変数の閾値を動かすことも有効です。詳しくは、ブログの「<a href=\"https://im-research-yt.github.io/ja/\" target=\"_blank\" rel=\"noopener\">2. RでThSQCAを使ってみる</a>」を読んでください。</li><li>解は、因果関係の証明ではありません。観察データのなかで、アウトカムに結びつく条件の組み合わせが見つかった、ということです。施策の候補や、検証すべき仮説の材料として読んでください。</li><li>解が出ないときも、「経路が存在しない」という意味ではありません。この条件、測定、事例数、設定では、最小解が出なかった、ということです。</li></ul><div class=\"rf-books\"><b>QCAの代表的な入門書</b><ul><li>Oana, I.-E., Schneider, C. Q., &amp; Thomann, E. (2021). <i>Qualitative comparative analysis using R: A beginner's guide</i>. Cambridge University Press. <a href=\"https://doi.org/10.1017/9781009006781\" target=\"_blank\" rel=\"noopener\">DOI</a></li><li>Schneider, C. Q., &amp; Wagemann, C. (2012). <i>Set-theoretic methods for the social sciences: A guide to qualitative comparative analysis</i>. Cambridge University Press. <a href=\"https://doi.org/10.1017/CBO9781139004244\" target=\"_blank\" rel=\"noopener\">DOI</a></li><li>Ragin, C. C. (2008). <i>Redesigning social inquiry: Fuzzy sets and beyond</i>. University of Chicago Press.</li></ul><b>ThSQCAや閾値の扱いに関する文献</b><ul><li>Toyoda, Y. (2026). Threshold-sweep QCA: Threshold dependence as an analytical dimension. <i>Quality &amp; Quantity</i>. <a href=\"https://doi.org/10.1007/s11135-026-03092-3\" target=\"_blank\" rel=\"noopener\">DOI</a></li><li>Krogslund, C., Choi, D. D., &amp; Poertner, M. (2015). Fuzzy sets on shaky ground: Parameter sensitivity and confirmation bias in fsQCA. <i>Political Analysis, 23</i>(1), 21&ndash;41. <a href=\"https://doi.org/10.1093/pan/mpu016\" target=\"_blank\" rel=\"noopener\">DOI</a></li></ul><a href=\"https://im-research-yt.github.io/ja/articles/reading-list-basics/\" target=\"_blank\" rel=\"noopener\">ブログの文献リスト（基礎編）を見る &rarr;</a></div>",
   trust:"<b>結果を信頼できる理由:</b> どのスイープ関数も、真理表の構築とBoolean最小化を <code class=\"mono\">QCA::truthTable()</code> と <code class=\"mono\">QCA::minimize()</code> にそのまま任せています。ThSQCA は、繰り返し実行して結果を集め、報告するだけで、計算を再実装してはいません。そのため、すべてのセルで、QCAを直接実行した結果と一致します。",
   ftCode:"コードの対象バージョン: ThSQCA 2.0.9（CRAN）",
   ftQs:"QCAクイックスタート",
@@ -820,6 +860,8 @@ Object.assign(I18N.ja,{
       lines.push("  thrX = " + rNamedVector(thrXPairs) + ",");
       if (precalLine) lines.push("  " + precalLine + ",");
       commonTail.forEach(function(l){ lines.push("  " + l + ","); });
+      lines.push("  pri.cut = " + priCut + ",");
+      lines.push('  extract_mode = "' + extractMode + '",');
       lines.push("  return_details = TRUE");
       lines.push(")");
     }
