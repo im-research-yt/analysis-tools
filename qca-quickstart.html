@@ -267,6 +267,7 @@ html[lang="en"] .backlink-home.bl-en{display:inline}
             </select>
           </div>
         </div>
+        <p class="note-box" data-ih="noteDef"></p>
         <p class="note-box" id="solutionHelp"></p>
 
         <div id="dirExpSection">
@@ -341,12 +342,13 @@ Object.assign(I18N.en,{
   desc:"Generates a ready-to-run QCA script (truthTable / minimize) for data you've already calibrated to crisp 0/1 or fuzzy [0,1] membership scores.",
   eyebrow:"QCA · quickstart",
   h1:"Write a first QCA script",
-  lead:"New to <code class=\"mono\">QCA</code>? This assumes your data is already calibrated; each column already a crisp 0/1 or fuzzy [0,1] set-membership score, whichever you used. Enter your data, outcome and conditions, and get a working <code class=\"mono\">truthTable()</code> &rarr; <code class=\"mono\">minimize()</code> script ready to paste into R. No calibration step, and no need to say which columns are crisp and which are fuzzy; <code class=\"mono\">truthTable()</code> handles both from the values themselves.",
+  lead:"Writing a <code class=\"mono\">QCA</code> script by hand is hard at first. Enter your data object, outcome and conditions, and this tool assembles a ready-to-run <code class=\"mono\">truthTable()</code> &rarr; <code class=\"mono\">minimize()</code> script to paste into R. It assumes your data is already calibrated: each outcome and condition column is either a crisp set (0 or 1) or a fuzzy set (a membership score from 0 to 1). If you are new to QCA, crisp-set QCA with 0/1 data is the easiest place to start. Crisp and fuzzy columns can be mixed, and you do not need to say which is which; <code class=\"mono\">truthTable()</code> tells them apart from the values themselves.",
   sec1:"Data, outcome & conditions",
-  noteCal:"Assumes every column below (outcome and conditions alike) already holds set-membership scores, either crisp (0/1) or fuzzy ([0, 1]). If any of yours are still raw values, calibrate them first with <code class=\"mono\">calibrate()</code>; this tool starts from <code class=\"mono\">truthTable()</code>.",
-  lblDat:"Data object <span class=\"hint\">R variable name</span>",
+  noteCal:"Before you start, load your data into R (for example <code class=\"mono\">dat &lt;- read.csv(\"data.csv\")</code>) and enter the name of that R object below, not the CSV file name. Every column used here, outcome and conditions alike, must already hold set-membership scores, crisp (0/1) or fuzzy ([0, 1]). If any column still holds raw values, convert it first with <code class=\"mono\">calibrate()</code>; this tool starts from <code class=\"mono\">truthTable()</code>.",
+  lblDat:"Data object <span class=\"hint\">R object name, not the CSV file name</span>",
   lblOutcome:"Outcome <span class=\"hint\">column name</span>",
   lblConds:"Condition variables <span class=\"hint\">comma-separated column names</span>",
+  noteDef:"The initial values (incl.cut = 0.8, n.cut = 1, intermediate solution) are for practice. Thresholds should be chosen for each study, so check the settings in an introductory QCA text before you report results.",
   sec2:"Analysis settings",
   lblIncl:"incl.cut <span class=\"hint\">consistency</span>",
   lblN:"n.cut <span class=\"hint\">frequency</span>",
@@ -370,7 +372,7 @@ Object.assign(I18N.en,{
   dirNone:"No expectation",
   dirFavors:"Favors outcome (presence/high)",
   dirDisfavors:"Disfavors outcome (absence/low)",
-  noteDir:"For each condition: does its presence/high level (<b>Favors outcome</b>) or its absence/low level (<b>Disfavors outcome</b>) help produce the outcome, or is there <b>No expectation</b> either way? This is what turns the parsimonious solution into the intermediate solution; the type most QCA guides (Ragin 2008; Schneider &amp; Wagemann 2012) recommend reporting.",
+  noteDir:"For each condition, choose whether its presence/high level (<b>Favors outcome</b>) or its absence/low level (<b>Disfavors outcome</b>) is expected to help produce the outcome, or choose <b>No expectation</b> if you cannot tell. Base the choice on the subject matter and the theory. This setting is used only for the intermediate solution; it is what turns the parsimonious solution into the intermediate solution, the type most QCA guides (Ragin 2008; Schneider &amp; Wagemann 2012) recommend reporting.",
   emptyConds:"Enter at least one condition variable above.",
   codeTitle:"Generated R code",
   copy:"Copy code",
@@ -387,13 +389,14 @@ Object.assign(I18N.ja,{
   title:"QCAクイックスタート",
   desc:"すでにクリスプ（0/1）またはファジィ（[0,1]）のメンバーシップスコアにキャリブレーション済みのデータから、そのまま実行できるQCAスクリプト（truthTable / minimize）を生成します。",
   eyebrow:"QCA · クイックスタート",
-  h1:"はじめてのQCAスクリプトを作る",
-  lead:"<code class=\"mono\">QCA</code> は初めてですか。ここでは、データがすでにキャリブレーション済みであることを前提にします。つまり、各列がクリスプ（0/1）またはファジィ（[0,1]）の集合帰属スコア（メンバーシップスコア）になっているものとします。データ、アウトカム、条件を入力すると、Rに貼り付けてそのまま使える <code class=\"mono\">truthTable()</code> &rarr; <code class=\"mono\">minimize()</code> のスクリプトが得られます。キャリブレーションの手順は含まれず、どの列がクリスプでどの列がファジィかを指定する必要もありません。<code class=\"mono\">truthTable()</code> が値そのものから両方を判別して処理します。",
+  h1:"R用のQCAスクリプトを作る",
+  lead:"<code class=\"mono\">QCA</code> のスクリプトは、はじめのうちは書くのが大変です。データ、アウトカム、条件を入力すると、Rに貼り付けてそのまま使える <code class=\"mono\">truthTable()</code> &rarr; <code class=\"mono\">minimize()</code> のスクリプトを組み立てます。データは、すでにキャリブレーション済みであることが前提です。アウトカムと条件の各列は、クリスプセットなら0か1、ファジィセットなら0から1の範囲のメンバーシップ値にしておきます。不慣れなうちは、0か1のクリスプセットQCAをお勧めします。列ごとに、0/1とファジィ値が混在していても構いません。どの列がクリスプでどの列がファジィかを指定する必要はなく、<code class=\"mono\">truthTable()</code> が値そのものから判別します。",
   sec1:"データ、アウトカム、条件",
-  noteCal:"以下のすべての列（アウトカムも条件も）が、すでにクリスプ（0/1）またはファジィ（[0, 1]）のメンバーシップスコアになっていることを前提とします。元の値のままの列がある場合は、先に <code class=\"mono\">calibrate()</code> でキャリブレーションしてください。このツールは <code class=\"mono\">truthTable()</code> から始まります。",
-  lblDat:"データ <span class=\"hint\">Rの変数名</span>",
+  noteCal:"はじめに、データをRに読み込んでください（例: <code class=\"mono\">dat &lt;- read.csv(\"data.csv\")</code>）。下の欄には、CSVファイル名ではなく、Rに読み込んだデータオブジェクトの名前を入力します。ここで使うすべての列（アウトカムも条件も）は、すでにクリスプ（0/1）またはファジィ（[0, 1]）のメンバーシップ値になっている必要があります。元の値のままの列がある場合は、先に <code class=\"mono\">calibrate()</code> で変換してください。このツールは <code class=\"mono\">truthTable()</code> から始まります。",
+  lblDat:"データ <span class=\"hint\">Rに読み込んだデータオブジェクト名（CSVファイル名ではない）</span>",
   lblOutcome:"アウトカム <span class=\"hint\">列名</span>",
   lblConds:"条件変数 <span class=\"hint\">列名をコンマ区切りで</span>",
+  noteDef:"初期値（incl.cut = 0.8、n.cut = 1、中間解）は練習用です。閾値は研究ごとに決めるものなので、結果を報告するときは、QCAの入門書で設定を確認してください。",
   sec2:"分析の設定",
   lblIncl:"incl.cut <span class=\"hint\">一貫性閾値</span>",
   lblN:"n.cut <span class=\"hint\">頻度閾値</span>",
@@ -417,7 +420,7 @@ Object.assign(I18N.ja,{
   dirNone:"期待なし",
   dirFavors:"存在・高水準がアウトカムに寄与",
   dirDisfavors:"不在・低水準がアウトカムに寄与",
-  noteDir:"条件ごとに、その存在・高水準がアウトカムの成立に寄与するのか（<b>存在・高水準がアウトカムに寄与</b>）、不在・低水準が寄与するのか（<b>不在・低水準がアウトカムに寄与</b>）、あるいはどちらとも言えないのか（<b>期待なし</b>）を選びます。この設定が、倹約解を中間解に変えます。中間解は、QCAの多くの解説書（Ragin 2008; Schneider &amp; Wagemann 2012）が報告を推奨している種類の解です。",
+  noteDir:"条件ごとに、その存在・高水準がアウトカムの成立に寄与すると期待するのか（<b>存在・高水準がアウトカムに寄与</b>）、不在・低水準が寄与すると期待するのか（<b>不在・低水準がアウトカムに寄与</b>）、判断できないのか（<b>期待なし</b>）を選びます。分析対象の特性や理論的背景をふまえて判断してください。この設定は中間解のときだけ使われ、倹約解を中間解に変えるものです。中間解は、QCAの多くの解説書（Ragin 2008; Schneider &amp; Wagemann 2012）が報告を推奨している種類の解です。",
   emptyConds:"上の欄に条件変数を一つ以上入力してください。",
   codeTitle:"生成されたRコード",
   copy:"コードをコピー",
